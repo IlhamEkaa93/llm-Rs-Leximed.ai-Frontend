@@ -1,0 +1,76 @@
+.admin-knowledge-page {
+  animation: fadeIn 0.4s ease-out;
+}
+
+.knowledge-grid {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 24px;
+  margin-top: 24px;
+}
+
+/* Upload Section */
+.upload-card {
+  background: white;
+  border: 2px dashed #e2e8f0;
+  border-radius: 16px;
+  padding: 30px 20px;
+  text-align: center;
+  margin-bottom: 20px;
+  transition: 0.3s;
+}
+
+.upload-card:hover { border-color: #f59e0b; background: #fffbeb; }
+
+.upload-icon { color: #f59e0b; margin-bottom: 15px; }
+.upload-card h3 { font-size: 1.1rem; margin-bottom: 8px; color: #1e293b; }
+.upload-card p { font-size: 0.8rem; color: #64748b; line-height: 1.5; margin-bottom: 20px; }
+
+.btn-upload-trigger {
+  background: #0f172a; color: white; border: none; padding: 10px 20px;
+  border-radius: 8px; font-weight: 700; cursor: pointer; width: 100%;
+}
+
+.rag-status-card {
+  background: white; padding: 20px; border-radius: 16px; border: 1px solid #e2e8f0;
+}
+.rag-status-card h4 { margin-top: 0; display: flex; align-items: center; gap: 8px; font-size: 0.9rem; color: #64748b; }
+.status-item { display: flex; justify-content: space-between; font-size: 0.85rem; margin-top: 12px; }
+.online-tag { color: #10b981; font-weight: 800; text-transform: uppercase; font-size: 0.75rem; }
+
+/* Document List */
+.document-list-section {
+  background: white; border-radius: 16px; border: 1px solid #e2e8f0; overflow: hidden;
+}
+
+.list-header {
+  padding: 20px 24px; border-bottom: 1px solid #f1f5f9;
+  display: flex; justify-content: space-between; align-items: center;
+}
+
+.search-doc {
+  display: flex; align-items: center; gap: 10px; background: #f1f5f9;
+  padding: 6px 15px; border-radius: 8px; width: 250px;
+}
+.search-doc input { border: none; background: transparent; outline: none; font-size: 0.85rem; width: 100%; }
+
+.doc-table { width: 100%; border-collapse: collapse; }
+.doc-table th { text-align: left; padding: 15px 24px; background: #f8fafc; font-size: 0.8rem; color: #64748b; }
+.doc-table td { padding: 15px 24px; border-bottom: 1px solid #f1f5f9; font-size: 0.9rem; }
+
+.doc-name { display: flex; align-items: center; gap: 10px; font-weight: 600; color: #1e293b; }
+
+.status-badge {
+  display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px;
+  border-radius: 50px; font-size: 0.75rem; font-weight: 700;
+}
+.status-badge.indexed { background: #dcfce7; color: #15803d; }
+.status-badge.processing { background: #eff6ff; color: #2563eb; }
+
+.btn-delete-doc {
+  background: transparent; border: none; color: #94a3b8; cursor: pointer; transition: 0.2s;
+}
+.btn-delete-doc:hover { color: #ef4444; }
+
+.spin { animation: spin 1.5s linear infinite; }
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }

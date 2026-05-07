@@ -1,0 +1,249 @@
+/* =========================================
+   STYLE LAYAR (WEB VIEW)
+   ========================================= */
+.resume-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px;
+  animation: fadeIn 0.5s ease-out;
+}
+
+.resume-control-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+.title-text h1 { font-size: 1.8rem; color: #0f172a; margin: 0; }
+.title-text p { color: #64748b; margin-top: 5px; }
+
+.action-buttons { 
+  display: flex; 
+  gap: 12px; 
+  z-index: 100;
+}
+
+.btn-primary, .btn-secondary {
+  cursor: pointer;
+  transition: 0.3s;
+  border-radius: 10px;
+  padding: 12px 24px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-primary { background: #2563eb; color: white; border: none; }
+.btn-primary:hover { background: #1d4ed8; transform: translateY(-2px); }
+
+.btn-secondary { background: white; border: 1.5px solid #e2e8f0; color: #0f172a; }
+.btn-secondary:hover { background: #f8fafc; }
+
+/* Kertas Dokumen Medis */
+.resume-document-paper {
+  background: white;
+  padding: 60px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05);
+  min-height: 1100px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header Rumah Sakit */
+.hospital-brand {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  border-bottom: 3px solid #0f172a;
+  padding-bottom: 20px;
+}
+.hospital-brand img { width: 70px; height: auto; }
+
+.doc-title {
+  margin-top: 15px;
+  font-weight: 900;
+  font-size: 1.1rem;
+  color: #1e40af;
+  text-align: center;
+  text-transform: uppercase;
+  text-decoration: underline;
+}
+
+/* Strip Info Pasien */
+.patient-info-strip {
+  display: flex;
+  justify-content: space-between;
+  background: #f8fafc;
+  padding: 15px;
+  border-radius: 8px;
+  margin: 25px 0;
+  border: 1px solid #f1f5f9;
+}
+
+/* Seksi Konten Medis */
+.resume-section { margin-bottom: 30px; }
+.resume-section label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 900;
+  color: #475569;
+  background: #f1f5f9;
+  padding: 8px 12px;
+  border-left: 4px solid #0f172a;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+}
+
+.content-box { font-size: 1rem; line-height: 1.7; color: #1e293b; padding: 0 12px; }
+
+/* =========================================
+   PERBAIKAN LAYOUT BAWAH (SIGNATURE AREA)
+   ========================================= */
+.resume-footer-sign {
+  margin-top: auto; /* Memaksa tanda tangan selalu di bagian paling bawah dokumen */
+  padding-top: 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+.qr-code-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: #1e293b;
+  font-size: 0.75rem;
+  font-weight: 600;
+  max-width: 200px;
+}
+
+.qr-code-placeholder span {
+  text-align: center;
+  line-height: 1.4;
+}
+
+.doctor-sign {
+  text-align: center;
+  min-width: 280px;
+}
+
+.doctor-sign p {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #1e293b;
+}
+
+.doctor-sign .space {
+  height: 90px; /* Ruang untuk tanda tangan basah/stempel */
+}
+
+.doctor-sign strong {
+  display: block;
+  font-size: 1.05rem;
+  border-bottom: 1px solid #1e293b;
+  width: fit-content;
+  margin: 0 auto;
+}
+
+/* =========================================
+   SISTEM CETAK (PRINT)
+   ========================================= */
+@media print {
+  body {
+    background: white !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  body * {
+    visibility: hidden;
+  }
+
+  .resume-container, 
+  .resume-container *, 
+  .resume-document-paper, 
+  .resume-document-paper * {
+    visibility: visible;
+  }
+
+  .resume-container {
+    position: absolute;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .resume-control-header,
+  .action-buttons,
+  .no-print,
+  .layout-sidebar,
+  .main-nav,
+  .sidebar-bottom {
+    display: none !important;
+  }
+
+  .resume-document-paper {
+    border: none !important;
+    box-shadow: none !important;
+    padding: 10mm !important;
+    width: 100% !important;
+    min-height: auto !important;
+  }
+
+  @page {
+    size: A4;
+    margin: 15mm;
+  }
+}
+
+/* Animasi */
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+/* --- FIX LAYOUT INFO PASIEN AGAR TIDAK BERTUMPUK --- */
+.patient-info-strip {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 20px;
+    padding: 20px 0;
+    margin-top: 30px;
+    border-top: 2px solid #f1f5f9;
+    border-bottom: 2px solid #f1f5f9;
+}
+
+.strip-item {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.strip-item.border-sides {
+    border-left: 1px solid #e2e8f0;
+    border-right: 1px solid #e2e8f0;
+    padding: 0 24px;
+}
+
+.strip-item.text-right {
+    text-align: right;
+}
+
+.strip-label {
+    font-size: 10px;
+    color: #64748b;
+    text-transform: uppercase;
+    font-weight: 900;
+    letter-spacing: 1px;
+}
+
+.strip-value {
+    font-size: 15px;
+    color: #0f172a;
+    font-weight: bold;
+}

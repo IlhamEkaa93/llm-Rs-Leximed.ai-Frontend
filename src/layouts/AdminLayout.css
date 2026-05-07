@@ -1,0 +1,242 @@
+/* Container Utama */
+.layout-root {
+  display: flex;
+  height: 100vh;
+  background: #f1f5f9;
+  overflow: hidden;
+}
+
+/* SIDEBAR STYLES */
+.layout-sidebar {
+  width: 280px;
+  background: #0f172a; /* Deep Slate */
+  color: white;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 4px 0 10px rgba(0, 0, 0, 0.1);
+  z-index: 100;
+}
+
+.sidebar-brand {
+  padding: 32px 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border-bottom: 1px solid #1e293b;
+}
+
+.sidebar-brand img {
+  width: 42px;
+  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.2));
+}
+
+.brand-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.app-name {
+  font-weight: 800;
+  font-size: 1.1rem;
+  letter-spacing: 0.5px;
+}
+
+.role-pill {
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 4px;
+  width: fit-content;
+  margin-top: 4px;
+}
+
+.role-pill.dokter { background: #2563eb; color: white; }
+.role-pill.perawat { background: #10b981; color: white; }
+.role-pill.admin { background: #f59e0b; color: white; }
+
+.sidebar-links {
+  flex: 1;
+  padding: 24px 0;
+  overflow-y: auto;
+}
+
+.menu-item {
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  color: #94a3b8;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+.menu-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: white;
+}
+
+.menu-item.active {
+  background: rgba(37, 99, 235, 0.15);
+  color: #3b82f6;
+  border-left: 4px solid #3b82f6;
+}
+
+.sidebar-bottom {
+  padding: 16px;
+  border-top: 1px solid #1e293b;
+}
+
+.logout-link {
+  color: #f87171 !important;
+}
+
+.logout-link:hover {
+  background: rgba(239, 68, 68, 0.1) !important;
+}
+
+/* MAIN CONTENT STYLES */
+.layout-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.main-nav {
+  height: 72px;
+  background: white;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32px;
+}
+
+.nav-search {
+  display: flex;
+  align-items: center;
+  background: #f1f5f9;
+  padding: 10px 16px;
+  border-radius: 50px;
+  width: 400px;
+  gap: 12px;
+  border: 1px solid transparent;
+  transition: 0.3s;
+}
+
+.nav-search:focus-within {
+  border-color: #3b82f6;
+  background: white;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+}
+
+.nav-search input {
+  border: none;
+  background: transparent;
+  outline: none;
+  width: 100%;
+  font-size: 0.9rem;
+  color: #1e293b;
+}
+
+.nav-user {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.nav-icon-wrapper {
+  position: relative;
+  cursor: pointer;
+  color: #64748b;
+}
+
+.dot-notif {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 8px;
+  height: 8px;
+  background: #ef4444;
+  border-radius: 50%;
+  border: 2px solid white;
+}
+
+.user-meta {
+  text-align: right;
+}
+
+.user-name {
+  font-weight: 700;
+  color: #1e293b;
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.user-id {
+  font-size: 0.75rem;
+  color: #64748b;
+  margin: 0;
+}
+
+.user-avatar-box {
+  width: 42px;
+  height: 42px;
+  background: #f1f5f9;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+  border: 1px solid #e2e8f0;
+  cursor: pointer;
+}
+
+/* SCROLL AREA */
+.main-scroll {
+  flex: 1;
+  padding: 32px;
+  overflow-y: auto;
+}
+
+.container-fluid {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* Menghilangkan scrollbar tapi tetap bisa scroll */
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Efek Glassmorphism untuk Sidebar Aktif */
+.menu-item.active {
+  background: linear-gradient(90deg, rgba(37, 99, 235, 1) 0%, rgba(37, 99, 235, 0.8) 100%);
+}
+
+/* Animasi Pulse untuk Notifikasi */
+@keyframes pulse-custom {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+  70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+
+.pulse {
+  animation: pulse-custom 2s infinite;
+}
+
+/* Root Transitions */
+body {
+  @apply antialiased text-slate-900;
+  background-color: #f8fafc;
+}
+
+/* Smooth Shadow */
+.shadow-glow {
+  box-shadow: 0 0 20px rgba(37, 99, 235, 0.2);
+}

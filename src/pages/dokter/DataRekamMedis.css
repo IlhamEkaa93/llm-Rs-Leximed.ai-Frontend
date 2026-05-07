@@ -1,0 +1,352 @@
+/* =========================================
+   HALAMAN DATA REKAM MEDIS (DataRekamMedis.css)
+   ========================================= */
+
+.rekam-medis-page {
+  animation: fadeIn 0.4s ease-out;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* 1. Patient Banner & Info Utama */
+.patient-banner {
+  background: white;
+  padding: 24px 32px;
+  border-radius: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 1px solid #e2e8f0;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.patient-basic { 
+  display: flex; 
+  align-items: center; 
+  gap: 24px; 
+}
+
+.avatar-med {
+  width: 64px; 
+  height: 64px; 
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); 
+  color: white;
+  display: flex; 
+  align-items: center; 
+  justify-content: center;
+  border-radius: 16px; 
+  font-size: 1.8rem; 
+  font-weight: 800;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+}
+
+.patient-basic h2 { 
+  font-size: 1.6rem; 
+  color: #0f172a; 
+  margin: 0; 
+  font-weight: 800;
+}
+
+.patient-basic h2 span { 
+  font-size: 1rem; 
+  color: #64748b; 
+  font-weight: 500; 
+  margin-left: 8px;
+}
+
+.alergi-tag { 
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #dc2626; 
+  font-weight: 700; 
+  background: #fee2e2; 
+  padding: 4px 12px; 
+  border-radius: 6px; 
+  font-size: 0.85rem;
+  margin-top: 6px;
+}
+
+/* 2. Vital Stats Bar */
+.vital-stats-bar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.vital-item {
+  background: white; 
+  padding: 16px; 
+  border-radius: 16px;
+  text-align: center; 
+  border: 1px solid #e2e8f0;
+  transition: transform 0.2s;
+}
+
+.vital-item:hover {
+  transform: translateY(-2px);
+  border-color: #3b82f6;
+}
+
+.vital-item span { 
+  display: block; 
+  font-size: 0.75rem; 
+  color: #64748b; 
+  font-weight: 800; 
+  text-transform: uppercase; 
+  margin-bottom: 4px;
+}
+
+.vital-item strong { 
+  font-size: 1.4rem; 
+  color: #0f172a; 
+  font-weight: 800;
+}
+
+.vital-item small {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  margin-left: 4px;
+}
+
+/* 3. Navigation Tabs */
+.medis-tabs {
+  display: flex; 
+  gap: 12px; 
+  margin-bottom: 24px;
+  background: #f1f5f9;
+  padding: 6px;
+  border-radius: 14px;
+  width: fit-content;
+}
+
+.medis-tabs button {
+  padding: 10px 24px; 
+  border: none; 
+  background: transparent; 
+  color: #64748b;
+  border-radius: 10px; 
+  cursor: pointer; 
+  font-weight: 700;
+  display: flex; 
+  align-items: center; 
+  gap: 10px; 
+  transition: all 0.3s ease;
+  font-size: 0.95rem;
+}
+
+.medis-tabs button:hover {
+  color: #0f172a;
+}
+
+.medis-tabs button.active {
+  background: white; 
+  color: #2563eb; 
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* 4. Content Area */
+.content-card {
+  background: white; 
+  padding: 32px; 
+  border-radius: 20px; 
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.content-card h3 { 
+  margin-top: 0; 
+  margin-bottom: 24px; 
+  font-size: 1.25rem; 
+  color: #1e293b; 
+  font-weight: 800;
+}
+
+/* 5. Timeline Clinical Notes */
+.timeline-med { 
+  position: relative; 
+  padding-left: 32px; 
+  border-left: 2px dashed #e2e8f0; 
+}
+
+.timeline-item { 
+  margin-bottom: 32px; 
+  position: relative; 
+}
+
+.timeline-item::before {
+  content: '';
+  position: absolute;
+  left: -41px;
+  top: 4px;
+  width: 16px;
+  height: 16px;
+  background: white;
+  border: 4px solid #2563eb;
+  border-radius: 50%;
+}
+
+.time-marker { 
+  font-size: 0.85rem; 
+  font-weight: 800; 
+  color: #2563eb; 
+  margin-bottom: 8px; 
+  text-transform: uppercase;
+}
+
+.time-desc h4 { 
+  margin: 0 0 8px 0; 
+  color: #0f172a; 
+  font-size: 1.1rem;
+}
+
+.time-desc p { 
+  color: #475569; 
+  line-height: 1.7; 
+  margin: 0; 
+  font-size: 0.95rem;
+}
+
+.dr-tag { 
+  display: inline-flex; 
+  align-items: center;
+  margin-top: 12px; 
+  font-size: 0.8rem; 
+  color: #94a3b8; 
+  font-weight: 600;
+  background: #f8fafc;
+  padding: 4px 10px;
+  border-radius: 4px;
+}
+
+/* 6. Medical Tables */
+.med-table { 
+  width: 100%; 
+  border-collapse: separate; 
+  border-spacing: 0;
+}
+
+.med-table th { 
+  text-align: left; 
+  padding: 16px; 
+  background: #f8fafc; 
+  color: #64748b; 
+  font-size: 0.8rem; 
+  font-weight: 800;
+  text-transform: uppercase;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.med-table td { 
+  padding: 16px; 
+  border-bottom: 1px solid #f1f5f9; 
+  color: #1e293b; 
+  font-size: 0.95rem;
+}
+
+.abnormal { 
+  background: #fff1f2; 
+}
+
+.st-high { 
+  color: #be123c; 
+  font-weight: 800; 
+  background: #ffe4e6;
+  padding: 4px 10px;
+  border-radius: 50px;
+}
+
+.st-normal { 
+  color: #15803d; 
+  font-weight: 700; 
+}
+
+/* 7. Medication & Therapy Grid */
+.pill-grid { 
+  display: grid; 
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); 
+  gap: 20px; 
+}
+
+.pill-item {
+  display: flex; 
+  align-items: center; 
+  gap: 20px; 
+  padding: 24px;
+  background: white; 
+  border-radius: 16px; 
+  border: 1px solid #e2e8f0;
+  transition: all 0.3s ease;
+}
+
+.pill-item:hover {
+  border-color: #3b82f6;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+}
+
+.pill-icon { 
+  color: #2563eb; 
+  background: #eff6ff;
+  padding: 12px;
+  border-radius: 12px;
+}
+
+.pill-info h4 { 
+  margin: 0; 
+  font-size: 1.1rem; 
+  color: #0f172a;
+}
+
+.pill-info p { 
+  margin: 6px 0 0; 
+  color: #64748b; 
+  font-size: 0.9rem; 
+  font-weight: 500;
+}
+
+/* 8. UI Elements & Animations */
+.btn-ai-primary {
+  background: #0f172a;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.btn-ai-primary:hover {
+  background: #1e293b;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(15, 23, 42, 0.2);
+}
+
+.no-data-wrapper {
+  min-height: 400px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@keyframes fadeIn { 
+  from { opacity: 0; transform: translateY(12px); } 
+  to { opacity: 1; transform: translateY(0); } 
+}
+
+/* Responsive Adjustments */
+@media (max-width: 1024px) {
+  .vital-stats-bar { grid-template-columns: repeat(2, 1fr); }
+  .patient-banner { flex-direction: column; gap: 20px; align-items: flex-start; }
+}
+
+@media (max-width: 640px) {
+  .medis-tabs { width: 100%; overflow-x: auto; }
+  .vital-stats-bar { grid-template-columns: 1fr; }
+  .pill-grid { grid-template-columns: 1fr; }
+}
