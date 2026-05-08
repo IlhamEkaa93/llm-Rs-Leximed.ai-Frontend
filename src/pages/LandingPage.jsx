@@ -75,7 +75,7 @@ export default function LandingPage() {
               <Zap />
             </div>
             <h3 className="font-black text-slate-800">Llama 3 AI</h3>
-            <p className="text-sm text-slate-500 mt-2">Analisis data klinis otomatis untuk draf SOAP dan SBAR perawat.</p>
+            <p className="text-sm text-slate-500 mt-2">Analisis data klinis otomatis untuk draf dan perawat.</p>
           </div>
           <div className="p-6 bg-white rounded-3xl border border-slate-100 shadow-sm text-left">
             <div className="w-12 h-12 bg-purple-50 text-purple-600 rounded-2xl flex items-center justify-center mb-4">

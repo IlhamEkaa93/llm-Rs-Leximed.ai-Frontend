@@ -2,14 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Bot, RefreshCw, CheckCircle, AlertTriangle, FileText, 
-  Zap, Loader2, ArrowRight, ClipboardList, LayoutDashboard, 
-  ShieldCheck, Database, ChevronRight 
+  RefreshCw, CheckCircle, AlertTriangle, FileText, 
+  Zap, Loader2, ClipboardList, LayoutDashboard, 
+  ShieldCheck, Database, ChevronRight, ArrowLeft, Sparkles 
 } from 'lucide-react';
 
 export default function RingkasanMedis() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [isGeneratingAI, setIsGeneratingAI] = useState(false); // State khusus untuk loading AI
   const [aiResult, setAiResult] = useState("");
   const [isVerified, setIsVerified] = useState(false);
   const [patient, setPatient] = useState(null);
@@ -25,12 +26,11 @@ export default function RingkasanMedis() {
     } else {
       const data = JSON.parse(saved);
       setPatient(data);
-      // Gunakan norm atau no_rm sesuai struktur data database Anda
       fetchSummary(data.norm || data.no_rm);
     }
   }, [navigate]);
 
-  // FUNGSI TARIK DATA DARI DATABASE (POSTGRESQL)
+  // 1. FUNGSI TARIK DATA DARI DATABASE
   const fetchSummary = async (norm) => {
     if (!norm) return;
     setLoading(true);
@@ -44,24 +44,54 @@ export default function RingkasanMedis() {
       
       const data = await res.json();
       
-      if (res.ok && data.ai_summary) {
-        setAiResult(data.ai_summary);
-        // Jika data dari DB sudah verified, kunci tombol
+      if (res.ok && (data.ai_summary || data.raw_content)) {
+        setAiResult(data.ai_summary || data.raw_content);
         if (data.status === 'verified') setIsVerified(true);
       } else {
-        // Tampilkan pesan jika draf belum dibuat di halaman Input Klinis
         setAiResult("");
-        alert(data.message || "Draf AI tidak ditemukan. Silakan isi 'Input Klinis AI' terlebih dahulu.");
+        alert(data.message || "Draf klinis tidak ditemukan. Silakan isi 'Input Klinis' terlebih dahulu.");
       }
     } catch (e) {
       console.error("Connection Error:", e);
-      alert("Gagal terhubung ke Server DARSI.");
+      alert("Gagal terhubung ke Server Database.");
     } finally {
       setLoading(false);
     }
   };
 
-  // FUNGSI VERIFIKASI (SIMPAN PERMANEN KE DB)
+  // 2. FUNGSI TRIGGER AI (Merapikan teks mentah menjadi narasi medis)
+  const handleGenerateAI = async () => {
+    if (!aiResult.trim()) return alert("Teks masih kosong, tidak ada yang bisa dirapikan.");
+    
+    setIsGeneratingAI(true);
+    try {
+      // Endpoint ini nanti akan dibuat di Laravel untuk hit API (Claude/Llama/Voltengine)
+      const response = await fetch(`${API_URL}/clinical-data/${patient.norm || patient.no_rm}/generate-ai`, {
+        method: "POST",
+        headers: { 
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        },
+        body: JSON.stringify({ raw_text: aiResult })
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.summary) {
+        setAiResult(data.summary); // Update textarea dengan hasil dari AI
+      } else {
+        alert(data.message || "Endpoint AI di Backend belum tersedia. Pastikan rute /generate-ai sudah dibuat di Laravel.");
+      }
+    } catch (e) {
+      console.error("AI Error:", e);
+      alert("Gagal memanggil AI. Pastikan server backend berjalan.");
+    } finally {
+      setIsGeneratingAI(false);
+    }
+  };
+
+  // 3. FUNGSI VERIFIKASI (SIMPAN PERMANEN)
   const handleApprove = async () => {
     if (!aiResult) return alert("Data klinis kosong.");
     
@@ -75,7 +105,7 @@ export default function RingkasanMedis() {
           "Accept": "application/json"
         },
         body: JSON.stringify({
-          final_summary: aiResult // Mengirim hasil edit manual dokter jika ada
+          final_summary: aiResult
         })
       });
 
@@ -97,7 +127,7 @@ export default function RingkasanMedis() {
   return (
     <div className="min-h-screen bg-slate-50 p-4 md:p-8 font-sans text-left pb-20">
       
-      {/* MODAL VERIFIKASI (HUMAN-IN-THE-LOOP SUCCESS) */}
+      {/* MODAL VERIFIKASI (SUCCESS) */}
       <AnimatePresence>
         {showExitOptions && (
           <motion.div 
@@ -114,15 +144,15 @@ export default function RingkasanMedis() {
               </div>
               <h2 className="text-3xl font-black text-slate-900 mb-2 tracking-tight">Terverifikasi!</h2>
               <p className="text-slate-500 text-sm leading-relaxed mb-10">
-                Ringkasan medis pasien <span className="font-bold text-slate-800">{patient.name}</span> telah aman tersimpan di database PostgreSQL RS UNS.
+                Ringkasan medis pasien <span className="font-bold text-slate-800">{patient.name}</span> telah aman tersimpan di database PostgreSQL.
               </p>
               
               <div className="flex flex-col gap-3">
-                <button onClick={() => navigate('/resume')} className="w-full p-5 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold flex items-center justify-between shadow-lg transition-all">
-                  <span className="flex items-center gap-3"><ClipboardList size={20} /> Resume Medis</span>
+                <button onClick={() => navigate('/data-medis')} className="w-full p-5 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold flex items-center justify-between shadow-lg transition-all">
+                  <span className="flex items-center gap-3"><ClipboardList size={20} /> Lihat Rekam Medis</span>
                   <ChevronRight size={20} />
                 </button>
-                <button onClick={() => navigate('/dashboard')} className="mt-6 text-xs font-black text-slate-400 hover:text-blue-600 tracking-[0.2em] uppercase flex items-center justify-center gap-2">
+                <button onClick={() => navigate('/dashboard')} className="mt-6 text-xs font-black text-slate-400 hover:text-blue-600 tracking-[0.2em] uppercase flex items-center justify-center gap-2 transition-colors">
                   <LayoutDashboard size={14}/> Kembali ke Dashboard
                 </button>
               </div>
@@ -136,29 +166,41 @@ export default function RingkasanMedis() {
         initial={{ y: -20, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
         className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4 bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm"
       >
-        <div className="space-y-1">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-600 rounded-xl text-white shadow-lg shadow-blue-200"><Bot size={28} /></div>
-            <h1 className="text-3xl font-black text-slate-900 tracking-tighter uppercase italic">AI Summarizer</h1>
+        <div className="space-y-2">
+          <div className="flex items-center gap-4">
+            <button onClick={() => navigate('/data-medis')} className="p-3 bg-slate-100 hover:bg-slate-200 rounded-2xl text-slate-600 transition-colors" title="Kembali ke Rekam Medis">
+               <ArrowLeft size={24} />
+            </button>
+            <div className="p-2 bg-emerald-600 rounded-xl text-white shadow-lg shadow-emerald-200"><FileText size={28} /></div>
+            <h1 className="text-3xl font-black text-slate-900 tracking-tighter uppercase italic">Ringkasan Medis</h1>
           </div>
-          <div className="flex flex-wrap items-center gap-2 text-sm font-semibold text-slate-500">
+          <div className="flex flex-wrap items-center gap-2 text-sm font-semibold text-slate-500 md:pl-[5.5rem]">
             <span>Pasien:</span>
             <b className="text-slate-900">{patient.name}</b>
-            <span className="w-1.5 h-1.5 bg-slate-300 rounded-full mx-1"></span>
+            <span className="w-1.5 h-1.5 bg-slate-300 rounded-full mx-1 hidden sm:block"></span>
             <span className="bg-blue-50 border border-blue-100 px-3 py-0.5 rounded-lg font-mono text-blue-600">RM: {patient.norm || patient.no_rm}</span>
           </div>
         </div>
 
-        <button 
-          onClick={() => fetchSummary(patient.norm || patient.no_rm)} 
-          className={`flex items-center gap-3 px-8 py-4 rounded-2xl font-black text-sm uppercase transition-all border shadow-sm ${
-            loading ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : 'bg-white text-slate-700 hover:bg-slate-50'
-          }`}
-          disabled={loading || isVerified}
-        >
-          <RefreshCw className={loading ? "animate-spin" : ""} size={18} />
-          {loading ? "Syncing..." : "Refresh Data DB"}
-        </button>
+        <div className="flex gap-3 w-full md:w-auto">
+          <button 
+            onClick={() => navigate('/data-medis')}
+            className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-4 rounded-2xl font-black text-sm uppercase transition-all bg-slate-100 text-slate-700 hover:bg-slate-200"
+          >
+            <ClipboardList size={18} /> Cek Rekam Medis
+          </button>
+
+          <button 
+            onClick={() => fetchSummary(patient.norm || patient.no_rm)} 
+            className={`flex-1 md:flex-none flex items-center justify-center gap-3 px-6 py-4 rounded-2xl font-black text-sm uppercase transition-all border shadow-sm ${
+              loading ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : 'bg-white text-slate-700 hover:bg-slate-50'
+            }`}
+            disabled={loading || isVerified || isGeneratingAI}
+          >
+            <RefreshCw className={loading ? "animate-spin" : ""} size={18} />
+            {loading ? "Menyinkronkan..." : "Refresh Draf"}
+          </button>
+        </div>
       </motion.header>
 
       {/* MAIN CONTENT */}
@@ -168,29 +210,58 @@ export default function RingkasanMedis() {
           initial={{ x: -30, opacity: 0 }} animate={{ x: 0, opacity: 1 }}
           className="lg:col-span-2 bg-white rounded-[2.5rem] shadow-xl border border-slate-200 overflow-hidden"
         >
-          <div className="bg-slate-50/80 px-8 py-5 border-b border-slate-100 flex justify-between items-center">
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2">
-              <Zap size={14} className="text-orange-500" fill="currentColor"/> Analisis Llama 3.3
+          <div className="bg-slate-50/80 px-8 py-5 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] flex items-center gap-2">
+              <FileText size={14} className="text-blue-500" fill="currentColor"/> Draf Ringkasan Klinis
             </span>
-            {isVerified && (
-              <span className="bg-emerald-50 text-emerald-600 px-3 py-1 rounded-full text-[10px] font-black flex items-center gap-1.5 border border-emerald-100">
-                <ShieldCheck size={14}/> TERVERIFIKASI
-              </span>
-            )}
+            
+            <div className="flex items-center gap-3">
+              {/* TOMBOL REAL AI TRIGGER */}
+              {!isVerified && (
+                <button 
+                  onClick={handleGenerateAI}
+                  disabled={isGeneratingAI || !aiResult}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-sm ${
+                    isGeneratingAI || !aiResult
+                    ? 'bg-indigo-100 text-indigo-300 cursor-not-allowed'
+                    : 'bg-indigo-600 hover:bg-indigo-700 text-white hover:shadow-md hover:shadow-indigo-200'
+                  }`}
+                >
+                  {isGeneratingAI ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
+                  {isGeneratingAI ? 'AI Bekerja...' : 'Rapikan AI'}
+                </button>
+              )}
+
+              {isVerified && (
+                <span className="bg-emerald-50 text-emerald-600 px-3 py-2 rounded-xl text-[10px] font-black flex items-center gap-1.5 border border-emerald-100">
+                  <ShieldCheck size={14}/> TERVERIFIKASI
+                </span>
+              )}
+            </div>
           </div>
           
-          <textarea 
-            value={aiResult} 
-            onChange={(e) => setAiResult(e.target.value)} 
-            disabled={isVerified}
-            className="w-full h-[550px] p-8 md:p-12 text-slate-700 text-lg leading-relaxed focus:outline-none resize-none bg-transparent font-medium"
-            placeholder="Data tidak ditemukan di database. Pastikan Anda sudah memproses 'Input Klinis AI'."
-          />
+          <div className="relative">
+            {isGeneratingAI && (
+              <div className="absolute inset-0 bg-white/60 backdrop-blur-sm flex flex-col items-center justify-center z-10">
+                <div className="w-16 h-16 bg-indigo-50 rounded-full flex items-center justify-center mb-4 animate-pulse">
+                  <Sparkles size={32} className="text-indigo-500" />
+                </div>
+                <p className="text-indigo-800 font-bold tracking-widest text-xs uppercase animate-pulse">Llama AI Sedang Merapikan Teks...</p>
+              </div>
+            )}
+            <textarea 
+              value={aiResult} 
+              onChange={(e) => setAiResult(e.target.value)} 
+              disabled={isVerified || isGeneratingAI}
+              className="w-full h-[500px] p-8 md:p-12 text-slate-700 text-lg leading-relaxed focus:outline-none resize-none bg-transparent font-medium"
+              placeholder="Data tidak ditemukan. Pastikan Anda sudah menyimpan data pasien ini di halaman 'Input Klinis'."
+            />
+          </div>
 
           <div className="p-6 bg-amber-50/50 border-t border-amber-100 flex items-start gap-4">
             <AlertTriangle className="text-amber-600 shrink-0" size={20} />
             <p className="text-xs text-amber-800 leading-relaxed italic">
-              <b>Human-in-the-Loop:</b> Dokter wajib melakukan verifikasi akhir pada draf yang dihasilkan AI sebelum data disimpan permanen ke rekam medis elektronik rumah sakit.
+              <b>Human-in-the-Loop:</b> Dokter wajib melakukan verifikasi akhir pada draf klinis sebelum data dikunci dan disimpan secara permanen ke rekam medis elektronik rumah sakit.
             </p>
           </div>
         </motion.div>
@@ -216,7 +287,7 @@ export default function RingkasanMedis() {
 
           <button 
             onClick={handleApprove} 
-            disabled={!aiResult || isVerified || loading} 
+            disabled={!aiResult || isVerified || loading || isGeneratingAI} 
             className={`w-full py-6 rounded-[2rem] font-black text-sm tracking-[0.2em] flex items-center justify-center gap-4 shadow-2xl transition-all ${
               isVerified 
               ? 'bg-emerald-500 text-white cursor-default' 
