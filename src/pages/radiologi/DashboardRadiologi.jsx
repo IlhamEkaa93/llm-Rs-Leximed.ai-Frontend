@@ -15,7 +15,7 @@ export default function DashboardRadiologi() {
   const [stats, setStats] = useState([]);
   const [user, setUser] = useState(null);
 
-  const API_URL = "http://localhost:8000/api";
+  const API_URL = "https://lexi-med-ai-llm-rs-back-end.vercel.app/api";
 
   useEffect(() => {
     const initDashboard = async () => {

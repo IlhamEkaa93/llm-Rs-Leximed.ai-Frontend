@@ -30,7 +30,7 @@ export default function DashboardDokter() {
 
   const fetchDashboardStats = async () => {
     try {
-      const response = await fetch("http://localhost:8000/api/dashboard-stats", {
+      const response = await fetch("https://lexi-med-ai-llm-rs-back-end.vercel.app/api/dashboard-stats", {
         headers: { 
           'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
           'Accept': 'application/json'
@@ -53,7 +53,7 @@ export default function DashboardDokter() {
 
   const fetchAllPatients = async () => {
     try {
-      const response = await fetch("http://localhost:8000/api/patients-list", {
+      const response = await fetch("https://lexi-med-ai-llm-rs-back-end.vercel.app/api/patients-list", {
         headers: { 
           'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
           'Accept': 'application/json'
@@ -116,7 +116,7 @@ export default function DashboardDokter() {
     if (!searchTerm) return;
     setLoading(true);
     try {
-        const response = await fetch(`http://localhost:8000/api/patients/${searchTerm}`, {
+        const response = await fetch(`https://lexi-med-ai-llm-rs-back-end.vercel.app/api/patients/${searchTerm}`, {
             headers: { 
               'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
               'Accept': 'application/json'

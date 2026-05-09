@@ -48,7 +48,7 @@ export default function ValidasiAIPerawat() {
       
       // Hit Backend: Route PATCH /clinical-data/{norm}/verify
       // Route ini secara otomatis akan mengubah status menjadi 'verified' dan masuk ke AUDIT LOG
-      const response = await fetch(`http://localhost:8000/api/clinical-data/${norm}/verify`, {
+      const response = await fetch(`https://lexi-med-ai-llm-rs-back-end.vercel.app/api/clinical-data/${norm}/verify`, {
         method: "PATCH",
         headers: { 
           "Content-Type": "application/json",

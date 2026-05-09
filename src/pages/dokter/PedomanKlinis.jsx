@@ -26,7 +26,7 @@ export default function PedomanKlinis() {
     if (recommendation?.pdfPath && recommendation.pdfPath !== "#") {
       const fullPath = recommendation.pdfPath.startsWith('http') 
         ? recommendation.pdfPath 
-        : `http://localhost:8000/storage/${recommendation.pdfPath}`;
+        : `https://lexi-med-ai-llm-rs-back-end.vercel.app/storage/${recommendation.pdfPath}`;
       window.open(fullPath, '_blank');
     } else {
       alert("Dokumen sumber sedang dalam proses digitalisasi atau tidak ditemukan.");
@@ -40,7 +40,7 @@ export default function PedomanKlinis() {
     setErrorMsg("");
     
     try {
-      const response = await fetch("http://localhost:8000/api/rag-guideline", {
+      const response = await fetch("https://lexi-med-ai-llm-rs-back-end.vercel.app/api/rag-guideline", {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",

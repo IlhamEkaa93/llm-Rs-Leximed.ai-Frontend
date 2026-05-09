@@ -22,7 +22,7 @@ export default function ResumeMedis() {
   const [isExporting, setIsExporting] = useState(false);
   const [isPrinting, setIsPrinting] = useState(false);
 
-  const API_URL = "http://localhost:8000/api";
+  const API_URL = "https://lexi-med-ai-llm-rs-back-end.vercel.app/api";
   const token = localStorage.getItem('access_token');
 
   useEffect(() => {

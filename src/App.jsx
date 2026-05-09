@@ -51,7 +51,7 @@ export default function App() {
   const [showIntro, setShowIntro] = useState(true);
 
   return (
-    <BrowserRouter>
+    <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       {/* INTRO ANIMATION */}
       <AnimatePresence mode="wait">
         {showIntro && (

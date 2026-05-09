@@ -31,7 +31,7 @@ export default function ApproveFinal() {
     const rmIdentifier = patient.norm || patient.no_rm;
     
     try {
-      const response = await fetch(`http://localhost:8000/api/clinical-data/${rmIdentifier}/verify`, {
+      const response = await fetch(`https://lexi-med-ai-llm-rs-back-end.vercel.app/api/clinical-data/${rmIdentifier}/verify`, {
         method: "PATCH",
         headers: { 
           "Content-Type": "application/json",

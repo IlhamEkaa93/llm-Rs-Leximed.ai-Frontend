@@ -16,7 +16,7 @@ export default function RingkasanMedis() {
   const [patient, setPatient] = useState(null);
   const [showExitOptions, setShowExitOptions] = useState(false);
 
-  const API_URL = "http://localhost:8000/api";
+  const API_URL = "https://lexi-med-ai-llm-rs-back-end.vercel.app/api";
   const token = localStorage.getItem('access_token');
 
   useEffect(() => {
