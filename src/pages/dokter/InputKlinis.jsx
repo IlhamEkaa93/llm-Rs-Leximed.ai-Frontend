@@ -63,7 +63,7 @@ const InputKlinis = () => {
         }
     }, []);
 
-    // 2. Mengambil Vital Sign dari Asisten
+    // 2. Mengambil Vital Sign  Asisten
     const fetchLastVitals = async (rm) => {
         try {
             const res = await axios.get(`${API_URL}/clinical-data/${rm}`, {
@@ -260,7 +260,7 @@ const InputKlinis = () => {
                 <Database size={20} />
                 <div className="h-4 w-px bg-slate-500"></div>
                 <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.5em]">
-                    PostgreSQL Core • Real-time Data Integrity • DARSI
+                    PostgreSQL Core • Real-time Data Integrity • LexiMed.ai
                 </p>
             </div>
         </div>

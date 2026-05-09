@@ -69,7 +69,7 @@ export default function DashboardManajemen() {
   const generateSummary = () => {
     setLoadingAI(true);
     setTimeout(() => {
-      setExecutiveSummary(`LAPORAN MANAJERIAL RS UNS\nPERIODE: ${periode}\nUNIT: ${unit}\n\nSistem Darsi Intelligence melaporkan efisiensi operasional yang optimal. Total akumulasi pasien mencapai ${stats.totalPasien} subjek. Tidak ditemukan anomali pada audit trail klinis. Fokus strategis bulan depan: Digitalisasi penuh PACS Radiologi.`);
+      setExecutiveSummary(`LAPORAN MANAJERIAL LexiMed.ai\nPERIODE: ${periode}\nUNIT: ${unit}\n\nSistem Darsi Intelligence melaporkan efisiensi operasional yang optimal. Total akumulasi pasien mencapai ${stats.totalPasien} subjek. Tidak ditemukan anomali pada audit trail klinis. Fokus strategis bulan depan: Digitalisasi penuh PACS Radiologi.`);
       setLoadingAI(false);
     }, 1500);
   };

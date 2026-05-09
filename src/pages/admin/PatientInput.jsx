@@ -328,7 +328,7 @@ const PatientInput = () => {
                 <div className="mt-10 flex items-center justify-center gap-6 opacity-40">
                     <Database size={20} />
                     <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.5em]">
-                        RS UNS Smart Record System • 2026
+                        LexiMed.ai Smart Record System • 2026
                     </p>
                 </div>
             </div>

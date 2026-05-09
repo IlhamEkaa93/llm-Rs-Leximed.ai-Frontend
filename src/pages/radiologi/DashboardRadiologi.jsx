@@ -205,7 +205,7 @@ export default function DashboardRadiologi() {
               
               <div className="relative z-10 flex-1 flex flex-col text-left">
                 <h3 className="text-cyan-400 text-[10px] font-black uppercase tracking-[0.4em] mb-12 flex items-center gap-3">
-                  <Activity size={14} className="animate-pulse" /> Neural Darsi Core
+                  <Activity size={14} className="animate-pulse" /> Neural LexiMed.ai Core
                 </h3>
                 
                 <div className="space-y-6">
@@ -229,7 +229,7 @@ export default function DashboardRadiologi() {
 
                 <div className="mt-auto pt-10 border-t border-white/5 text-center">
                    <p className="text-[9px] text-slate-500 font-bold uppercase tracking-widest leading-loose">
-                     Intelligence Healthcare Secured<br/>RS UNS Encryption Standard
+                     Intelligence Healthcare Secured<br/>LexiMed.ai Encryption Standard
                    </p>
                 </div>
               </div>

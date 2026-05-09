@@ -97,7 +97,7 @@ export default function TambahCatatan() {
              </div>
              <div>
                 <h1 className="text-3xl font-black tracking-tighter uppercase italic">Catatan Keperawatan</h1>
-                <p className="text-slate-400 font-bold text-xs uppercase tracking-[0.2em]">Poin 12: Dokumentasi Asuhan Manual</p>
+                <p className="text-slate-400 font-bold text-xs uppercase tracking-[0.2em]">Dokumentasi Asuhan Manual</p>
              </div>
           </div>
           <div className="bg-slate-50 px-6 py-4 rounded-2xl border border-slate-200 shrink-0 flex items-center gap-4">

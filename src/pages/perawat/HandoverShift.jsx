@@ -111,17 +111,11 @@ export default function HandoverShift() {
             </div>
             <div className="text-left">
               <h1 className="text-3xl font-black tracking-tight text-slate-900 uppercase italic leading-none">Ringkasan Shift AI</h1>
-              <p className="text-slate-400 font-bold text-xs uppercase tracking-[0.2em] mt-2">Poin 13: LLM Shift Handover Assistant</p>
+              <p className="text-slate-400 font-bold text-xs uppercase tracking-[0.2em] mt-2">LLM Shift Handover Assistant</p>
             </div>
           </div>
 
           <div className="flex flex-wrap items-center gap-4 w-full xl:w-auto justify-end">
-            <button 
-              onClick={handleAutoFillDemo} 
-              className="flex items-center gap-2 px-6 py-4 bg-amber-50 text-amber-600 rounded-2xl text-[10px] font-black uppercase border border-amber-100 hover:bg-amber-100 transition-all shadow-sm active:scale-95"
-            >
-              <Wand2 size={16} /> Auto-Fill Demo
-            </button>
             <div className="flex items-center gap-4 bg-slate-50 px-6 py-3.5 rounded-2xl border border-slate-200 shadow-inner">
                 <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center border border-slate-200 shadow-sm shrink-0">
                   <User size={20} className="text-blue-600" />

@@ -271,7 +271,7 @@ const KelolaUser = () => {
                 <div className="bg-blue-600 text-white p-3 rounded-2xl shrink-0"><ShieldCheck size={24} /></div>
                 <div>
                     <h4 className="font-black text-blue-900 mb-1">Security Audit Trail Active</h4>
-                    <p className="text-blue-700/80 text-sm font-medium leading-relaxed">Sesuai standar SRS 7.6, setiap pendaftaran personil medis dan registrasi data pasien terekam secara permanen dalam database audit rumah sakit demi menjaga integritas data klinis DARSI.</p>
+                    <p className="text-blue-700/80 text-sm font-medium leading-relaxed">Sesuai standar, setiap pendaftaran personil medis dan registrasi data pasien terekam secara permanen dalam database audit rumah sakit demi menjaga integritas data klinis LexiMed.ai.</p>
                 </div>
             </div>
 

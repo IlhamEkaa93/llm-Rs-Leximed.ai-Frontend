@@ -78,7 +78,7 @@ export default function ApproveFinal() {
           <div className="space-y-3 mb-10">
             <h2 className="text-3xl font-black text-slate-900 tracking-tight">Otorisasi Berhasil!</h2>
             <p className="text-slate-500 font-medium leading-relaxed text-sm">
-              Rekam medis pasien <span className="font-bold text-slate-800">{patient?.name}</span> telah dikunci dengan Hash Digital unik dan tersimpan permanen di Audit Trail RS UNS.
+              Rekam medis pasien <span className="font-bold text-slate-800">{patient?.name}</span> telah dikunci dengan Hash Digital unik dan tersimpan permanen di Audit Trail LexiMed.ai.
             </p>
           </div>
           <button 
@@ -151,7 +151,7 @@ export default function ApproveFinal() {
                 <ShieldAlert size={18} /> Pernyataan Hukum (SRS 14)
               </div>
               <p className="text-sm text-rose-800/80 leading-relaxed font-medium italic relative z-10">
-                "Saya menyatakan telah memverifikasi seluruh data klinis yang dihasilkan oleh sistem asisten AI dan menjamin keaslian data sesuai dengan Standar Operasional Prosedur RS UNS."
+                "Saya menyatakan telah memverifikasi seluruh data klinis yang dihasilkan oleh sistem asisten AI dan menjamin keaslian data sesuai dengan Standar Operasional Prosedur LexiMed.ai."
               </p>
             </div>
 
@@ -212,7 +212,7 @@ export default function ApproveFinal() {
           <div className="p-6 text-center space-y-3 bg-white rounded-3xl border border-slate-200 shadow-sm">
             <ShieldCheck size={28} className="mx-auto text-emerald-500 opacity-80" />
             <p className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-widest leading-relaxed px-4">
-              Persetujuan ini menciptakan bukti forensik digital pada Audit Trail RS UNS.
+              Persetujuan ini menciptakan bukti forensik digital pada Audit Trail LexiMed.ai.
             </p>
           </div>
         </motion.div>

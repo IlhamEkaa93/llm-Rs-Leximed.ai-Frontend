@@ -65,7 +65,7 @@ export default function DashboardAdmin() {
             >
                 <div>
                     <h1 className="text-4xl font-black text-slate-900 tracking-tight">Pusat Kendali Administrasi</h1>
-                    <p className="text-slate-500 mt-2 font-medium">Monitoring infrastruktur DARSI System dan Otoritas Data RS UNS.</p>
+                    <p className="text-slate-500 mt-2 font-medium">Monitoring infrastruktur LexiMed.ai System dan Otoritas Data RS.</p>
                 </div>
                 <button 
                     onClick={fetchDashboardData}

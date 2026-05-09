@@ -107,7 +107,7 @@ export default function ValidasiAIPerawat() {
             </div>
             <div className="text-left">
               <h1 className="text-3xl font-black tracking-tight text-slate-900 uppercase italic leading-none">Verifikasi Laporan</h1>
-              <p className="text-slate-400 font-bold text-xs uppercase tracking-[0.2em] mt-2">Poin 15: Validasi & Sinkronisasi Audit Log</p>
+              <p className="text-slate-400 font-bold text-xs uppercase tracking-[0.2em] mt-2">Validasi & Sinkronisasi Audit Log</p>
             </div>
           </div>
 

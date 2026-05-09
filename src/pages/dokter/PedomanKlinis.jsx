@@ -57,7 +57,7 @@ export default function PedomanKlinis() {
       if (!response.ok) throw new Error(result.message || "Gagal menghubungkan ke RAG Engine.");
 
       setRecommendation({
-        source: result.source || "PPK Internal RS UNS",
+        source: result.source || "PPK Internal LexiMed.ai",
         rekomendasi: result.ai_recommendation,
         pertimbangan: result.clinical_notes,
         level: result.evidence_level || "Level A",
@@ -149,7 +149,7 @@ export default function PedomanKlinis() {
           
           <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200 text-slate-400 text-[10px] font-bold leading-relaxed uppercase tracking-[0.2em] text-center shadow-sm">
             <Info size={20} className="mx-auto mb-4 text-blue-600" />
-            Neural RAG mensinkronisasi basis pengetahuan internal RS UNS secara real-time untuk akurasi rekomendasi klinis.
+            Neural RAG mensinkronisasi basis pengetahuan internal LexiMed.ai secara real-time untuk akurasi rekomendasi klinis.
           </div>
         </div>
 

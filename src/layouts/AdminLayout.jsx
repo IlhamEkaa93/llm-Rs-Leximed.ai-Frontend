@@ -123,27 +123,32 @@ export default function AdminLayout() {
       <motion.aside 
         initial={false}
         animate={{ 
-          width: isMobile ? (isSidebarOpen ? 280 : 0) : (isSidebarOpen ? 280 : 95),
+          width: isMobile ? (isSidebarOpen ? 280 : 0) : (isSidebarOpen ? 280 : 90),
           x: isMobile ? (isSidebarOpen ? 0 : -280) : 0
         }}
         transition={{ type: 'spring', bounce: 0, duration: 0.4 }}
-        className={`bg-[#0f172a] text-white flex flex-col shadow-2xl z-50 overflow-hidden ${isMobile ? 'fixed h-full' : 'relative shrink-0'}`}
+        className={`bg-[#0b1120] text-white flex flex-col shadow-2xl z-50 overflow-hidden ${isMobile ? 'fixed h-full border-r border-slate-800' : 'relative shrink-0'}`}
       >
-        {/* LOGO */}
-        <div className="p-6 flex items-center gap-4 border-b border-slate-800/50 h-[90px] shrink-0 justify-between">
+        {/* LOGO & BRANDING */}
+        <div className="p-6 flex items-center gap-4 border-b border-slate-800/80 h-[90px] shrink-0 justify-between bg-[#0f172a]/50">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-gradient-to-tr from-blue-600 to-indigo-500 rounded-[1.25rem] flex items-center justify-center shadow-lg shadow-blue-500/30 shrink-0 border border-blue-400/20">
-              <img src="/LOGO-1.png" alt="Logo" className="w-7 h-7 object-contain" />
+            {/* Logo Image with ambient glow */}
+            <div className="relative w-10 h-10 flex items-center justify-center shrink-0 group cursor-pointer">
+               <div className="absolute inset-0 bg-emerald-500 rounded-full blur-[12px] opacity-20 group-hover:opacity-40 transition-opacity duration-300"></div>
+               <img src="/logo.png" alt="LexiMed Logo" className="w-9 h-9 object-contain relative z-10 drop-shadow-md" />
             </div>
+            
             {(isSidebarOpen || isMobile) && (
               <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} className="flex flex-col overflow-hidden whitespace-nowrap text-left">
-                <span className="font-black tracking-tighter text-xl leading-none uppercase">DARSI <span className="text-blue-500">SYSTEM</span></span>
-                <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest mt-1 italic">RS Intelligence</span>
+                <span className="font-black tracking-tighter text-[22px] leading-none text-white">
+                  LexiMed<span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">.ai</span>
+                </span>
+                <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest mt-1">AI Healthcare</span>
               </motion.div>
             )}
           </div>
           {isMobile && (
-            <button onClick={() => setIsSidebarOpen(false)} className="text-slate-400 hover:text-white"><X size={24} /></button>
+            <button onClick={() => setIsSidebarOpen(false)} className="text-slate-400 hover:text-white transition-colors"><X size={24} /></button>
           )}
         </div>
 
@@ -162,23 +167,26 @@ export default function AdminLayout() {
                     if (isMobile) setIsSidebarOpen(false);
                   }}
                   className={`flex items-center gap-4 p-3.5 rounded-2xl cursor-pointer transition-all duration-300 group
-                    ${isActive ? 'bg-blue-600 text-white shadow-xl shadow-blue-600/40' : 'text-slate-400 hover:bg-slate-800/60 hover:text-white'}`}
+                    ${isActive 
+                      ? 'bg-gradient-to-r from-blue-600 to-emerald-600 text-white shadow-lg shadow-emerald-900/30 border border-emerald-500/20' 
+                      : 'text-slate-400 hover:bg-slate-800/80 hover:text-white'
+                    }`}
                 >
-                  <div className={`p-2.5 rounded-xl shrink-0 transition-all ${isActive ? 'bg-white/20' : 'bg-slate-800 group-hover:bg-slate-700'}`}>
+                  <div className={`p-2.5 rounded-xl shrink-0 transition-all ${isActive ? 'bg-white/20 text-white' : 'bg-slate-800/50 text-slate-400 group-hover:text-emerald-400 group-hover:bg-slate-800'}`}>
                     {item.icon}
                   </div>
                   {(isSidebarOpen || isMobile) && <span className="font-bold text-sm whitespace-nowrap">{item.name}</span>}
-                  {isActive && (isSidebarOpen || isMobile) && <ChevronRight size={14} className="ml-auto opacity-50" />}
+                  {isActive && (isSidebarOpen || isMobile) && <ChevronRight size={14} className="ml-auto opacity-70" />}
                 </motion.div>
               );
             })}
         </nav>
 
         {/* SETTINGS & LOGOUT */}
-        <div className="p-4 border-t border-slate-800/50 space-y-2 shrink-0 bg-[#0b1221]">
+        <div className="p-4 border-t border-slate-800/80 space-y-2 shrink-0 bg-[#070b14]">
           <div 
             onClick={() => { navigate('/pengaturan'); if (isMobile) setIsSidebarOpen(false); }}
-            className="flex items-center gap-4 p-3.5 rounded-2xl text-slate-400 hover:bg-slate-800/60 hover:text-white cursor-pointer transition-all group"
+            className="flex items-center gap-4 p-3.5 rounded-2xl text-slate-400 hover:bg-slate-800/60 hover:text-emerald-400 cursor-pointer transition-all group"
           >
             <Settings size={20} className="group-hover:rotate-90 transition-transform duration-500" />
             {(isSidebarOpen || isMobile) && <span className="font-bold text-sm">Pengaturan</span>}
@@ -194,42 +202,48 @@ export default function AdminLayout() {
       </motion.aside>
 
       {/* TOPBAR & CONTENT */}
-      <div className="flex-1 flex flex-col min-w-0 bg-[#f8fafc]">
-        <header className="h-[90px] bg-white/80 backdrop-blur-xl border-b border-slate-200 flex items-center justify-between px-6 md:px-10 sticky top-0 z-30 shrink-0 shadow-sm">
+      <div className="flex-1 flex flex-col min-w-0 bg-[#f4f7f9]">
+        <header className="h-[90px] bg-white/70 backdrop-blur-xl border-b border-slate-200/60 flex items-center justify-between px-4 md:px-10 sticky top-0 z-30 shrink-0 shadow-sm">
           <div className="flex items-center gap-4">
              <motion.button 
                 whileTap={{ scale: 0.9 }}
                 onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                className="p-3 hover:bg-slate-50 rounded-2xl transition-all text-slate-600 border border-slate-200 shadow-sm bg-white"
+                className="p-3 hover:bg-slate-100 rounded-2xl transition-all text-slate-600 border border-slate-200/50 shadow-sm bg-white"
              >
                 {isMobile ? <Menu size={22} /> : <Command size={22} />}
              </motion.button>
-             <div className="hidden md:flex items-center bg-slate-50 border border-slate-200 px-5 py-2.5 rounded-2xl gap-4 w-96 transition-all shadow-inner focus-within:border-blue-300 focus-within:ring-4 focus-within:ring-blue-50">
+             
+             {/* Global Search (Desktop) */}
+             <div className="hidden md:flex items-center bg-white border border-slate-200 px-5 py-3 rounded-2xl gap-4 w-80 lg:w-96 transition-all shadow-sm focus-within:border-emerald-300 focus-within:ring-4 focus-within:ring-emerald-50">
                 <Search size={18} className="text-slate-400" />
-                <input type="text" placeholder="Global search..." className="bg-transparent border-none outline-none text-sm w-full font-bold text-slate-700 placeholder:text-slate-300" />
+                <input type="text" placeholder="Cari rekam medis, data pasien..." className="bg-transparent border-none outline-none text-sm w-full font-bold text-slate-700 placeholder:text-slate-300" />
              </div>
           </div>
 
           <div className="flex items-center gap-4 md:gap-6">
-            <div className="hidden sm:flex items-center gap-2 px-4 py-2 bg-slate-50 rounded-xl border border-slate-100">
-               <Zap size={16} className="text-amber-500 fill-amber-500" />
-               <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Neural v3.3</span>
+            <div className="hidden sm:flex items-center gap-2 px-4 py-2 bg-emerald-50 rounded-xl border border-emerald-100/50">
+               <Zap size={16} className="text-emerald-500 fill-emerald-500" />
+               <span className="text-[10px] font-black text-emerald-700 uppercase tracking-widest">LexiCore v1.0</span>
             </div>
-            <div className="text-right hidden sm:block leading-tight">
+            <div className="hidden sm:flex items-center justify-center p-3 rounded-xl border border-slate-200 bg-white text-slate-400 hover:text-blue-600 cursor-pointer transition-colors relative">
+               <Bell size={20} />
+               <span className="absolute top-2 right-2.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
+            </div>
+            <div className="text-right hidden md:block leading-tight border-l border-slate-200 pl-6">
               <p className="text-sm font-black text-slate-900 uppercase tracking-tight">{user.name}</p>
               <div className="flex items-center justify-end gap-1.5 mt-1">
                 <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
-                <p className="text-[10px] font-bold text-blue-600 uppercase tracking-widest">{user.role} • ONLINE</p>
+                <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest">{user.role} • ONLINE</p>
               </div>
             </div>
-            <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-lg border-2 border-white hover:rotate-6 transition-transform cursor-pointer shadow-blue-200">
+            <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-emerald-500 rounded-2xl flex items-center justify-center text-white shadow-lg border-2 border-white hover:rotate-6 transition-transform cursor-pointer shadow-emerald-200">
               <User size={24} />
             </div>
           </div>
         </header>
 
         {/* --- MAIN CONTENT AREA --- */}
-        <main className="flex-1 overflow-y-auto p-4 md:p-10 hide-scrollbar bg-[#f8fafc]">
+        <main className="flex-1 overflow-y-auto p-4 md:p-8 hide-scrollbar bg-[#f4f7f9] relative">
           <AnimatePresence mode="wait">
             <motion.div
               key={location.pathname}
@@ -239,7 +253,7 @@ export default function AdminLayout() {
               transition={{ duration: 0.3, ease: "easeOut" }}
               className="max-w-7xl mx-auto h-full"
             >
-              {/* KUNCI PERBAIKAN: GUNAKAN <Outlet /> */}
+              {/* Tempat merender konten halaman */}
               <Outlet />
             </motion.div>
           </AnimatePresence>

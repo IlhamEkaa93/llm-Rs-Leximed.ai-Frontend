@@ -258,7 +258,7 @@ export default function DashboardPerawat() {
 
                 <div className="mt-auto pt-10 border-t border-white/5 text-center">
                    <p className="text-[9px] text-slate-600 font-bold uppercase tracking-widest leading-loose">
-                     Intelligence Healthcare Secured<br/>RS UNS Encryption Standard
+                     Intelligence Healthcare Secured<br/>LexiMed.ai Encryption Standard
                    </p>
                 </div>
               </div>
