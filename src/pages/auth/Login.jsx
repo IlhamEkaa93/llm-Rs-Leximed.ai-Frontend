@@ -3,12 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Lock, Stethoscope, Activity, Settings, 
-  Loader2, AlertTriangle, Eye, EyeOff, CheckCircle2, 
-  UserCircle2, FileSearch, PieChart, Users, Sparkles,
-  ShieldCheck, Globe, Zap
+  Loader2, AlertTriangle, Eye, EyeOff, UserCircle2, 
+  FileSearch, PieChart, Users, Sparkles, ShieldCheck, Globe, Zap
 } from 'lucide-react';
 
-// KONFIGURASI API - Menggunakan URL Vercel Backend
+// KONFIGURASI API - Menggunakan URL Vercel Backend (BUKAN LOCALHOST!)
 const API_URL = "https://lexi-med-ai-llm-rs-back-end.vercel.app/api";
 
 export default function Login() {
@@ -19,8 +18,9 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [loginSuccess, setLoginSuccess] = useState(false);
 
-  // Efek Partikel Sederhana untuk Background
+  // Efek Partikel Interaktif untuk Background
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  
   useEffect(() => {
     const handleMouseMove = (e) => {
       setMousePos({ x: e.clientX, y: e.clientY });
@@ -38,7 +38,7 @@ export default function Login() {
     const username = formData.get('username').trim();
 
     try {
-      // PERBAIKAN KRUSIAL: Menghapus localhost, menggunakan API_URL Vercel
+      // PERBAIKAN KRUSIAL: Menembak langsung ke API Cloud Vercel
       const response = await fetch(`${API_URL}/token`, {
         method: "POST",
         body: formData,
@@ -46,12 +46,15 @@ export default function Login() {
 
       const data = await response.json();
 
-      if (!response.ok) throw new Error(data.message || "Kredensial tidak valid.");
+      if (!response.ok) {
+        throw new Error(data.message || "Kredensial tidak valid.");
+      }
 
       if (data.user && data.user.role !== role) {
         throw new Error(`Akses Ditolak: Akun Anda adalah ${data.user.role.toUpperCase()}`);
       }
 
+      // Simpan Sesi Login
       localStorage.setItem('access_token', data.access_token);
       
       const userData = {
@@ -63,6 +66,7 @@ export default function Login() {
       localStorage.setItem('user', JSON.stringify(userData));
       setLoginSuccess(true);
       
+      // Navigasi ke Dashboard masing-masing role
       setTimeout(() => {
         const routes = {
           perawat: '/dashboard-perawat',
@@ -76,7 +80,6 @@ export default function Login() {
       }, 1500);
       
     } catch (err) {
-      // Penanganan Error yang lebih informatif
       setError(err.message === "Failed to fetch" 
         ? "Gagal terhubung ke Cloud Server. Periksa koneksi internet Anda." 
         : err.message);
@@ -99,20 +102,13 @@ export default function Login() {
       {/* 🌌 DYNAMIC BACKGROUND INTERACTIVE */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <motion.div 
-          animate={{ 
-            x: mousePos.x / 20, 
-            y: mousePos.y / 20 
-          }}
+          animate={{ x: mousePos.x / 20, y: mousePos.y / 20 }}
           className="absolute top-[-10%] left-[-10%] w-[600px] h-[600px] bg-emerald-600/20 rounded-full blur-[120px]"
         />
         <motion.div 
-          animate={{ 
-            x: -mousePos.x / 20, 
-            y: -mousePos.y / 20 
-          }}
+          animate={{ x: -mousePos.x / 20, y: -mousePos.y / 20 }}
           className="absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] bg-blue-600/10 rounded-full blur-[120px]"
         />
-        {/* Grid Overlay */}
         <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 brightness-100 contrast-150"></div>
       </div>
 
@@ -145,15 +141,11 @@ export default function Login() {
 
           <div className="relative h-64 flex items-center justify-center">
              <motion.div
-               animate={{ 
-                 rotate: [0, 5, 0, -5, 0],
-                 y: [0, -15, 0]
-               }}
+               animate={{ rotate: [0, 5, 0, -5, 0], y: [0, -15, 0] }}
                transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
              >
                 <img src="/logo.png" className="w-56 h-56 object-contain drop-shadow-[0_0_60px_rgba(16,185,129,0.4)]" alt="LexiMed" />
              </motion.div>
-             {/* Decorative Ring */}
              <div className="absolute w-72 h-72 border border-emerald-500/20 rounded-full animate-pulse"></div>
           </div>
 
@@ -169,8 +161,7 @@ export default function Login() {
           {/* Mobile Header */}
           <div className="lg:hidden flex flex-col items-center gap-4 mb-12 text-center">
              <motion.img 
-               animate={{ y: [0, -10, 0] }}
-               transition={{ duration: 4, repeat: Infinity }}
+               animate={{ y: [0, -10, 0] }} transition={{ duration: 4, repeat: Infinity }}
                src="/logo.png" className="w-20 h-20 drop-shadow-2xl" 
              />
              <h1 className="text-5xl font-black text-white tracking-tighter italic">LexiMed<span className="text-emerald-500">.ai</span></h1>
@@ -186,7 +177,7 @@ export default function Login() {
           <form onSubmit={handleLogin} className="space-y-8">
             
             {/* 🎭 ROLE PICKER - ULTRA RESPONSIVE GRID */}
-            <div className="grid grid-cols-3 sm:grid-cols-3 gap-2 p-1.5 bg-white/5 rounded-[2.5rem] border border-white/5">
+            <div className="grid grid-cols-3 gap-2 p-1.5 bg-white/5 rounded-[2.5rem] border border-white/5">
                {roleList.map((r) => (
                  <button 
                    key={r.id} type="button" 
@@ -271,7 +262,6 @@ export default function Login() {
                   'AUTHENTICATE'
                 )}
               </span>
-              {/* Shine Effect */}
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] pointer-events-none" />
             </motion.button>
 
@@ -284,7 +274,6 @@ export default function Login() {
         </div>
       </motion.div>
 
-      {/* CSS untuk Animasi Shimmer Tombol */}
       <style dangerouslySetInnerHTML={{ __html: `
         @keyframes shimmer {
           100% { transform: translateX(100%); }
