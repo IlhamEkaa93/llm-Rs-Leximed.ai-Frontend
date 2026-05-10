@@ -1,11 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Lock, Stethoscope, Activity, Settings, 
   Loader2, AlertTriangle, Eye, EyeOff, CheckCircle2, 
-  UserCircle2, FileSearch, PieChart, Users 
+  UserCircle2, FileSearch, PieChart, Users, Sparkles,
+  ShieldCheck, Globe, Zap
 } from 'lucide-react';
+
+// KONFIGURASI API - Menggunakan URL Vercel Backend
+const API_URL = "https://lexi-med-ai-llm-rs-back-end.vercel.app/api";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -14,6 +18,16 @@ export default function Login() {
   const [error, setError] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
   const [loginSuccess, setLoginSuccess] = useState(false);
+
+  // Efek Partikel Sederhana untuk Background
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      setMousePos({ x: e.clientX, y: e.clientY });
+    };
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -24,7 +38,8 @@ export default function Login() {
     const username = formData.get('username').trim();
 
     try {
-      const response = await fetch("http://127.0.0.1:8000/api/token", {
+      // PERBAIKAN KRUSIAL: Menghapus localhost, menggunakan API_URL Vercel
+      const response = await fetch(`${API_URL}/token`, {
         method: "POST",
         body: formData,
       });
@@ -34,14 +49,14 @@ export default function Login() {
       if (!response.ok) throw new Error(data.message || "Kredensial tidak valid.");
 
       if (data.user && data.user.role !== role) {
-        throw new Error(`Akses Ditolak: Akun Anda terdaftar sebagai ${data.user.role.toUpperCase()}, bukan ${role.toUpperCase()}.`);
+        throw new Error(`Akses Ditolak: Akun Anda adalah ${data.user.role.toUpperCase()}`);
       }
 
       localStorage.setItem('access_token', data.access_token);
       
       const userData = {
         id: username,
-        name: data.user?.name || getFallbackName(username, role),
+        name: data.user?.name || username,
         role: data.user?.role || role, 
       };
 
@@ -61,185 +76,220 @@ export default function Login() {
       }, 1500);
       
     } catch (err) {
-      setError(err.message === "Failed to fetch" ? "Server backend (Laravel) mati atau belum dijalankan." : err.message);
+      // Penanganan Error yang lebih informatif
+      setError(err.message === "Failed to fetch" 
+        ? "Gagal terhubung ke Cloud Server. Periksa koneksi internet Anda." 
+        : err.message);
       setLoading(false);
     }
   };
 
-  const getFallbackName = (user, currentRole) => {
-    if (user.includes('admin')) return 'Admin IT LexiMed';
-    if (user.includes('perawat')) return 'Ns. Siti Aminah, S.Kep';
-    if (user.includes('rad')) return 'dr. Tirta, Sp.Rad';
-    if (currentRole === 'asisten') return 'Asisten Ners Budi';
-    return 'dr. Ilham Eka';
-  };
+  const roleList = [
+    { id: 'dokter', icon: <Stethoscope size={20}/>, label: 'Dokter' },
+    { id: 'perawat', icon: <Activity size={20}/>, label: 'Perawat' },
+    { id: 'admin', icon: <Settings size={20}/>, label: 'Admin' },
+    { id: 'radiologi', icon: <FileSearch size={20}/>, label: 'Radio' },
+    { id: 'manajemen', icon: <PieChart size={20}/>, label: 'Manager' },
+    { id: 'asisten', icon: <Users size={20}/>, label: 'Asisten' }
+  ];
 
   return (
-    <div className="min-h-screen w-full bg-slate-950 flex items-center justify-center p-4 md:p-8 overflow-hidden relative font-sans text-left">
+    <div className="min-h-screen w-full bg-[#020617] flex items-center justify-center p-4 md:p-10 overflow-hidden relative font-sans antialiased selection:bg-emerald-500/30">
       
-      {/* Background Effect (Futuristic Glow) */}
+      {/* 🌌 DYNAMIC BACKGROUND INTERACTIVE */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <motion.div 
-          animate={{ scale: [1, 1.2, 1], x: [0, 100, 0], y: [0, 50, 0], rotate: [0, 90, 0] }}
-          transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-          className="absolute top-[-10%] left-[-10%] w-[400px] md:w-[600px] h-[400px] md:h-[600px] bg-blue-600/20 rounded-full blur-[100px] md:blur-[120px]"
+          animate={{ 
+            x: mousePos.x / 20, 
+            y: mousePos.y / 20 
+          }}
+          className="absolute top-[-10%] left-[-10%] w-[600px] h-[600px] bg-emerald-600/20 rounded-full blur-[120px]"
         />
         <motion.div 
-          animate={{ scale: [1, 1.3, 1], x: [0, -100, 0], y: [0, -50, 0], rotate: [0, -90, 0] }}
-          transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
-          className="absolute bottom-[-10%] right-[-10%] w-[400px] md:w-[600px] h-[400px] md:h-[600px] bg-emerald-600/10 rounded-full blur-[100px] md:blur-[120px]"
+          animate={{ 
+            x: -mousePos.x / 20, 
+            y: -mousePos.y / 20 
+          }}
+          className="absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] bg-blue-600/10 rounded-full blur-[120px]"
         />
+        {/* Grid Overlay */}
+        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 brightness-100 contrast-150"></div>
       </div>
 
-      <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 bg-white/5 backdrop-blur-3xl rounded-[30px] md:rounded-[40px] border border-white/10 shadow-[0_0_100px_rgba(0,0,0,0.5)] overflow-hidden z-10 relative">
+      <motion.div 
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 bg-white/[0.02] backdrop-blur-3xl rounded-[2.5rem] md:rounded-[3.5rem] border border-white/10 shadow-[0_0_100px_rgba(0,0,0,0.8)] overflow-hidden z-10 relative"
+      >
         
-        {/* LEFT BRANDING (Visible only on Desktop/Tablet) */}
-        <div className="hidden lg:flex relative flex-col items-center justify-center p-16 bg-gradient-to-br from-blue-900/20 via-transparent border-r border-white/10">
-          
-          {/* Logo Animation with Floating Effect */}
-          <motion.div 
-            initial={{ opacity: 0, y: -50 }} 
-            animate={{ opacity: 1, y: 0 }} 
-            transition={{ duration: 1, type: "spring" }} 
-            className="relative group mb-10 flex justify-center items-center"
-          >
-            {/* Cahaya berpendar di belakang logo */}
-            <div className="absolute inset-0 bg-gradient-to-br from-emerald-400 to-blue-500 rounded-full blur-[60px] opacity-20 group-hover:opacity-40 transition-opacity duration-700"></div>
+        {/* 🚀 LEFT PANEL: BRANDING (DESKTOP ONLY) */}
+        <div className="hidden lg:flex relative flex-col justify-between p-16 bg-gradient-to-br from-emerald-500/10 via-transparent to-blue-500/5 border-r border-white/5">
+          <div className="space-y-6">
+            <motion.div 
+              initial={{ x: -20, opacity: 0 }} 
+              animate={{ x: 0, opacity: 1 }}
+              className="inline-flex items-center gap-3 px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full"
+            >
+              <Zap size={14} className="text-emerald-400 fill-emerald-400" />
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-400">Enterprise Medical AI</span>
+            </motion.div>
             
-            {/* Logo Asli (Mengambang Naik Turun) */}
-            <motion.img 
-              animate={{ y: [0, -15, 0] }} 
-              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }} 
-              src="/logo.png" 
-              alt="LexiMed Logo" 
-              className="w-48 h-48 object-contain relative z-20 drop-shadow-[0_10px_30px_rgba(16,185,129,0.3)]"
-            />
-          </motion.div>
-
-          <div className="text-center space-y-6 relative z-20">
-            <h1 className="text-5xl xl:text-6xl font-black text-white tracking-tighter">
-              LexiMed<span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">.ai</span>
+            <h1 className="text-7xl font-black text-white tracking-tighter italic leading-none">
+              LexiMed<span className="text-emerald-500">.ai</span>
             </h1>
-            <div className="w-24 h-1 bg-gradient-to-r from-blue-500 to-emerald-400 mx-auto rounded-full"></div>
-            <p className="text-slate-400 text-base xl:text-lg max-w-sm mx-auto font-medium leading-relaxed">
-              "Satu AI untuk Seluruh Alur Rumah Sakit: Mengotomatisasi Ringkasan Medis, Rekomendasi Guideline, Operan Shift, Analisis Radiologi, dan Laporan Eksekutif."
+            
+            <p className="text-slate-400 text-lg leading-relaxed font-medium max-w-md">
+              Sistem Otomasi Klinis Terintegrasi. Mengubah data menjadi keputusan medis yang presisi dengan kekuatan <span className="text-white font-bold tracking-tight">Large Language Models.</span>
             </p>
+          </div>
+
+          <div className="relative h-64 flex items-center justify-center">
+             <motion.div
+               animate={{ 
+                 rotate: [0, 5, 0, -5, 0],
+                 y: [0, -15, 0]
+               }}
+               transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+             >
+                <img src="/logo.png" className="w-56 h-56 object-contain drop-shadow-[0_0_60px_rgba(16,185,129,0.4)]" alt="LexiMed" />
+             </motion.div>
+             {/* Decorative Ring */}
+             <div className="absolute w-72 h-72 border border-emerald-500/20 rounded-full animate-pulse"></div>
+          </div>
+
+          <div className="flex items-center gap-6 text-slate-500 font-bold text-[10px] tracking-widest uppercase">
+             <div className="flex items-center gap-2 italic"><ShieldCheck size={14}/> Secured by AES-256</div>
+             <div className="flex items-center gap-2 italic"><Globe size={14}/> Cloud Infrastructure</div>
           </div>
         </div>
 
-        {/* RIGHT LOGIN FORM */}
-        <div className="flex flex-col justify-center p-6 md:p-12 lg:p-16 relative bg-[#0f172a]/60 text-left">
+        {/* 🔐 RIGHT PANEL: LOGIN FORM (RESPONSIVE) */}
+        <div className="p-6 md:p-12 lg:p-20 flex flex-col justify-center bg-[#0f172a]/40 relative">
           
-          {/* Mobile Branding (Only visible on small screens) */}
-          <div className="lg:hidden flex items-center gap-4 mb-10">
-            <div className="relative w-14 h-14 flex items-center justify-center">
-               <div className="absolute inset-0 bg-emerald-500 rounded-full blur-[15px] opacity-30"></div>
-               <img src="/logo.png" alt="LexiMed Logo" className="w-12 h-12 object-contain relative z-10 drop-shadow-md" />
-            </div>
-            <h1 className="text-3xl font-black text-white tracking-tighter">
-              LexiMed<span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">.ai</span>
-            </h1>
+          {/* Mobile Header */}
+          <div className="lg:hidden flex flex-col items-center gap-4 mb-12 text-center">
+             <motion.img 
+               animate={{ y: [0, -10, 0] }}
+               transition={{ duration: 4, repeat: Infinity }}
+               src="/logo.png" className="w-20 h-20 drop-shadow-2xl" 
+             />
+             <h1 className="text-5xl font-black text-white tracking-tighter italic">LexiMed<span className="text-emerald-500">.ai</span></h1>
           </div>
 
-          <div className="space-y-2 mb-8">
-            <h2 className="text-3xl md:text-4xl font-black text-white tracking-tight">Otentikasi</h2>
-            <p className="text-slate-400 font-bold text-xs md:text-sm uppercase tracking-widest">Verifikasi Peran Kerja Anda</p>
+          <div className="space-y-3 mb-10 text-center lg:text-left">
+             <h2 className="text-4xl md:text-5xl font-black text-white tracking-tight uppercase italic">Login</h2>
+             <p className="text-slate-500 font-black text-xs md:text-sm uppercase tracking-[0.4em] flex items-center justify-center lg:justify-start gap-2">
+                <Sparkles size={16} className="text-emerald-500" /> Gerbang Otoritas Medis
+             </p>
           </div>
 
-          {/* Notifikasi Status */}
-          <AnimatePresence mode='wait'>
-            {error && (
-              <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="mb-6 p-4 bg-red-500/10 border-l-4 border-red-500 rounded-xl flex items-center gap-4 text-red-400 shadow-sm">
-                <AlertTriangle size={20} className="shrink-0" />
-                <span className="text-sm font-bold leading-tight">{error}</span>
-              </motion.div>
-            )}
-            {loginSuccess && (
-              <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="mb-6 p-4 bg-emerald-500/10 border-l-4 border-emerald-500 rounded-xl flex items-center gap-4 text-emerald-400 shadow-sm">
-                <CheckCircle2 size={20} className="shrink-0" />
-                <span className="text-sm font-bold">Akses Diberikan! Memuat Workspace...</span>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          <form onSubmit={handleLogin} className="space-y-6 md:space-y-8">
+          <form onSubmit={handleLogin} className="space-y-8">
             
-            {/* ROLE SELECTOR (Responsive Grid) */}
-            <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 p-1.5 bg-slate-900/50 rounded-2xl md:rounded-3xl border border-white/10">
-              {[
-                { id: 'dokter', icon: <Stethoscope size={18}/> },
-                { id: 'perawat', icon: <Activity size={18}/> },
-                { id: 'admin', icon: <Settings size={18}/> },
-                { id: 'radiologi', icon: <FileSearch size={18}/> },
-                { id: 'manajemen', icon: <PieChart size={18}/> },
-                { id: 'asisten', icon: <Users size={18}/> }
-              ].map((r) => (
-                <button 
-                  key={r.id} 
-                  type="button" 
-                  onClick={() => setRole(r.id)} 
-                  className={`py-3 md:py-4 px-1 rounded-xl md:rounded-[20px] flex flex-col items-center gap-2 transition-all duration-300 ${
-                    role === r.id 
-                    ? 'bg-gradient-to-br from-blue-600 to-emerald-500 text-white shadow-lg shadow-blue-900/50 scale-100' 
-                    : 'text-slate-500 hover:text-slate-300 hover:bg-white/5 scale-95'
-                  }`}
-                >
-                  {r.icon}
-                  <span className="text-[9px] md:text-[10px] font-black uppercase tracking-tighter truncate w-full text-center">
-                    {r.id}
-                  </span>
-                </button>
-              ))}
+            {/* 🎭 ROLE PICKER - ULTRA RESPONSIVE GRID */}
+            <div className="grid grid-cols-3 sm:grid-cols-3 gap-2 p-1.5 bg-white/5 rounded-[2.5rem] border border-white/5">
+               {roleList.map((r) => (
+                 <button 
+                   key={r.id} type="button" 
+                   onClick={() => setRole(r.id)}
+                   className={`flex flex-col items-center gap-2 py-5 rounded-2xl transition-all duration-500 relative group overflow-hidden ${
+                     role === r.id 
+                     ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-900/40' 
+                     : 'text-slate-500 hover:text-slate-300 hover:bg-white/5'
+                   }`}
+                 >
+                   <div className={`${role === r.id ? 'scale-110' : 'scale-100 group-hover:scale-110'} transition-transform`}>
+                    {r.icon}
+                   </div>
+                   <span className="text-[10px] font-black uppercase tracking-tighter">{r.label}</span>
+                   {role === r.id && (
+                      <motion.div layoutId="activeRole" className="absolute inset-0 bg-white/10" />
+                   )}
+                 </button>
+               ))}
             </div>
 
-            {/* INPUT FIELDS */}
-            <div className="space-y-4 md:space-y-5 text-left">
+            {/* ⌨️ INPUT FIELDS */}
+            <div className="space-y-5">
               <div className="relative group">
-                <UserCircle2 className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-emerald-400 transition-colors" size={22} />
+                <div className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-emerald-400 transition-colors">
+                  <UserCircle2 size={22} />
+                </div>
                 <input 
-                  name="username" type="text" placeholder={`ID ${role.toUpperCase()}`} required 
-                  className="w-full bg-slate-900/50 border border-white/10 rounded-2xl py-4 md:py-5 pl-14 pr-6 text-white outline-none focus:border-emerald-500 focus:bg-slate-900/80 transition-all font-bold placeholder:text-slate-600" 
+                  name="username" type="text" placeholder={`ID ${role.toUpperCase()}`} required
+                  className="w-full bg-white/5 border border-white/10 rounded-[1.5rem] py-6 pl-16 pr-6 text-white outline-none focus:border-emerald-500 focus:bg-white/10 transition-all font-black text-lg placeholder:text-slate-700 placeholder:font-bold"
                 />
               </div>
 
               <div className="relative group">
-                <Lock className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-emerald-400 transition-colors" size={22} />
+                <div className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-emerald-400 transition-colors">
+                  <Lock size={22} />
+                </div>
                 <input 
-                  name="password" type={showPassword ? "text" : "password"} placeholder="KATA SANDI" required 
-                  className="w-full bg-slate-900/50 border border-white/10 rounded-2xl py-4 md:py-5 pl-14 pr-14 text-white outline-none focus:border-emerald-500 focus:bg-slate-900/80 transition-all font-bold tracking-widest placeholder:text-slate-600 placeholder:tracking-normal" 
+                  name="password" type={showPassword ? "text" : "password"} placeholder="KATA SANDI" required
+                  className="w-full bg-white/5 border border-white/10 rounded-[1.5rem] py-6 pl-16 pr-16 text-white outline-none focus:border-emerald-500 focus:bg-white/10 transition-all font-black text-lg tracking-[0.2em] placeholder:text-slate-700 placeholder:tracking-normal placeholder:font-bold"
                 />
                 <button 
-                  type="button" onClick={() => setShowPassword(!showPassword)} 
-                  className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors focus:outline-none"
+                  type="button" onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-200 transition-colors"
                 >
                   {showPassword ? <EyeOff size={22} /> : <Eye size={22} />}
                 </button>
               </div>
             </div>
 
-            {/* SUBMIT BUTTON */}
+            {/* ⚠️ ERROR MESSAGE */}
+            <AnimatePresence mode="wait">
+               {error && (
+                 <motion.div 
+                    initial={{ opacity: 0, height: 0 }} 
+                    animate={{ opacity: 1, height: 'auto' }} 
+                    exit={{ opacity: 0, height: 0 }}
+                    className="p-5 bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-black rounded-2xl flex items-center gap-4 italic uppercase tracking-wider"
+                 >
+                    <AlertTriangle size={20} className="shrink-0" /> {error}
+                 </motion.div>
+               )}
+            </AnimatePresence>
+
+            {/* ⚡ SUBMIT BUTTON */}
             <motion.button 
-              whileHover={{ scale: 1.02 }} 
-              whileTap={{ scale: 0.98 }} 
-              type="submit" 
-              disabled={loading || loginSuccess} 
-              className={`w-full py-4 md:py-5 rounded-2xl font-black text-sm tracking-[0.2em] shadow-xl transition-all ${
+              whileHover={{ scale: 1.02, boxShadow: "0 20px 40px -10px rgba(16,185,129,0.3)" }} 
+              whileTap={{ scale: 0.98 }}
+              disabled={loading || loginSuccess}
+              className={`w-full py-6 rounded-[1.5rem] font-black text-lg tracking-[0.3em] transition-all relative overflow-hidden group ${
                 loginSuccess 
-                ? 'bg-emerald-600 text-white shadow-emerald-900/50' 
-                : 'bg-gradient-to-r from-blue-600 to-emerald-500 text-white shadow-blue-900/30 hover:shadow-emerald-500/40'
+                ? 'bg-emerald-500 text-white' 
+                : 'bg-white text-slate-950 hover:bg-emerald-400'
               }`}
             >
-              {loading ? (
-                <Loader2 className="animate-spin mx-auto" size={24} />
-              ) : loginSuccess ? (
-                'OTENTIKASI SUKSES'
-              ) : (
-                'SECURE LOGIN'
-              )}
+              <span className="relative z-10">
+                {loading ? (
+                  <Loader2 className="animate-spin mx-auto" size={28} />
+                ) : loginSuccess ? (
+                  'ACCESS GRANTED'
+                ) : (
+                  'AUTHENTICATE'
+                )}
+              </span>
+              {/* Shine Effect */}
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] pointer-events-none" />
             </motion.button>
+
           </form>
+
+          {/* Footer Mobile Only */}
+          <div className="lg:hidden mt-12 text-center text-slate-600 font-bold text-[10px] tracking-widest uppercase italic">
+            &copy; 2026 LexiMed Intelligence
+          </div>
         </div>
-      </div>
+      </motion.div>
+
+      {/* CSS untuk Animasi Shimmer Tombol */}
+      <style dangerouslySetInnerHTML={{ __html: `
+        @keyframes shimmer {
+          100% { transform: translateX(100%); }
+        }
+      `}} />
     </div>
   );
 }
