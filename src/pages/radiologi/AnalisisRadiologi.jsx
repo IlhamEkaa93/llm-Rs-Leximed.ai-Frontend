@@ -29,21 +29,26 @@ export default function AnalisisRadiologi() {
     setInputData(JSON.parse(draftData));
   }, [navigate]);
 
-  // Simulasi Engine LLM Llama 3.3
+  // SMART AI SIMULATION: Membaca data dinamis dari halaman sebelumnya
   const runLLM = () => {
     setIsGenerating(true);
     
     setTimeout(() => {
-      // 1. LLM Draft Laporan Radiologi (Struktur Baku)
-      const draftLLM = `HASIL PEMERIKSAAN: ${inputData.jenis_pemeriksaan.replace(/_/g, ' ')}\nKLINIS: Suspect patologi intratorakal.\n\nTEMUAN:\n- Cor: Membesar dengan CTR 60%.\n- Pulmo: Tampak perselubungan homogen di hemithorax dextra inferior yang menutupi sinus kostofrenikus dan diafragma dextra.\n- Trakea: Di tengah.\n- Tulang-tulang intak.\n\nKESAN:\n1. Kardiomegali.\n2. Efusi pleura dextra.`;
+      // Menarik temuan mentah yang diketik user
+      const temuan = inputData?.temuan_mentah || "Tidak ada temuan mentah yang spesifik.";
+      const jenis = inputData?.jenis_pemeriksaan ? inputData.jenis_pemeriksaan.replace(/_/g, ' ') : "RADIOLOGI UMUM";
+
+      // 1. LLM Draft Laporan Radiologi (Menyusun ulang temuan mentah jadi struktur baku)
+      const draftLLM = `HASIL PEMERIKSAAN: ${jenis}\nKLINIS: Indikasi diagnostik sesuai dengan temuan awal.\n\nTEMUAN OBSERVASI:\n${temuan}\n\nKESAN:\nBerdasarkan pola temuan di atas, indikasi mengarah pada patologi yang disebutkan dalam observasi mentah. Diperlukan korelasi klinis lebih lanjut oleh DPJP.`;
       
-      // 2. LLM Ringkasan (Kesimpulan Cepat untuk Dokter Perujuk)
-      const ringkasanLLM = `Pasien menunjukkan indikasi kardiomegali disertai efusi pleura pada paru kanan. Membutuhkan evaluasi kardiologi lebih lanjut.`;
+      // 2. LLM Ringkasan (Mengambil intisari dari temuan mentah)
+      const intisari = temuan.length > 60 ? temuan.substring(0, 100) + "..." : temuan;
+      const ringkasanLLM = `Terdapat indikasi: "${intisari}". Membutuhkan evaluasi spesialis lebih lanjut untuk penanganan medis.`;
 
       setLaporanFinal(draftLLM);
       setRingkasan(ringkasanLLM);
       setIsGenerating(false);
-    }, 3500); // Dibuat 3.5 detik agar animasi scan AI LexiMed terlihat lebih memukau
+    }, 3500); // Dibuat 3.5 detik agar animasi scan AI LexiMed terlihat meyakinkan
   };
 
   // Trigger POST ke Backend -> Otomatis tercatat di Audit Log Laravel
