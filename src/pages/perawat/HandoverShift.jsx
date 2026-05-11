@@ -59,7 +59,7 @@ export default function HandoverShift() {
     setAiSuccess(false);
 
     try {
-      // Simulasi Integrasi LLM
+      // 1. Simpan history ke Database Backend
       await fetch("https://lexi-med-ai-llm-rs-back-end.vercel.app/api/clinical-data", {
         method: "POST",
         headers: { 
@@ -73,8 +73,20 @@ export default function HandoverShift() {
         })
       });
 
+      // 2. Smart AI Simulation (Membaca input teks agar output relevan)
       setTimeout(() => {
-        const resultAI = `RINGKASAN OPERAN SHIFT (${shift})\n---------------------------\nSTATUS KLINIS: Pasien dalam pengawasan post-operatif aktif. Teridentifikasi nyeri akut post-appendictomy (skala 6/10). Status hemodinamik terkontrol namun membutuhkan manajemen nyeri berkelanjutan.\n\nPROGRESS OBSERVASI: Integritas luka operasi optimal (Surgical site clean). Tidak ditemukan indikasi perdarahan sekunder atau infeksi dini.\n\nRENCANA SHIFT BERIKUTNYA: Lanjutkan protokol analgetik sesuai jadwal. Prioritaskan mobilisasi bertahap dan monitoring drainase luka.`;
+        // Menggunakan Regex untuk mengekstrak data dari input pengguna
+        const keluhanMatch = kondisi.match(/KELUHAN:\s*(.*?)(?=OBSERVASI|VITAL SIGN|$)/i);
+        const observasiMatch = kondisi.match(/OBSERVASI:\s*(.*?)(?=VITAL|VITAL SIGN|$)/i);
+        const vitalMatch = kondisi.match(/VITAL SIGN:\s*(.*)/i);
+
+        // Jika format sesuai, ambil nilainya. Jika tidak, pakai format bebas.
+        const extractedKeluhan = keluhanMatch ? keluhanMatch[1].replace('.', '').trim() : kondisi.substring(0, 50) + "...";
+        const extractedObservasi = observasiMatch ? observasiMatch[1].replace('.', '').trim() : "Terpantau sesuai dengan keluhan klinis.";
+        const extractedVital = vitalMatch ? vitalMatch[1].trim() : "Menunggu hasil observasi lanjutan.";
+        
+        // Buat Ringkasan Dinamis (Format SBAR Standar Keperawatan)
+        const resultAI = `RINGKASAN OPERAN SHIFT (${shift})\n---------------------------\n[S] SITUATION: Pasien saat ini dirawat dengan keluhan utama ${extractedKeluhan}.\n\n[B] BACKGROUND: Hasil observasi menunjukkan ${extractedObservasi}. Parameter vital sign tercatat: ${extractedVital}.\n\n[A] ASSESSMENT: Berdasarkan observasi, status klinis perlu terus dipantau secara ketat terkait keluhan ${extractedKeluhan}.\n\n[R] RECOMMENDATION: ${intervensi || 'Lanjutkan monitoring ketat pada tanda-tanda vital. Lapor DPJP jika terjadi perburukan kondisi.'}`;
         
         setKondisi(resultAI);
         setAiSuccess(true);
@@ -85,6 +97,7 @@ export default function HandoverShift() {
     } catch (err) {
       console.error(err);
       setIsProcessingAI(false);
+      alert("Terjadi kesalahan jaringan.");
     }
   };
 
@@ -160,7 +173,7 @@ export default function HandoverShift() {
                 <div className="relative">
                   <AnimatePresence>
                     {isProcessingAI && (
-                      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-white/90 backdrop-blur-md z-20 rounded-[3rem] flex flex-col items-center justify-center border-2 border-blue-100">
+                      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-white/90 backdrop-blur-md z-20 rounded-[3.5rem] flex flex-col items-center justify-center border-2 border-blue-100">
                         <div className="relative mb-6">
                            <Loader2 className="animate-spin text-blue-600" size={80} />
                            <BrainCircuit className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-blue-400" size={32} />
@@ -205,7 +218,7 @@ export default function HandoverShift() {
                 <div>
                   <h3 className="text-2xl font-black italic tracking-tighter uppercase leading-none">LLM Shift<br/>Synthesizer</h3>
                   <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mt-4 leading-relaxed opacity-80">
-                    Mentransformasi catatan observasi manual menjadi laporan operan standar medis.
+                    Mentransformasi catatan observasi manual menjadi laporan operan standar SBAR medis.
                   </p>
                 </div>
                 <button 
