@@ -37,7 +37,11 @@ const KnowledgeBase = () => {
         try {
             setLoading(true);
             const res = await axios.get(`${API_URL}/knowledge`, config);
-            setFiles(Array.isArray(res.data) ? res.data : []);
+            
+            // FIX: Mengambil res.data.data karena Laravel membungkusnya di dalam properti 'data'
+            const fetchedData = res.data.data || [];
+            setFiles(fetchedData);
+            
         } catch (err) {
             console.error("Gagal mengambil data:", err);
             if (err.response?.status === 401) {
