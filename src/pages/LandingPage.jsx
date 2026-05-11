@@ -3,7 +3,7 @@ import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion'
 import { useNavigate } from 'react-router-dom';
 import { 
   ArrowRight, ShieldCheck, Zap, Activity, Cpu, UserCheck, 
-  Database, FileText, Menu, X, BrainCircuit, 
+  Database, FileText, Menu, X, 
   Stethoscope, Microscope, LineChart, Lock, ChevronRight, PlayCircle
 } from 'lucide-react';
 
@@ -49,8 +49,9 @@ export default function LandingPage() {
       <header className={`fixed top-0 w-full z-50 transition-all duration-300 ${isScrolled ? 'bg-white/80 backdrop-blur-md border-b border-slate-200 py-3 shadow-sm' : 'bg-transparent py-5'}`}>
         <div className="max-w-7xl mx-auto px-6 flex justify-between items-center">
           <div className="flex items-center gap-3 cursor-pointer" onClick={() => scrollToSection(heroRef)}>
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-emerald-500 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/30">
-              <BrainCircuit className="text-white" size={24} />
+            {/* LOGO DIUBAH KE GAMBAR REAL */}
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden drop-shadow-md">
+              <img src="/logo.png" alt="LexiMed Logo" className="w-full h-full object-contain" />
             </div>
             <span className="text-2xl font-black tracking-tight text-slate-900">
               LexiMed<span className="text-blue-600">.ai</span>
@@ -285,8 +286,9 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
           <div className="md:col-span-2">
             <div className="flex items-center gap-2 mb-6">
-              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                <BrainCircuit className="text-white" size={18} />
+              {/* LOGO DIUBAH KE GAMBAR REAL */}
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center overflow-hidden">
+                <img src="/logo.png" alt="LexiMed Logo" className="w-full h-full object-contain" />
               </div>
               <span className="text-xl font-black tracking-tight text-white">LexiMed.ai</span>
             </div>
