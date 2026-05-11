@@ -96,9 +96,6 @@ export default function AdminLayout() {
     { name: 'Input Radiologi', path: '/radiologi/input', icon: <Cpu size={20} />, roles: ['radiologi'] },
     { name: 'Analisis Radiologi', path: '/radiologi/analisis', icon: <Activity size={20} />, roles: ['radiologi'] },
     
-    // --- SECTION MANAJEMEN ---
-    { name: 'Executive View', path: '/dashboard-manajemen', icon: <TrendingUp size={20} />, roles: ['manajemen'] },
-
     // --- SECTION UNIVERSAL ---
     { name: 'Arsip & Export', path: '/arsip-laporan', icon: <FileSearch size={20} />, roles: ['dokter', 'perawat', 'admin', 'radiologi', 'manajemen'] },
   ];
