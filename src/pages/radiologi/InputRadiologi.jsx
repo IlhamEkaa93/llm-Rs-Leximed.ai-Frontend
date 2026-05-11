@@ -53,7 +53,9 @@ export default function InputRadiologi() {
     
     // Simpan data teks ke localStorage (Gambar sengaja tidak disimpan karena fokus ke AI teks)
     localStorage.setItem('radiology_draft', JSON.stringify(formData));
-    navigate('/radiologi/analisis');
+    
+    // FIX: Memperbaiki path navigasi agar sesuai dengan struktur React Router kamu
+    navigate('/analisis-radiologi');
   };
 
   const autoFill = () => {
