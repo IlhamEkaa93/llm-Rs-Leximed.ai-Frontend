@@ -50,12 +50,8 @@ export default function InputRadiologi() {
     if (!formData.jenis_pemeriksaan || !formData.temuan_mentah) {
       return alert("Jenis pemeriksaan dan temuan mentah wajib diisi!");
     }
-    
-    // Simpan data teks ke localStorage (Gambar sengaja tidak disimpan karena fokus ke AI teks)
     localStorage.setItem('radiology_draft', JSON.stringify(formData));
-    
-    // FIX: Memperbaiki path navigasi agar sesuai dengan struktur React Router kamu
-    navigate('/analisis-radiologi');
+    navigate('/radiologi/analisis');
   };
 
   const autoFill = () => {
