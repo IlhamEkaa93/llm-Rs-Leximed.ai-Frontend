@@ -8,7 +8,8 @@ import {
 } from 'lucide-react';
 
 export default function LandingPage() {
-  const navigate = useNavigate();
+  // Pastikan rute yang digunakan di App.js atau Router kamu adalah '/login'
+  const navigate = useNavigate(); 
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
@@ -66,7 +67,10 @@ export default function LandingPage() {
           </nav>
 
           <div className="hidden md:flex items-center gap-4">
-            <button onClick={() => navigate('/login')} className="px-6 py-2.5 bg-slate-900 text-white font-bold rounded-xl hover:bg-blue-600 transition-colors flex items-center gap-2 shadow-lg shadow-slate-900/20 active:scale-95">
+            <button 
+              onClick={() => navigate('/login')} 
+              className="px-6 py-2.5 bg-slate-900 text-white font-bold rounded-xl hover:bg-blue-600 transition-colors flex items-center gap-2 shadow-lg shadow-slate-900/20 active:scale-95"
+            >
               Masuk Sistem <ArrowRight size={18} />
             </button>
           </div>
@@ -88,7 +92,10 @@ export default function LandingPage() {
                 <button onClick={() => scrollToSection(heroRef)} className="text-left py-3 border-b border-slate-100 hover:text-blue-600 transition-colors">Beranda</button>
                 <button onClick={() => scrollToSection(fiturRef)} className="text-left py-3 border-b border-slate-100 hover:text-blue-600 transition-colors">Fitur Unggulan</button>
                 <button onClick={() => scrollToSection(caraKerjaRef)} className="text-left py-3 border-b border-slate-100 hover:text-blue-600 transition-colors">Cara Kerja</button>
-                <button onClick={() => navigate('/login')} className="py-3.5 bg-blue-600 text-white rounded-xl flex justify-center items-center gap-2 mt-4 shadow-lg shadow-blue-600/30 active:scale-95 transition-all">
+                <button 
+                  onClick={() => navigate('/login')} 
+                  className="py-3.5 bg-blue-600 text-white rounded-xl flex justify-center items-center gap-2 mt-4 shadow-lg shadow-blue-600/30 active:scale-95 transition-all"
+                >
                   Masuk Sistem <ArrowRight size={18} />
                 </button>
               </div>
@@ -121,7 +128,10 @@ export default function LandingPage() {
             </motion.p>
 
             <motion.div variants={fadeUp} className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start items-center mt-10">
-              <button onClick={() => navigate('/login')} className="w-full sm:w-auto group px-8 py-4 bg-blue-600 text-white rounded-2xl font-bold text-lg flex items-center justify-center gap-3 hover:bg-blue-700 transition-all shadow-xl shadow-blue-600/30 active:scale-95">
+              <button 
+                onClick={() => navigate('/login')} 
+                className="w-full sm:w-auto group px-8 py-4 bg-blue-600 text-white rounded-2xl font-bold text-lg flex items-center justify-center gap-3 hover:bg-blue-700 transition-all shadow-xl shadow-blue-600/30 active:scale-95"
+              >
                 Coba LexiMed Sekarang <ArrowRight className="group-hover:translate-x-1 transition-transform" />
               </button>
               <button onClick={() => scrollToSection(caraKerjaRef)} className="w-full sm:w-auto px-8 py-4 bg-white/80 backdrop-blur-md border border-slate-200 text-slate-700 rounded-2xl font-bold hover:bg-slate-50 transition-all flex items-center justify-center gap-2 shadow-sm active:scale-95">
@@ -187,7 +197,7 @@ export default function LandingPage() {
                 <Activity size={28} className="md:w-8 md:h-8" />
               </div>
               <h4 className="text-lg md:text-xl font-black text-slate-900 group-hover:text-white mb-3">Modul Perawat</h4>
-              <p className="text-slate-500 group-hover:text-emerald-100 leading-relaxed text-sm">Pembuatan catatan keperawatan dan operan shift (Handover) otomatis dari narasi bebas atau suara.</p>
+              <p className="text-slate-500 group-hover:text-emerald-100 leading-relaxed text-sm">Pembuatan catatan keperawatan dan operan shift (Handover SBAR) otomatis dari narasi bebas atau suara.</p>
             </motion.div>
 
             <motion.div variants={fadeUp} className="group p-8 bg-slate-50 rounded-[2rem] md:rounded-[2.5rem] hover:bg-purple-600 transition-colors duration-300 border border-slate-100 hover:border-purple-600">
@@ -244,7 +254,7 @@ export default function LandingPage() {
               <motion.div initial={{ opacity: 0, x: 50 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true, margin: "-50px" }} className="bg-slate-900 p-8 md:p-10 rounded-[2rem] border border-slate-800 relative z-10 lg:mt-32 shadow-2xl shadow-emerald-900/20">
                 <div className="w-12 h-12 bg-emerald-500 text-white rounded-full flex items-center justify-center font-black text-xl mb-6 shadow-lg shadow-emerald-500/30">2</div>
                 <h3 className="text-xl md:text-2xl font-bold mb-3 text-white">Ekstraksi LLM</h3>
-                <p className="text-slate-400 text-sm md:text-base leading-relaxed">Mesin AI memahami konteks medis, merapikan data menjadi format standar (seperti SOAP), dan mencari diagnosis terkait di *Knowledge Base* RS.</p>
+                <p className="text-slate-400 text-sm md:text-base leading-relaxed">Mesin AI memahami konteks medis, merapikan data menjadi format standar (seperti SOAP atau SBAR), dan mencari diagnosis terkait di *Knowledge Base* RS.</p>
               </motion.div>
             </div>
 
@@ -271,7 +281,10 @@ export default function LandingPage() {
         <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="max-w-4xl mx-auto text-center relative z-10">
           <h2 className="text-3xl md:text-5xl lg:text-6xl font-black text-white mb-6 tracking-tight">Siap Meringankan Beban Administrasi Rumah Sakit?</h2>
           <p className="text-blue-100 text-lg md:text-xl mb-10 font-medium px-4">Bergabung dengan ekosistem kesehatan masa depan berbasis Kecerdasan Buatan.</p>
-          <button onClick={() => navigate('/login')} className="px-8 md:px-10 py-4 md:py-5 bg-white text-blue-700 rounded-2xl font-black text-base md:text-lg hover:bg-slate-50 transition-all shadow-2xl shadow-blue-900/50 flex items-center justify-center gap-3 mx-auto active:scale-95">
+          <button 
+            onClick={() => navigate('/login')} 
+            className="px-8 md:px-10 py-4 md:py-5 bg-white text-blue-700 rounded-2xl font-black text-base md:text-lg hover:bg-slate-50 transition-all shadow-2xl shadow-blue-900/50 flex items-center justify-center gap-3 mx-auto active:scale-95"
+          >
             Mulai Gunakan LexiMed <ChevronRight size={24} />
           </button>
         </motion.div>
