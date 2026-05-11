@@ -3,12 +3,11 @@ import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion'
 import { useNavigate } from 'react-router-dom';
 import { 
   ArrowRight, ShieldCheck, Zap, Activity, Cpu, UserCheck, 
-  Database, FileText, ChevronDown, Menu, X, BrainCircuit, 
+  Database, FileText, Menu, X, BrainCircuit, 
   Stethoscope, Microscope, LineChart, Lock, ChevronRight, PlayCircle
 } from 'lucide-react';
 
 export default function LandingPage() {
-  // Pastikan rute yang digunakan di App.js atau Router kamu adalah '/login'
   const navigate = useNavigate(); 
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -17,11 +16,9 @@ export default function LandingPage() {
   const fiturRef = useRef(null);
   const caraKerjaRef = useRef(null);
   
-  // Efek Parallax
   const { scrollYProgress } = useScroll();
   const yPos = useTransform(scrollYProgress, [0, 1], [0, 200]);
 
-  // Deteksi Scroll untuk Navbar
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50);
@@ -106,13 +103,11 @@ export default function LandingPage() {
 
       {/* ===== HERO SECTION ===== */}
       <section ref={heroRef} className="relative pt-32 pb-20 md:pt-40 md:pb-24 px-6 overflow-hidden min-h-[95vh] flex items-center">
-        {/* Orbs Background */}
         <motion.div style={{ y: yPos }} animate={{ scale: [1, 1.1, 1], rotate: [0, 90, 0] }} transition={{ duration: 25, repeat: Infinity, ease: "linear" }} className="absolute top-0 -left-20 w-[300px] md:w-[500px] h-[300px] md:h-[500px] bg-blue-400/20 rounded-full blur-[80px] md:blur-[100px] -z-10" />
         <motion.div style={{ y: yPos }} animate={{ scale: [1, 1.2, 1], rotate: [0, -90, 0] }} transition={{ duration: 20, repeat: Infinity, delay: 2, ease: "linear" }} className="absolute bottom-0 -right-20 w-[400px] md:w-[600px] h-[400px] md:h-[600px] bg-emerald-400/20 rounded-full blur-[80px] md:blur-[100px] -z-10" />
 
         <div className="max-w-7xl mx-auto w-full grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           
-          {/* Teks Kiri */}
           <motion.div initial="hidden" animate="show" variants={staggerContainer} className="text-center lg:text-left z-10 pt-10 lg:pt-0">
             <motion.div variants={fadeUp} className="inline-flex items-center gap-2 px-4 py-2 bg-white/70 backdrop-blur-md text-blue-700 rounded-full text-xs md:text-sm font-black uppercase tracking-widest mb-6 border border-blue-200/50 shadow-sm">
               <Zap size={16} className="text-amber-500 fill-amber-500" /> Revolusi AI Medis Vokasi
@@ -140,10 +135,7 @@ export default function LandingPage() {
             </motion.div>
           </motion.div>
 
-          {/* Floating UI Kanan (Desktop Only) */}
           <motion.div initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 1, delay: 0.5 }} className="hidden lg:block relative h-[500px] xl:h-[600px] w-full mt-10 lg:mt-0">
-            
-            {/* Card 1 - NAMA DOKTER DISAMARKAN */}
             <motion.div animate={{ y: [0, -15, 0] }} transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }} className="absolute top-8 right-4 xl:right-10 w-[300px] xl:w-80 bg-white/80 backdrop-blur-xl p-6 rounded-3xl border border-white/50 shadow-2xl shadow-blue-900/10 z-20">
               <div className="flex items-center gap-4 mb-4">
                 <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-600"><Stethoscope size={24} /></div>
@@ -158,7 +150,6 @@ export default function LandingPage() {
               </div>
             </motion.div>
 
-            {/* Card 2 */}
             <motion.div animate={{ y: [0, 15, 0] }} transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", delay: 1 }} className="absolute top-56 xl:top-64 left-0 xl:-left-4 w-72 bg-slate-900/95 backdrop-blur-md p-6 rounded-3xl border border-slate-700 shadow-2xl shadow-emerald-900/20 z-30">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2"><Cpu className="text-emerald-400" size={20} /><span className="text-white font-bold text-sm">LexiCore v1.0</span></div>
@@ -167,7 +158,6 @@ export default function LandingPage() {
               <p className="text-slate-300 text-xs leading-relaxed">"Pasien terindikasi dehidrasi ringan berdasarkan parameter vital. Rekomendasi rehidrasi IV sesuai SOP RS."</p>
             </motion.div>
 
-            {/* Background Graphic Bulat-Bulat */}
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 xl:w-96 xl:h-96 border-[1px] border-slate-200/60 rounded-full border-dashed animate-[spin_60s_linear_infinite]"></div>
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-56 h-56 xl:w-64 xl:h-64 border-[1px] border-blue-200/60 rounded-full animate-[spin_40s_linear_infinite_reverse]"></div>
           </motion.div>
