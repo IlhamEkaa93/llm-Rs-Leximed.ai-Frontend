@@ -1,16 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ScanLine, UploadCloud, Calendar, Layers, 
   User, ClipboardEdit, 
   Zap, Database, Image as ImageIcon, 
-  BrainCircuit, ArrowRight
+  BrainCircuit, ArrowRight, X
 } from 'lucide-react';
 
 export default function InputRadiologi() {
   const navigate = useNavigate();
   const [patient, setPatient] = useState(null);
+  
+  // State untuk menyimpan URL gambar yang diunggah (Hanya untuk UI/Visual)
+  const [previewImage, setPreviewImage] = useState(null);
   
   const [formData, setFormData] = useState({
     jenis_pemeriksaan: '',
@@ -29,10 +32,26 @@ export default function InputRadiologi() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  // Handler untuk mengubah gambar inputan file menjadi URL agar bisa ditampilkan
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const imageUrl = URL.createObjectURL(file);
+      setPreviewImage(imageUrl);
+    }
+  };
+
+  const handleRemoveImage = (e) => {
+    e.stopPropagation(); // Mencegah klik menyebar ke kotak input file
+    setPreviewImage(null);
+  };
+
   const handleNext = () => {
     if (!formData.jenis_pemeriksaan || !formData.temuan_mentah) {
       return alert("Jenis pemeriksaan dan temuan mentah wajib diisi!");
     }
+    
+    // Simpan data teks ke localStorage (Gambar sengaja tidak disimpan karena fokus ke AI teks)
     localStorage.setItem('radiology_draft', JSON.stringify(formData));
     navigate('/radiologi/analisis');
   };
@@ -121,16 +140,57 @@ export default function InputRadiologi() {
                 </div>
               </div>
 
+              {/* AREA UPLOAD GAMBAR */}
               <div className="space-y-3 relative z-10 text-left">
                 <label className="text-[9px] md:text-[10px] font-black text-emerald-700 uppercase tracking-[0.2em] ml-2 flex items-center gap-2">
                   <ImageIcon size={16} className="text-emerald-500"/> Image Acquisition (PACS/DICOM)
                 </label>
-                <div className="w-full h-40 md:h-52 bg-emerald-50/30 border-2 border-dashed border-emerald-200 rounded-[2rem] md:rounded-[2.5rem] flex flex-col items-center justify-center text-emerald-600 hover:bg-emerald-50 hover:border-emerald-400 transition-all cursor-pointer group relative overflow-hidden">
-                  <div className="p-4 md:p-5 bg-white rounded-full shadow-md mb-3 md:mb-4 group-hover:scale-110 group-hover:-translate-y-1 transition-all duration-300">
-                    <UploadCloud size={28} className="md:w-8 md:h-8" />
-                  </div>
-                  <p className="font-black text-[10px] md:text-xs uppercase tracking-widest leading-none text-center px-4">Sinkronisasi PACS Server</p>
-                  <p className="text-[8px] md:text-[10px] font-bold uppercase tracking-widest opacity-50 mt-2 md:mt-3 leading-none text-center px-4">Drop DICOM image or click to browse</p>
+                
+                {/* File Input Wrapper */}
+                <div className="relative w-full h-40 md:h-52 rounded-[2rem] md:rounded-[2.5rem] overflow-hidden border-2 border-dashed border-emerald-200 bg-emerald-50/30 hover:bg-emerald-50 hover:border-emerald-400 transition-all group">
+                  
+                  {/* Input File asli disembunyikan tapi penuhi kotak */}
+                  <input 
+                    type="file" 
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20"
+                    title="Klik atau Tarik gambar ke sini"
+                  />
+
+                  {/* Tampilan Visual (Preview vs Placeholder) */}
+                  <AnimatePresence mode="wait">
+                    {previewImage ? (
+                      <motion.div 
+                        key="image"
+                        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                        className="absolute inset-0 w-full h-full"
+                      >
+                        <img src={previewImage} alt="Preview DICOM" className="w-full h-full object-contain bg-slate-900/5 p-2" />
+                        
+                        {/* Tombol Hapus Gambar (z-30 agar bisa diklik di atas input file) */}
+                        <button 
+                          onClick={handleRemoveImage}
+                          className="absolute top-4 right-4 p-2 bg-rose-500 text-white rounded-full shadow-lg hover:bg-rose-600 transition-colors z-30"
+                          title="Hapus Gambar"
+                        >
+                          <X size={16} />
+                        </button>
+                      </motion.div>
+                    ) : (
+                      <motion.div 
+                        key="placeholder"
+                        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                        className="absolute inset-0 flex flex-col items-center justify-center text-emerald-600 pointer-events-none"
+                      >
+                        <div className="p-4 md:p-5 bg-white rounded-full shadow-md mb-3 md:mb-4 group-hover:scale-110 group-hover:-translate-y-1 transition-all duration-300">
+                          <UploadCloud size={28} className="md:w-8 md:h-8" />
+                        </div>
+                        <p className="font-black text-[10px] md:text-xs uppercase tracking-widest leading-none text-center px-4">Sinkronisasi PACS Server</p>
+                        <p className="text-[8px] md:text-[10px] font-bold uppercase tracking-widest opacity-50 mt-2 md:mt-3 leading-none text-center px-4">Click to browse or drop image</p>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
               </div>
 
