@@ -15,6 +15,7 @@ import KelolaTemplate from './pages/admin/KelolaTemplate';
 import AuditLog from './pages/admin/AuditLog';
 import PatientInput from './pages/admin/PatientInput';
 import AIGovernance from './pages/admin/AIGovernance';
+import KelolaAgent from './pages/admin/KelolaAgent';
 
 // Dokter Pages
 import DashboardDokter from './pages/dokter/DashboardDokter';
@@ -40,7 +41,6 @@ import InputAsisten from './pages/asisten/InputAsisten';
 // Radiologi Pages
 import DashboardRadiologi from './pages/radiologi/DashboardRadiologi';
 import InputRadiologi from './pages/radiologi/InputRadiologi';
-import AnalisisRadiologi from './pages/radiologi/AnalisisRadiologi';
 
 // Manajemen & Common
 import DashboardManajemen from './pages/manajemen/DashboardManajemen';
@@ -105,12 +105,14 @@ export default function App() {
             {/* Modul Radiologi */}
             <Route path="/dashboard-radiologi" element={<DashboardRadiologi />} />
             <Route path="/radiologi/input" element={<InputRadiologi />} />
-            <Route path="/radiologi/analisis" element={<AnalisisRadiologi />} />
 
             {/* Modul Manajemen & Common */}
             <Route path="/dashboard-manajemen" element={<DashboardManajemen />} />
             <Route path="/arsip-laporan" element={<ArsipLaporan />} />
             <Route path="/pengaturan" element={<Pengaturan />} />
+
+            {/* Multi-Agent Playground (Dapat diakses oleh semua role yang masuk ke AdminLayout) */}
+            <Route path="/playground-agent" element={<KelolaAgent />} />
 
           </Route>
 

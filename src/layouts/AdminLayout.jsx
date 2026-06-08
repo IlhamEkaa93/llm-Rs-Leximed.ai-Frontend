@@ -81,11 +81,12 @@ export default function AdminLayout() {
     // --- SECTION ASISTEN ---
     { name: 'Pemeriksaan Awal', path: '/asisten/input-pemeriksaan', icon: <Stethoscope size={20} />, roles: ['asisten'] },
     
-    
     // --- SECTION RADIOLOGI ---
-    { name: 'Input Radiologi', path: '/radiologi/input', icon: <Cpu size={20} />, roles: ['radiologi'] },
-    { name: 'Analisis Radiologi', path: '/radiologi/analisis', icon: <Activity size={20} />, roles: ['radiologi'] },
-    
+    { name: 'Analisis Radiologi', path: '/radiologi/input', icon: <Cpu size={20} />, roles: ['radiologi'] },
+
+    // --- SECTION MULTI-AGENT RUNTIME (UNIVERSAL FOR ALL ROLES) ---
+    { name: 'AI Agent Playground', path: '/playground-agent', icon: <BrainCircuit size={20} />, roles: ['dokter', 'perawat', 'admin', 'radiologi', 'asisten', 'manajemen'] },
+
     // --- SECTION UNIVERSAL ---
     { name: 'Arsip & Export', path: '/arsip-laporan', icon: <FileSearch size={20} />, roles: ['dokter', 'perawat', 'admin', 'radiologi', 'manajemen'] },
   ];
@@ -193,11 +194,11 @@ export default function AdminLayout() {
         <header className="h-[90px] bg-white/70 backdrop-blur-xl border-b border-slate-200/60 flex items-center justify-between px-4 md:px-10 sticky top-0 z-30 shrink-0 shadow-sm">
           <div className="flex items-center gap-4">
              <motion.button 
-                whileTap={{ scale: 0.9 }}
-                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                className="p-3 hover:bg-slate-100 rounded-2xl transition-all text-slate-600 border border-slate-200/50 shadow-sm bg-white"
+               whileTap={{ scale: 0.9 }}
+               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+               className="p-3 hover:bg-slate-100 rounded-2xl transition-all text-slate-600 border border-slate-200/50 shadow-sm bg-white"
              >
-                {isMobile ? <Menu size={22} /> : <Command size={22} />}
+               {isMobile ? <Menu size={22} /> : <Command size={22} />}
              </motion.button>
              
              {/* Global Search (Desktop) */}

@@ -57,7 +57,7 @@ export default function AnalisisRadiologi() {
     setIsSaving(true);
     
     try {
-      const response = await fetch("https://lexi-med-ai-llm-rs-back-end.vercel.app/api/clinical-data", {
+      const response = await fetch("http://localhost:8000/api/clinical-data", {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",

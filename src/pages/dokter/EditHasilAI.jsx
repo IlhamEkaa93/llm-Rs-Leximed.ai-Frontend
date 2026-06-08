@@ -29,7 +29,7 @@ export default function EditHasilAI() {
 
       try {
         // Mengambil log AI terakhir untuk pasien ini dari PostgreSQL
-        const response = await fetch(`https://lexi-med-ai-llm-rs-back-end.vercel.app/api/dashboard-stats`, {
+        const response = await fetch(`http://localhost:8000/api/dashboard-stats`, {
           headers: { 'Authorization': `Bearer ${localStorage.getItem('access_token')}` }
         });
         

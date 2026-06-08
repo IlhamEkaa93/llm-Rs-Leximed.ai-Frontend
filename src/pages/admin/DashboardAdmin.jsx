@@ -21,7 +21,7 @@ export default function DashboardAdmin() {
     const printRef = useRef(null);
     const [isExporting, setIsExporting] = useState(false);
 
-    const API_URL = "https://lexi-med-ai-llm-rs-back-end.vercel.app/api";
+    const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000/api";
     const token = localStorage.getItem('access_token');
     const user = JSON.parse(localStorage.getItem('user')) || { name: 'Administrator' };
 

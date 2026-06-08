@@ -12,7 +12,7 @@ export default function AuditLog() {
   const [searchTerm, setSearchTerm] = useState('');
   const [stats, setStats] = useState({ total: 0, alerts: 0, time: '0s' });
 
-  const API_URL = "https://lexi-med-ai-llm-rs-back-end.vercel.app/api";
+  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000/api";
   const token = localStorage.getItem('access_token');
 
   // FETCH DATA SECARA REALTIME

@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "https://lexi-med-ai-llm-rs-back-end.vercel.app/api",
+  baseURL: "http://localhost:8000/api",
   headers: {
     "Accept": "application/json",
     "Content-Type": "application/json",

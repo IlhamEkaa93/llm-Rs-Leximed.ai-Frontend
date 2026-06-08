@@ -22,7 +22,7 @@ export default function ArsipLaporan() {
   useEffect(() => {
     const fetchReports = async () => {
       try {
-        const response = await fetch("https://lexi-med-ai-llm-rs-back-end.vercel.app/api/clinical-data", {
+        const response = await fetch("http://localhost:8000/api/clinical-data", {
           method: 'GET',
           headers: { 
             "Authorization": `Bearer ${localStorage.getItem('access_token')}`,

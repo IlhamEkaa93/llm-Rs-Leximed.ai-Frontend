@@ -41,7 +41,7 @@ const PatientInput = () => {
         setIsLoadingDoctors(true);
         try {
             const token = localStorage.getItem('access_token');
-            const response = await axios.get('https://lexi-med-ai-llm-rs-back-end.vercel.app/api/users', {
+            const response = await axios.get('http://localhost:8000/api/users', {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             
@@ -74,7 +74,7 @@ const PatientInput = () => {
         setIsSaving(true);
         try {
             const token = localStorage.getItem('access_token');
-            await axios.post('https://lexi-med-ai-llm-rs-back-end.vercel.app/api/patients', formData, {
+            await axios.post('http://localhost:8000/api/patients', formData, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Accept': 'application/json',
