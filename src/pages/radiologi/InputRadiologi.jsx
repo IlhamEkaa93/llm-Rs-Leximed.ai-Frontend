@@ -42,7 +42,10 @@ export default function InputRadiologi() {
   const [isSaving, setIsSaving] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
-  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+  const API_URL = import.meta.env.VITE_API_URL || 'https://lexi-med-ai-llm-rs-back-end.vercel.app/api';
+  const API_URL_CLOUD = 'https://lexi-med-ai-llm-rs-back-end.vercel.app/api';
+  const FINAL_API_URL = import.meta.env.VITE_API_URL || API_URL_CLOUD;
+  
   const token = localStorage.getItem('access_token');
   
   const GEMINI_API_KEY = "AQ.Ab8RN6IPsL0uddAd78buDRKyCSu26Fl0SWDhrcLPmdvlOQU6-A";

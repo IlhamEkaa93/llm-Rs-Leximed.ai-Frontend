@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 
 // Gunakan port lokal dinamis agar terisolasi dari Vercel produksi
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000/api";
+const API_URL = import.meta.env.VITE_API_URL || "https://lexi-med-ai-llm-rs-back-end.vercel.app/api";
 
 export default function DashboardDokter() {
   const navigate = useNavigate();

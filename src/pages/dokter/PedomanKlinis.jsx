@@ -41,7 +41,7 @@ export default function PedomanKlinis() {
     
     try {
       // Panggil API Backend (Agar terekam di Audit Log Laravel)
-      const response = await fetch("http://localhost:8000/api/rag-guideline", {
+      const response = await fetch("https://lexi-med-ai-llm-rs-back-end.vercel.app/api/rag-guideline", {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",

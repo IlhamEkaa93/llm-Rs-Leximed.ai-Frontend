@@ -60,7 +60,7 @@ export default function HandoverShift() {
 
     try {
       // 1. Simpan history ke Database Backend
-      await fetch("http://localhost:8000/api/clinical-data", {
+      await fetch("https://lexi-med-ai-llm-rs-back-end.vercel.app/api/clinical-data", {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",

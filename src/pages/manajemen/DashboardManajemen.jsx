@@ -34,7 +34,7 @@ export default function DashboardManajemen() {
   const fetchRealtimeStats = async () => {
     setLoadingData(true);
     try {
-      const response = await fetch(`http://localhost:8000/api/manajemen/dashboard?periode=${periode}&unit=${unit}`, {
+      const response = await fetch(`https://lexi-med-ai-llm-rs-back-end.vercel.app/api/manajemen/dashboard?periode=${periode}&unit=${unit}`, {
         headers: { 
           "Authorization": `Bearer ${localStorage.getItem('access_token')}`,
           "Accept": "application/json"
@@ -79,7 +79,7 @@ export default function DashboardManajemen() {
     setIsSuccess(true);
     try {
       // Simpan ke Audit Log Final
-      await fetch("http://localhost:8000/api/clinical-data", {
+      await fetch("https://lexi-med-ai-llm-rs-back-end.vercel.app/api/clinical-data", {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",

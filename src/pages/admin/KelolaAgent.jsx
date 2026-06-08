@@ -14,7 +14,7 @@ import {
     Terminal, ShieldCheck, RefreshCw, Trash2
 } from 'lucide-react';
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000/api";
+const API_URL = import.meta.env.VITE_API_URL || "https://lexi-med-ai-llm-rs-back-end.vercel.app/api";
 
 const KelolaAgent = () => {
     const navigate = useNavigate();
