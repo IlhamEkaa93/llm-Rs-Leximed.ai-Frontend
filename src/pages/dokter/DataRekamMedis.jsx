@@ -72,7 +72,6 @@ export default function DataRekamMedis() {
 
   const API_URL = import.meta.env.VITE_API_URL || 'https://lexi-med-ai-llm-rs-back-end.vercel.app/api';
   const token = localStorage.getItem('access_token');
-  const GEMINI_API_KEY = "AQ.Ab8RN6IPsL0uddAd78buDRKyCSu26Fl0SWDhrcLPmdvlOQU6-A";
 
   // ── MUTATION EFFECT: Mengunci Seluruh Variabel Input Dokter ke localStorage (Anti-Reset) ──
   useEffect(() => {
