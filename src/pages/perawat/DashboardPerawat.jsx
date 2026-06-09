@@ -42,7 +42,7 @@ export default function DashboardPerawat() {
 
         const data = await response.json();
         
-        // MENGGUNAKAN DATA REAL-TIME DARI POSTGRESQL MURNI
+        // MENGGUNAKAN DATA REAL-TIME DARI Supabase MURNI
         setStats([
           { label: 'Total Pasien Terdaftar', value: data.today_patients || '0', icon: <Users size={24} />, color: '#3b82f6', bg: 'bg-blue-50' },
           { label: 'Antrean Generasi AI', value: data.pending_ai || '0', icon: <Clock size={24} />, color: '#f59e0b', bg: 'bg-amber-50' },
@@ -140,7 +140,7 @@ export default function DashboardPerawat() {
         
         <div className="flex items-center gap-4 relative z-10 w-full lg:w-auto">
             <div className="flex-1 lg:flex-none flex items-center gap-3 px-6 py-4 bg-emerald-50 text-emerald-700 rounded-2xl border border-emerald-100 text-[10px] font-black uppercase tracking-widest shadow-inner">
-                <Database size={16} /> PostgreSQL Ver. 16.2
+                <Database size={16} /> Supabase Ver. 16.2
             </div>
             <button onClick={handleLogout} className="p-4 bg-white border border-slate-200 text-slate-400 hover:text-red-500 rounded-2xl transition-all shadow-sm active:scale-95 group">
                 <LogOut size={20} className="group-hover:-translate-x-0.5 transition-transform" />

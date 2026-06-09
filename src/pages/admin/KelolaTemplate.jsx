@@ -14,7 +14,7 @@ export default function KelolaTemplate() {
   const API_URL = "https://lexi-med-ai-llm-rs-back-end.vercel.app/api";
   const token = localStorage.getItem('access_token');
 
-  // --- 1. FETCH DATA DARI POSTGRESQL ---
+  // --- 1. FETCH DATA DARI Supabase ---
   const fetchTemplates = useCallback(async () => {
     setLoading(true);
     try {
@@ -74,7 +74,7 @@ export default function KelolaTemplate() {
       });
 
       if (response.ok) {
-        alert("Konfigurasi Template Berhasil Disinkronisasi ke PostgreSQL RS UNS.");
+        alert("Konfigurasi Template Berhasil Disinkronisasi ke Supabase RS UNS.");
         setTemplates(templates.map(t => t.id === activeTemplate.id ? activeTemplate : t));
       } else {
          const errorData = await response.json();
@@ -109,7 +109,7 @@ export default function KelolaTemplate() {
         <div className="lg:col-span-4 space-y-6">
           <div className="bg-white rounded-[2rem] border border-slate-200 shadow-sm p-6 overflow-hidden flex flex-col h-[700px]">
             <div className="flex items-center gap-2 bg-emerald-50 text-emerald-700 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border border-emerald-100 mb-6 w-fit">
-               <Database size={14} /> HIS PostgreSQL Link
+               <Database size={14} /> HIS Supabase Link
             </div>
             
             <h3 className="text-xl font-black text-slate-800 mb-6">Daftar Template Aktif</h3>

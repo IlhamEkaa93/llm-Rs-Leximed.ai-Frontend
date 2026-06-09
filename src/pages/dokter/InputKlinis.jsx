@@ -153,7 +153,7 @@ const InputKlinis = () => {
         } catch (error) {
             console.error("Gagal Simpan Clinical Data:", error.response?.data);
             setSaveStatus('error');
-            setErrorMessage(error.response?.data?.message || error.response?.data?.error || "Gagal menyimpan data ke PostgreSQL rs_uns_db.");
+            setErrorMessage(error.response?.data?.message || error.response?.data?.error || "Gagal menyimpan data ke Supabase rs_uns_db.");
         } finally {
             setIsSaving(false);
         }
@@ -187,7 +187,7 @@ const InputKlinis = () => {
                         <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
                     </div>
                     <span className="text-[10px] font-black text-emerald-700 uppercase tracking-widest flex items-center gap-2">
-                        <Database size={14} /> PostgreSQL SQL Link Active
+                        <Database size={14} /> Supabase SQL Link Active
                     </span>
                 </div>
             </motion.div>
@@ -269,7 +269,7 @@ const InputKlinis = () => {
                                 : 'bg-[#0f172a] text-white hover:bg-blue-600 shadow-blue-900/20 hover:-translate-y-1 active:scale-95'
                             }`}
                         >
-                            {isSaving ? <><Loader2 className="animate-spin" size={24} /> SINKRONISASI DATABASE POSTGRESQL...</> : <><Save size={24} /> SIMPAN & SINKRON KE REKAM MEDIS</>}
+                            {isSaving ? <><Loader2 className="animate-spin" size={24} /> SINKRONISASI DATABASE Supabase...</> : <><Save size={24} /> SIMPAN & SINKRON KE REKAM MEDIS</>}
                         </button>
                     </div>
                 </motion.div>
@@ -279,7 +279,7 @@ const InputKlinis = () => {
                 <Database size={20} />
                 <div className="h-4 w-px bg-slate-500"></div>
                 <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.5em]">
-                    PostgreSQL Core • Real-time Data Integrity • LexiMed.ai
+                    Supabase Core • Real-time Data Integrity • LexiMed.ai
                 </p>
             </div>
         </div>

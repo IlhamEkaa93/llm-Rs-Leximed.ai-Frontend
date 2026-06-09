@@ -197,7 +197,7 @@ const KelolaUser = () => {
                 <div className="p-8 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
                     <div className="flex items-center gap-3 text-blue-600">
                         <Database size={20} />
-                        <span className="font-black tracking-widest uppercase text-xs">HIS PostgreSQL Link Active</span>
+                        <span className="font-black tracking-widest uppercase text-xs">HIS Supabase Link Active</span>
                     </div>
                     <span className="bg-blue-100 text-blue-700 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest">
                         {users.length} Personil Terdaftar
@@ -353,7 +353,7 @@ const KelolaUser = () => {
                                     className="w-full mt-4 bg-slate-900 hover:bg-blue-600 text-white px-6 py-4 rounded-2xl font-black uppercase tracking-[0.2em] text-xs flex items-center justify-center gap-3 transition-all active:scale-95 shadow-xl shadow-slate-900/20"
                                 >
                                     {submitLoading ? <Loader2 className="animate-spin" size={18} /> : <Database size={18} />}
-                                    {submitLoading ? 'MENYIMPAN...' : 'SIMPAN KE POSTGRESQL RS'}
+                                    {submitLoading ? 'MENYIMPAN...' : 'SIMPAN KE Supabase RS'}
                                 </button>
                             </form>
                         </motion.div>

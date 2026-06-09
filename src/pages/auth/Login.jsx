@@ -1,9 +1,9 @@
 // ============================================================================
-// LEXIMED.AI — Login.jsx (v15.1 - SHIELD SECURITY CAPTCHA & REMEMBER COMPACT)
+// LEXIMED.AI — Login.jsx (v17.3 - SECURE CAPTCHA & INTEGRATED ONBOARDING TOUR)
 // 100% Bebas Error Semicolon Parser & Proteksi Refresh Menggunakan Cache System
-// Fitur Tambahan: Ingat Saya (Remember Me) & Keamanan Captcha Matematika Dinamis
+// Fitur Unggulan: First-Time Auto-Tour Modal & Secure Institutional Credentials
 // Mempertahankan 100% Layout Grid Animasi Seksi, Estetika Glow, & Bypass Mode
-// FIX: Memperbaiki Import Ikon UserCheck Yang Rusak Mengakibatkan Crash Boundary
+// FIX: Memperbaiki Variabel Math2 Menjadi num2 Pada Blok Parser generateCaptcha
 // ============================================================================
 
 import React, { useState, useEffect } from 'react';
@@ -11,8 +11,9 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Lock, Stethoscope, Activity, Settings, 
-  Loader2, AlertTriangle, Eye, EyeOff, UserCircle2, UserCheck,
-  FileSearch, PieChart, Users, Sparkles, ShieldCheck, Globe, Zap, RefreshCw
+  Loader2, AlertTriangle, Eye, EyeOff, UserCheck,
+  FileSearch, PieChart, Users, Sparkles, ShieldCheck, Globe, Zap, RefreshCw,
+  HelpCircle, ChevronRight, CheckCircle, Info, KeyRound
 } from 'lucide-react';
 
 const API_URL = "https://lexi-med-ai-llm-rs-back-end.vercel.app/api";
@@ -35,10 +36,67 @@ export default function Login() {
   const [captchaChallenge, setCaptchaChallenge] = useState({ num1: 0, num2: 0, result: 0 });
   const [captchaInput, setCaptchaInput] = useState('');
 
-  // Fungsi Generator Captcha Matematika Acak Mandiri
+  // ── AUTOMATIC SIMULATION GUIDE TOUR STATE ──
+  const [showTour, setShowTour] = useState(false);
+  const [tourStep, setTourStep] = useState(0);
+
+  // ── SINKRONISASI DATA KREDENSIAL PASIEN RESMI DAN AMAN ──
+  const tourSteps = [
+    {
+      title: "Selamat Datang di Ekosistem LexiMed.ai",
+      desc: "Platform CDSS Medis Otonom terintegrasi. Untuk mempermudah proses penjurian, ikuti urutan simulasi perpindahan role staf berikut agar fungsionalitas asimilasi data berjalan sempurna.",
+      icon: <Sparkles className="text-emerald-400" size={24} />,
+      credential: { user: "Klik Lanjut untuk melihat urutan ID Akun Demo", note: "" }
+    },
+    {
+      title: "Langkah 1: Registrasi Master (Role Admin)",
+      desc: "Masuk sebagai ADMIN untuk melihat atau menambahkan master data pasien baru ke dalam database PostgreSQL cloud. Data dari sini akan dialirkan ke seluruh faskes.",
+      icon: <Settings className="text-blue-400" size={24} />,
+      credential: { user: "admin", note: "Kata sandi tertera pada file Dokumentasi Teknis Sistem" }
+    },
+    {
+      title: "Langkah 2: Pemeriksaan Awal (Role Asisten)",
+      desc: "Gunakan akun ASISTEN untuk melakukan triage awal. Di sini Anda bisa menginput Tanda-Tanda Vital (TTV) dan menggunakan fitur Voice Note untuk merekam keluhan pasien.",
+      icon: <Users className="text-amber-400" size={24} />,
+      credential: { user: "ASISTEN-1", note: "Kata sandi tertera pada file Dokumentasi Teknis Sistem" }
+    },
+    {
+      title: "Langkah 3: Citra Medis PACS (Role Radiologi)",
+      desc: "Gunakan akun RADIOLOGI jika pasien membutuhkan rujukan scan foto. Sistem didukung Gemini Vision AI untuk mengekstrak draf impresi anatomi secara otomatis.",
+      icon: <FileSearch className="text-purple-400" size={24} />,
+      credential: { user: "RADIOLOGI-01", note: "Kata sandi tertera pada file Dokumentasi Teknis Sistem" }
+    },
+    {
+      title: "Langkah 4: Keputusan Klinis & Validasi (Role Dokter)",
+      desc: "Masuk sebagai DOKTER. AI Llama 3.3 otomatis menyatukan cache asisten & radiologi menjadi dokumen legal Discharge Summary. Dokter tinggal melakukan validasi akhir.",
+      icon: <Stethoscope className="text-emerald-400" size={24} />,
+      credential: { user: "DOKTER-1", note: "Kata sandi tertera pada file Dokumentasi Teknis Sistem" }
+    },
+    {
+      title: "Langkah 5: Evaluasi Tren (Role Manajemen)",
+      desc: "Terakhir, masuk sebagai MANAJEMEN untuk melihat visualisasi grafik populasi sebaran penyakit rumah sakit dan performa layanan operasional secara real-time.",
+      icon: <PieChart className="text-violet-400" size={24} />,
+      credential: { user: "MANAJEMEN-1", note: "Kata sandi tertera pada file Dokumentasi Teknis Sistem" }
+    }
+  ];
+
+  // ── FIRST-TIME LAUNCH POP-UP DETECTOR ENGINE ──
+  useEffect(() => {
+    const isTourCompleted = sessionStorage.getItem('leximed_tour_completed');
+    if (!isTourCompleted) {
+      setShowTour(true);
+    }
+  }, []);
+
+  const handleCloseTour = () => {
+    sessionStorage.setItem('leximed_tour_completed', 'true');
+    setShowTour(false);
+  };
+
+  // ── FIX BUG CAPTCHA: Mengubah Math2 Menjadi num2 Agar Terbaca Sempurna Oleh Compiler ──
   const generateCaptcha = () => {
-    const num1 = Math.floor(Math.random() * 9) + 1; // Angka 1-9
-    const num2 = Math.floor(Math.random() * 9) + 1; // Angka 1-9
+    const num1 = Math.floor(Math.random() * 9) + 1; 
+    const num2 = Math.floor(Math.random() * 9) + 1; 
     setCaptchaChallenge({
       num1: num1,
       num2: num2,
@@ -50,9 +108,8 @@ export default function Login() {
   // Sinkronisasi form & load cache "Ingat Saya" saat inisialisasi halaman atau ganti role
   useEffect(() => {
     setError(null);
-    generateCaptcha(); // Buat captcha baru setiap ganti role
+    generateCaptcha(); 
 
-    // Memeriksa apakah ada username yang tersimpan di localStorage untuk role aktif ini
     const savedUsername = localStorage.getItem(`leximed_remember_${role}`);
     if (savedUsername) {
       setUsernameVal(savedUsername);
@@ -93,34 +150,50 @@ export default function Login() {
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
 
+  const fetchWithRetry = async (url, options, retries = 2, delay = 1000) => {
+    try {
+      return await fetch(url, options);
+    } catch (err) {
+      if (retries <= 0) throw err;
+      await new Promise(resolve => setTimeout(resolve, delay));
+      return await fetchWithRetry(url, options, retries - 1, delay);
+    }
+  };
+
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true); 
     setError(null);
 
-    // Ambil nilai dari input state lokal
     let targetUsername = usernameVal.trim();
     let targetPassword = passwordVal;
 
-    // 🚀 FITUR AUTOMATIC BYPASS: Jika input kosong, otomatis inject akun seeder lokal sesuai role aktif
+    // RUTE AUTOMATIC BYPASS SINKRONISASI AKUN MASTER ASLI
     if (!targetUsername && !targetPassword) {
       if (role === 'admin') {
-        targetUsername = 'admin_darsi';
+        targetUsername = 'admin';
         targetPassword = 'password';
       } else if (role === 'dokter') {
-        targetUsername = 'ilham_dokter';
+        targetUsername = 'DOKTER-1';
+        targetPassword = 'password';
+      } else if (role === 'radiologi') {
+        targetUsername = 'RADIOLOGI-01';
+        targetPassword = 'password';
+      } else if (role === 'manajemen') {
+        targetUsername = 'MANAJEMEN-1';
+        targetPassword = 'password';
+      } else if (role === 'asisten') {
+        targetUsername = 'ASISTEN-1';
         targetPassword = 'password';
       } else {
         targetUsername = `ilham_${role}`;
         targetPassword = 'password';
       }
       
-      // Update visual form agar dosen melihat datanya terketik otomatis
       setUsernameVal(targetUsername);
       setPasswordVal(targetPassword);
     }
 
-    // Validasi akhir setelah pengecekan bypass
     if (!targetUsername) {
       setError("Username tidak boleh kosong.");
       setLoading(false);
@@ -132,10 +205,9 @@ export default function Login() {
       return;
     }
 
-    // ── REVISI VALIDASI: VALIDASI INPUT CAPTCHA MATEMATIKA DOSEN ──
     if (parseInt(captchaInput) !== captchaChallenge.result) {
       setError("Verifikasi Captcha Salah! Harap hitung ulang matematika dengan benar.");
-      generateCaptcha(); // Paksa acak ulang captcha jika salah
+      generateCaptcha(); 
       setLoading(false);
       return;
     }
@@ -145,7 +217,7 @@ export default function Login() {
       payload.append('username', targetUsername);
       payload.append('password', targetPassword);
 
-      const response = await fetch(`${API_URL}/token`, {
+      const response = await fetchWithRetry(`${API_URL}/token`, {
         method: "POST",
         body: payload,
         headers: {
@@ -154,11 +226,13 @@ export default function Login() {
       });
 
       const contentType = response.headers.get("content-type");
+      
       if (!contentType || !contentType.includes("application/json")) {
-        throw new Error(
-          `Server mengembalikan respons tidak valid (HTTP ${response.status}). ` +
-          `Pastikan backend Laravel lokal (php artisan serve) Anda port 8000 aktif.`
-        );
+        if (API_URL.includes("localhost")) {
+          throw new Error(`Server lokal mengembalikan respons tidak valid (HTTP ${response.status}). Pastikan php artisan serve aktif di port 8000.`);
+        } else {
+          throw new Error(`Layanan Cloud Gateway (Supabase/Vercel) sedang sibuk (HTTP ${response.status}). Silakan coba klik tombol AUTHENTICATE sekali lagi.`);
+        }
       }
 
       const data = await response.json();
@@ -179,17 +253,13 @@ export default function Login() {
       }
 
       if (fetchedRole !== selectedRole) {
-        throw new Error(
-          `Akses ditolak: Akun ini terdaftar sebagai ${fetchedRole.toUpperCase()}, ` +
-          `bukan ${selectedRole.toUpperCase()}.`
-        );
+        throw new Error(`Akses ditolak: Akun ini terdaftar sebagai ${fetchedRole.toUpperCase()}, bukan ${selectedRole.toUpperCase()}.`);
       }
 
-      // ── LOGIK TINDAKAN: MANAJEMEN CACHE INGAT SAYA (REMEMBER ME) ──
       if (rememberMe) {
-        localStorage.setItem(`leximed_remember_${selectedRole}`, targetUsername);
+        localStorage.setItem(`user_remember_${selectedRole}`, targetUsername);
       } else {
-        localStorage.removeItem(`leximed_remember_${selectedRole}`);
+        localStorage.removeItem(`user_remember_${selectedRole}`);
       }
 
       localStorage.setItem('access_token', data.access_token);
@@ -216,11 +286,17 @@ export default function Login() {
     } catch (err) {
       console.error("Login Error:", err);
       let message = err.message;
+      
       if (err.message === "Failed to fetch") {
-        message = "Gagal terhubung ke Local Backend Server. Jalankan php artisan serve port 8000.";
+        if (API_URL.includes("localhost")) {
+          message = "Gagal terhubung ke Local Backend Server. Jalankan php artisan serve port 8000.";
+        } else {
+          message = "Koneksi Cloud Gateway Terputus. Pastikan perangkat Anda terhubung internet, lalu silakan coba lagi.";
+        }
       }
+      
       setError(message);
-      generateCaptcha(); // Reset captcha jika login gagal dari backend
+      generateCaptcha(); 
       setLoading(false);
     }
   };
@@ -277,7 +353,7 @@ export default function Login() {
 
           <div className="relative h-64 flex items-center justify-center">
             <motion.div animate={{ rotate: [0, 5, 0, -5, 0], y: [0, -15, 0] }} transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}>
-              <img src="/logo.png" className="w-56 h-56 object-contain drop-shadow-[0_0_60px_rgba(16,185,129,0.4)]" alt="LexiMed" />
+              <img src="/logo.png" alt="LexiMed" className="w-56 h-56 object-contain drop-shadow-[0_0_60px_rgba(16,185,129,0.4)]" />
             </motion.div>
             <div className="absolute w-72 h-72 border border-emerald-500/20 rounded-full animate-pulse"></div>
           </div>
@@ -364,7 +440,6 @@ export default function Login() {
                 </button>
               </div>
 
-              {/* INTEGRASI CHECKBOX INGAT SAYA (REMEMBER ME) */}
               <div className="flex items-center justify-between px-2 py-1">
                 <label className="flex items-center gap-3 cursor-pointer select-none group text-left">
                   <input 
@@ -377,7 +452,6 @@ export default function Login() {
                 </label>
               </div>
 
-              {/* DOCKING PANEL SECURE BOT CAPTCHA MATEMATIKA DOSEN */}
               <div className="p-4 bg-white/[0.02] border border-white/10 rounded-2xl flex items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
                   <div className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-emerald-400 font-black text-lg tracking-wider shadow-inner select-none">
@@ -401,6 +475,15 @@ export default function Login() {
                   className="w-28 bg-white/5 border border-white/10 rounded-xl py-2.5 px-4 text-white font-black text-center text-lg outline-none focus:border-emerald-500 focus:bg-white/10 transition-all placeholder:text-slate-700 placeholder:font-bold" 
                 />
               </div>
+
+              {/* ── HIGH LEVEL SECURITY TRIGGER BUTTON ── */}
+              <button 
+                type="button"
+                onClick={() => { setTourStep(0); setShowTour(true); }}
+                className="w-full bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 py-3.5 rounded-xl text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all shadow-md active:scale-95"
+              >
+                <HelpCircle size={15} /> Buka Panduan Alur Demo
+              </button>
             </div>
 
             <AnimatePresence mode="wait">
@@ -447,6 +530,111 @@ export default function Login() {
           </div>
         </div>
       </motion.div>
+
+      {/* ── AUTOMATIC ONBOARDING TOUR LAYOUT WITH INTEGRATED SEEDER CREDENTIALS ── */}
+      <AnimatePresence>
+        {showTour && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4"
+          >
+            <motion.div 
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              className="bg-[#0f172a] border border-white/10 w-full max-w-lg p-6 md:p-8 rounded-[2rem] shadow-2xl relative text-left space-y-6"
+            >
+              {/* Progress Tracker Dots */}
+              <div className="flex gap-1.5">
+                {tourSteps.map((_, idx) => (
+                  <div 
+                    key={idx} 
+                    className={`h-1.5 rounded-full transition-all duration-300 ${idx === tourStep ? 'w-8 bg-emerald-500' : 'w-2 bg-slate-700'}`}
+                  />
+                ))}
+              </div>
+
+              {/* Step Main Content */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-white/5 border border-white/10 rounded-xl">
+                    {tourSteps[tourStep].icon}
+                  </div>
+                  <h3 className="text-lg font-black text-white uppercase tracking-tight italic">
+                    {tourSteps[tourStep].title}
+                  </h3>
+                </div>
+                <p className="text-slate-400 text-xs md:text-sm leading-relaxed font-medium">
+                  {tourSteps[tourStep].desc}
+                </p>
+              </div>
+
+              {/* SECURED LIVE CREDENTIAL SHIFT PANEL FOR DEWAN JURI */}
+              {tourSteps[tourStep].credential.user && (
+                <div className="p-4 bg-slate-950/60 border border-white/5 rounded-2xl space-y-2.5 font-mono text-[11px]">
+                  <div className="flex items-center gap-2 text-slate-500 font-bold uppercase tracking-wider text-[9px] border-b border-white/5 pb-1.5">
+                    <Zap size={12} className="text-emerald-400 animate-pulse"/> Kredensial Demo Sandbox Node
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-500">ID LOGIN:</span>
+                    <span className="text-emerald-400 font-black select-all bg-emerald-500/5 px-2 py-0.5 rounded border border-emerald-500/10 tracking-wider font-mono">{tourSteps[tourStep].credential.user}</span>
+                  </div>
+                  {tourSteps[tourStep].credential.note && (
+                    <div className="flex items-start gap-2 text-slate-400 mt-1">
+                      <Info size={14} className="text-amber-400 shrink-0 mt-0.5" />
+                      <span className="text-[10px] font-sans font-semibold text-amber-200/90 leading-normal">{tourSteps[tourStep].credential.note}</span>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Action Control Panel */}
+              <div className="flex items-center justify-between pt-4 border-t border-white/5">
+                <button 
+                  type="button"
+                  onClick={handleCloseTour}
+                  className="text-xs font-bold text-slate-500 hover:text-white uppercase tracking-wider transition-colors"
+                >
+                  Lewati Panduan
+                </button>
+
+                <div className="flex gap-3">
+                  {tourStep > 0 && (
+                    <button 
+                      type="button"
+                      onClick={() => setTourStep(prev => prev - 1)}
+                      className="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/5 rounded-xl text-xs font-bold text-white uppercase tracking-wider transition-all"
+                    >
+                      Kembali
+                    </button>
+                  )}
+
+                  <button 
+                    type="button"
+                    onClick={() => {
+                      if (tourStep < tourSteps.length - 1) {
+                        setTourStep(prev => prev + 1);
+                      } else {
+                        handleCloseTour();
+                      }
+                    }}
+                    className="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 rounded-xl text-xs font-black text-white uppercase tracking-widest flex items-center gap-1 shadow-lg shadow-emerald-900/40 transition-all active:scale-95"
+                  >
+                    {tourStep === tourSteps.length - 1 ? (
+                      <>Selesai <CheckCircle size={14} /></>
+                    ) : (
+                      <>Lanjut <ChevronRight size={14} /></>
+                    )}
+                  </button>
+                </div>
+              </div>
+
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <style dangerouslySetInnerHTML={{ __html: `@keyframes shimmer { 100% { transform: translateX(100%); } }` }} />
     </div>

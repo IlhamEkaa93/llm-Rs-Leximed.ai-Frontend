@@ -233,7 +233,7 @@ export default function AnalisisRadiologi() {
                   <Database size={16} /> Audit Trail Sync
                 </div>
                 <p className="text-[9px] md:text-[10px] text-slate-500 font-bold uppercase tracking-tight leading-relaxed">
-                  Menekan "Validasi & Simpan" akan mengunci laporan ini ke dalam database PostgreSQL dan mencatat aktivitas Anda ke <span className="text-emerald-500">Audit Log System</span>.
+                  Menekan "Validasi & Simpan" akan mengunci laporan ini ke dalam database Supabase dan mencatat aktivitas Anda ke <span className="text-emerald-500">Audit Log System</span>.
                 </p>
             </div>
           </motion.div>

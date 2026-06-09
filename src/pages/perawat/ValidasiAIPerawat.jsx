@@ -175,7 +175,7 @@ export default function ValidasiAIPerawat() {
                 <div>
                   <h3 className="text-2xl font-black italic tracking-tighter uppercase leading-none">Database<br/>Commit</h3>
                   <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mt-4 leading-relaxed opacity-80">
-                    Menyimpan laporan yang telah divalidasi ke PostgreSQL dan mencatat aktivitas di Audit Log AI.
+                    Menyimpan laporan yang telah divalidasi ke Supabase dan mencatat aktivitas di Audit Log AI.
                   </p>
                 </div>
                 
@@ -240,7 +240,7 @@ export default function ValidasiAIPerawat() {
                 <CheckCircle2 size={48} />
               </div>
               <h2 className="text-2xl font-black text-slate-900 uppercase tracking-tighter mb-2">Validasi Sukses</h2>
-              <p className="text-sm font-bold text-slate-500 uppercase tracking-widest mb-6">Data tersimpan di PostgreSQL & Audit Log AI.</p>
+              <p className="text-sm font-bold text-slate-500 uppercase tracking-widest mb-6">Data tersimpan di Supabase & Audit Log AI.</p>
               <Loader2 className="animate-spin text-slate-300" size={24} />
             </motion.div>
           </motion.div>

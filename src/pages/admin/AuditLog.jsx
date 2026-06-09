@@ -107,7 +107,7 @@ export default function AuditLog() {
             <h1 className="text-4xl font-black text-slate-900 tracking-tighter italic uppercase flex items-center gap-4">
               <Activity className="text-blue-600" size={40} /> Audit Trail AI
             </h1>
-            <p className="text-slate-400 font-bold text-sm uppercase tracking-widest leading-none">Postgresql Real-Time Monitoring System</p>
+            <p className="text-slate-400 font-bold text-sm uppercase tracking-widest leading-none">Supabase Real-Time Monitoring System</p>
           </div>
           <div className="flex items-center gap-4 bg-emerald-50 px-6 py-4 rounded-2xl border border-emerald-100 shadow-inner shrink-0">
              <div className="w-3 h-3 bg-emerald-500 rounded-full animate-ping" />

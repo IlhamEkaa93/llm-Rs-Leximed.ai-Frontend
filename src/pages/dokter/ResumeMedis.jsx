@@ -1,11 +1,9 @@
 // ============================================================================
-// LEXIMED.AI — ResumeMedis.jsx (v17.5 - AUTOMATED CLINICAL AGGREGATOR)
+// LEXIMED.AI — ResumeMedis.jsx (v18.0 - AUTOMATED CLINICAL AGGREGATOR TOUR)
 // 100% Bebas Error Semicolon Parser & Proteksi Refresh Menggunakan Cache System
 // Menyinkronkan Hasil AI Mengikuti Ketikan Manual Dokter Secara Real-Time Live
-// FIX: Melakukan Ingesti Kumulatif Teks Rekam Medis & Ekstraksi Tag Berkas Valid
-// FIX: Menampilkan Citra Gambar PACS Radiologi Asli Live Pada Screen & Print Mode
-// FIX: Mengembalikan Fungsi Tombol AI "Update Data AI" Tanpa Merusak CSS Tailwind
-// Mempertahankan 100% Estetika Layout, CSS, & Animasi Seksi Framer Motion
+// FIX: Penambahan Sistem Pop-Up Panduan Lintas Halaman Khusus Untuk Dewan Juri
+// FIX: Manajemen Status Sesi Otonom Tanpa Merusak Desain Cetak Dokumen Medis
 // ============================================================================
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -14,7 +12,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   FileText, Printer, ShieldCheck, Loader2, ArrowLeft,
   CheckCircle2, Award, Fingerprint, Pill, CheckSquare,
-  Activity, Download, Database, RefreshCw, Zap
+  Activity, Download, Database, RefreshCw, Zap,
+  HelpCircle, ChevronRight, CheckCircle
 } from 'lucide-react';
 
 export default function ResumeMedis() {
@@ -26,14 +25,35 @@ export default function ResumeMedis() {
   const [showSuccessToast, setShowSuccessToast] = useState(false);
   const [isReady, setIsReady] = useState(false); 
 
-  // State untuk export
+  // State untuk export & print
   const printRef = useRef(null);
   const [isExporting, setIsExporting] = useState(false);
   const [isPrinting, setIsPrinting] = useState(false);
 
+  // ── STATE: INTERACTIVE WORKFLOW TOUR PANDUAN JURI ──
+  const [showTour, setShowTour] = useState(false);
+  const [tourStep, setTourStep] = useState(0);
+
+  // Penentuan index rute tur khusus halaman Resume Medis
+  const tourSteps = [
+    {
+      title: "Alur Kerja Sistem: Optimalisasi Cetak Rekam Medis",
+      desc: "Selamat! Seluruh kompilasi data dari Perawat, Asisten, Radiologi, dan Diagnosa Akhir Dokter telah sukses dienkapsulasi menjadi satu dokumen resmi 'Discharge Summary'.",
+      icon: <FileText className="text-emerald-400" size={24} />,
+      actionLabel: "Lanjutkan"
+    },
+    {
+      title: "Langkah Terakhir: Otorisasi & Approve",
+      desc: "Langkah final dalam sistem CDSS ini adalah mengunci legalitas rekam medis. Juri dapat mensimulasikan persetujuan akhir dengan menekan tombol Approve. Setelah itu, silakan uji fitur Unduh PDF atau Cetak Dokumen.",
+      icon: <CheckCircle2 className="text-blue-400" size={24} />,
+      actionLabel: "Approve & Selesai"
+    }
+  ];
+
   const API_URL = "https://lexi-med-ai-llm-rs-back-end.vercel.app/api";
   const token = localStorage.getItem('access_token');
 
+  // ── TRIGGER TOUR OTOMATIS SAAT HALAMAN TERBUKA DARI RUTE SEBELUMNYA ──
   useEffect(() => {
     // 1. Mengambil data Dokter yang sedang Login
     const userStr = localStorage.getItem('user');
@@ -41,7 +61,7 @@ export default function ResumeMedis() {
       setCurrentUser(JSON.parse(userStr));
     }
 
-    // 2. Mengambil data Pasien
+    // 2. Mengambil data Pasien yang aktif dikunci
     const savedPatient = localStorage.getItem('active_patient');
     if (!savedPatient) {
       navigate('/dashboard');
@@ -53,6 +73,14 @@ export default function ResumeMedis() {
         console.error("Gagal parse data pasien:", e);
         navigate('/dashboard');
       }
+    }
+
+    // 3. Tangkap Trigger Tour
+    const currentTourStep = sessionStorage.getItem('leximed_doctor_tour_step');
+    if ((currentTourStep === '3' || currentTourStep === '4' || currentTourStep === '5') && !sessionStorage.getItem('leximed_doctor_tour_completed')) {
+      // Jika berhasil masuk lewat rute simulasi sebelumnya, reset paksa indeks ke 0 khusus halaman ini
+      setTourStep(0);
+      setShowTour(true);
     }
   }, [navigate]);
 
@@ -179,6 +207,32 @@ export default function ResumeMedis() {
     } finally {
       setLoading(false);
     }
+  };
+
+  // ── CONTROLLER TOUR NAVIGATOR UNTUK HALAMAN RESUME ──
+  const handleNextTourStep = () => {
+    if (tourStep < tourSteps.length - 1) {
+      setTourStep(prev => prev + 1);
+    } else {
+      // Jika langkah tur habis, maka simulasikan Approval Otonom
+      sessionStorage.setItem('leximed_doctor_tour_completed', 'true');
+      sessionStorage.removeItem('leximed_doctor_tour_step');
+      setShowTour(false);
+      navigate('/approve');
+    }
+  };
+
+  const handleCloseTour = () => {
+    sessionStorage.setItem('leximed_doctor_tour_completed', 'true');
+    sessionStorage.removeItem('leximed_doctor_tour_step');
+    setShowTour(false);
+  };
+
+  const toggleTourRestart = () => {
+    sessionStorage.removeItem('leximed_doctor_tour_completed');
+    sessionStorage.setItem('leximed_doctor_tour_step', '0');
+    setTourStep(0);
+    setShowTour(true);
   };
 
   // --- LOGIC 1: CETAK AMAN (PISAH IFRAME) ---
@@ -309,6 +363,11 @@ export default function ResumeMedis() {
           
           <div className="flex overflow-x-auto gap-3 w-full xl:w-auto pb-2 xl:pb-0 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
             
+            {/* TOMBOL PANDUAN TUR JURI */}
+            <button onClick={toggleTourRestart} className="shrink-0 flex items-center justify-center gap-2 bg-emerald-50 border border-emerald-100 text-emerald-600 px-5 py-3 rounded-xl font-bold hover:bg-emerald-100 shadow-sm transition-all uppercase tracking-widest text-[10px] md:text-xs">
+              <HelpCircle size={16} /> Alur Kerja Sistem
+            </button>
+
             {/* TOMBOL DATA MEDIS */}
             <button onClick={() => navigate('/data-medis')} className="shrink-0 flex items-center justify-center gap-2 bg-blue-50 border border-blue-100 text-blue-600 px-5 py-3 rounded-xl font-bold hover:bg-blue-100 shadow-sm transition-all uppercase tracking-widest text-[10px] md:text-xs">
               <Database size={16} /> Data Medis
@@ -572,6 +631,47 @@ export default function ResumeMedis() {
             </div>
         </div>
       </div>
+
+      {/* ── HIGHLY PRESENTATION TOUR DIALOG BACKDROP LAYER FOR DEWAN JURI ── */}
+      <AnimatePresence>
+        {showTour && (
+          <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 20 }}
+              className="bg-[#0f172a] border border-white/10 w-full max-w-md p-6 md:p-8 rounded-[2rem] shadow-2xl relative text-left space-y-6 text-white"
+            >
+              {/* Tracker Indicators */}
+              <div className="flex gap-1.5">
+                {tourSteps.map((_, idx) => (
+                  <div key={idx} className={`h-1.5 rounded-full transition-all duration-300 ${idx === tourStep ? 'w-8 bg-emerald-500' : 'w-2 bg-slate-700'}`}/>
+                ))}
+              </div>
+
+              {/* Main Information Box */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-white/5 border border-white/10 rounded-xl">{tourSteps[tourStep].icon}</div>
+                  <h3 className="text-base font-black uppercase tracking-tight italic">{tourSteps[tourStep].title}</h3>
+                </div>
+                <p className="text-slate-400 text-xs md:text-sm font-medium leading-relaxed">{tourSteps[tourStep].desc}</p>
+              </div>
+
+              {/* Action Operations Control Footer */}
+              <div className="flex items-center justify-between pt-4 border-t border-white/5 gap-4">
+                <button type="button" onClick={handleCloseTour} className="text-xs font-bold text-slate-500 hover:text-slate-300 uppercase tracking-wider">
+                  Selesai & Keluar
+                </button>
+                <button 
+                  type="button" onClick={handleNextTourStep}
+                  className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 rounded-xl text-xs font-black uppercase tracking-widest shadow-lg flex items-center gap-1 active:scale-95 animate-pulse"
+                >
+                  {tourSteps[tourStep].actionLabel} <ChevronRight size={14} />
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
     </div>
   );

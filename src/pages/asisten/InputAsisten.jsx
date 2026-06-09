@@ -94,7 +94,7 @@ const InputAsisten = () => {
         setErrorMessage('');
 
         try {
-            // PAYLOAD: Sinkron dengan database PostgreSQL
+            // PAYLOAD: Sinkron dengan database Supabase
             const payload = {
                 patient_id: activePatient.norm || activePatient.no_rm,
                 blood_pressure: `${tdSistolik}/${tdDiastolik}`,
@@ -158,7 +158,7 @@ const InputAsisten = () => {
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                         <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
                     </div>
-                    <span className="text-[10px] font-black text-emerald-700 uppercase tracking-widest">PostgreSQL Ready</span>
+                    <span className="text-[10px] font-black text-emerald-700 uppercase tracking-widest">Supabase Ready</span>
                 </div>
             </motion.div>
 
@@ -251,7 +251,7 @@ const InputAsisten = () => {
                             >
                                 {saveStatus === 'success' ? <CheckCircle2 size={24} className="shrink-0 mt-0.5"/> : <AlertCircle size={24} className="shrink-0 mt-0.5"/>}
                                 <div className="flex flex-col">
-                                    <span>{saveStatus === 'success' ? "Data TTV dan Keluhan berhasil tersinkronisasi ke PostgreSQL!" : "Gagal menyimpan data."}</span>
+                                    <span>{saveStatus === 'success' ? "Data TTV dan Keluhan berhasil tersinkronisasi ke Supabase!" : "Gagal menyimpan data."}</span>
                                     {saveStatus === 'error' && (
                                         <span className="text-xs font-medium text-red-500 mt-1 uppercase tracking-wider">{errorMessage}</span>
                                     )}
@@ -283,7 +283,7 @@ const InputAsisten = () => {
                 <Database size={20} />
                 <div className="h-4 w-px bg-slate-400"></div>
                 <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.5em]">
-                    PostgreSQL Core • Real-time Data Integrity • DARSI
+                    Supabase Core • Real-time Data Integrity • DARSI
                 </p>
             </div>
         </div>

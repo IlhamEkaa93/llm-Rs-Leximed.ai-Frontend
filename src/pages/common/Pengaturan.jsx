@@ -42,7 +42,7 @@ export default function Pengaturan() {
 
   const handleSaveSettings = () => {
     setIsSaving(true);
-    // Simulasi Save ke PostgreSQL via Backend
+    // Simulasi Save ke Supabase via Backend
     setTimeout(() => {
       setIsSaving(false);
       setSaveSuccess(true);
@@ -160,7 +160,7 @@ export default function Pengaturan() {
                   <div className="space-y-2 text-left">
                     <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Akses Database</label>
                     <div className="w-full px-5 py-4 bg-slate-100 rounded-2xl border border-slate-200 text-slate-400 font-bold flex items-center gap-2">
-                       <Database size={16} /> PostgreSQL Connected
+                       <Database size={16} /> Supabase Connected
                     </div>
                   </div>
                 </div>

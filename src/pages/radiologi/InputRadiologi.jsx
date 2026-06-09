@@ -4,7 +4,7 @@
 // Integrasi Satu Atap: Menampilkan Rujukan Dokter Poliklinik & Data Pasien Live
 // Mesin Analisis Menggabungkan Kekuatan Vision Gemini & Kecepatan Groq Llama
 // FIX: Menambahkan Import RefreshCw Yang Hilang Mengakibatkan Crash Kompiler Vite
-// Mengirimkan Citra Base64 Nyata dan Menyimpan Hasil Gambar Fisik Ke PostgreSQL
+// Mengirimkan Citra Base64 Nyata dan Menyimpan Hasil Gambar Fisik Ke Supabase
 // ============================================================================
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -236,10 +236,10 @@ export default function InputRadiologi() {
           navigate('/dashboard-radiologi');
         }, 3000);
       } else {
-        throw new Error("Gagal menyimpan hasil radiologi biner ke PostgreSQL.");
+        throw new Error("Gagal menyimpan hasil radiologi biner ke Supabase.");
       }
     } catch (err) {
-      alert("Error PostgreSQL System: " + err.message);
+      alert("Error Supabase System: " + err.message);
     } finally {
       setIsSaving(false);
     }
@@ -292,7 +292,7 @@ export default function InputRadiologi() {
             <div className="flex items-center gap-2 mb-2">
               <div className="p-1 bg-emerald-600 text-white rounded-md"><Stethoscope size={12} /></div>
               <span className="text-[9px] font-black text-emerald-800 uppercase tracking-widest">
-                Instruksi Rekomendasi Dokter Poliklinik (Live PostgreSQL)
+                Instruksi Rekomendasi Dokter Poliklinik (Live Supabase)
               </span>
               <span className="bg-emerald-100 text-emerald-700 font-black text-[8px] uppercase tracking-wider px-2 py-0.5 rounded-full ml-auto">
                 Modalitas Diminta: {pemeriksaanAwal?.radiology_modality || 'Belum Ditentukan'}
@@ -398,7 +398,7 @@ export default function InputRadiologi() {
               {/* ACTION CORE SAVE PLATFORM BUTTONS */}
               <div className="space-y-2 pt-2">
                 <button onClick={handleApproveAndSave} disabled={isSaving || !laporanFinal} className="w-full py-4 bg-[#0f172a] hover:bg-slate-800 text-white rounded-xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 transition-all disabled:opacity-40">
-                  {isSaving ? <><Loader2 size={12} className="animate-spin"/> Menghubungkan PostgreSQL...</> : <><ShieldCheck size={14}/> Validasi & Kirim Ke Rekam Medis</>}
+                  {isSaving ? <><Loader2 size={12} className="animate-spin"/> Menghubungkan Supabase...</> : <><ShieldCheck size={14}/> Validasi & Kirim Ke Rekam Medis</>}
                 </button>
               </div>
             </div>
@@ -423,7 +423,7 @@ export default function InputRadiologi() {
                 <CheckCircle2 size={32} />
               </div>
               <h2 className="text-lg font-black uppercase italic tracking-tight text-slate-900">Validasi Sukses!</h2>
-              <p className="text-slate-500 font-black text-[9px] uppercase tracking-widest mb-4">Berkas Resmi Terkirim Ke PostgreSQL</p>
+              <p className="text-slate-500 font-black text-[9px] uppercase tracking-widest mb-4">Berkas Resmi Terkirim Ke Supabase</p>
               <Loader2 className="animate-spin text-emerald-500 mx-auto" size={18} />
             </motion.div>
           </motion.div>

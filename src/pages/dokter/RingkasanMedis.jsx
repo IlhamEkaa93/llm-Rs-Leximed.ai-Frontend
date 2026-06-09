@@ -144,7 +144,7 @@ export default function RingkasanMedis() {
               </div>
               <h2 className="text-3xl font-black text-slate-900 mb-2 tracking-tight">Terverifikasi!</h2>
               <p className="text-slate-500 text-sm leading-relaxed mb-10">
-                Ringkasan medis pasien <span className="font-bold text-slate-800">{patient.name}</span> telah aman tersimpan di database PostgreSQL.
+                Ringkasan medis pasien <span className="font-bold text-slate-800">{patient.name}</span> telah aman tersimpan di database Supabase.
               </p>
               
               <div className="flex flex-col gap-3">
@@ -275,7 +275,7 @@ export default function RingkasanMedis() {
             <div className="flex items-center gap-3">
               <div className={`w-3 h-3 rounded-full ${isVerified ? 'bg-emerald-500' : (aiResult ? 'bg-amber-400 animate-pulse' : 'bg-slate-300')}`}></div>
               <span className="text-sm font-black text-slate-700">
-                {isVerified ? 'PostgreSQL Synchronized' : (aiResult ? 'Draft Pending Verification' : 'No Data Active')}
+                {isVerified ? 'Supabase Synchronized' : (aiResult ? 'Draft Pending Verification' : 'No Data Active')}
               </span>
             </div>
             <div className="h-[1px] bg-slate-100 w-full"></div>
