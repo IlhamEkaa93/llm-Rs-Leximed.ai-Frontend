@@ -70,7 +70,7 @@ export default function DataRekamMedis() {
     return cachedRad ? JSON.parse(cachedRad) : null;
   });
 
-  const API_URL = import.meta.env.VITE_API_URL || 'https://lexi-med-ai-llm-rs-back-end.vercel.app/api';
+  const API_URL = "https://lexi-med-ai-llm-rs-back-end.vercel.app/api";
   const token = localStorage.getItem('access_token');
 
   // ── MUTATION EFFECT: Mengunci Seluruh Variabel Input Dokter ke localStorage (Anti-Reset) ──

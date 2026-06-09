@@ -18,7 +18,7 @@ export default function DashboardPerawat() {
   const [stats, setStats] = useState([]);
   const [user, setUser] = useState(null);
 
-  const API_URL = import.meta.env.VITE_API_URL || "https://lexi-med-ai-llm-rs-back-end.vercel.app/api";
+  const API_URL = "https://lexi-med-ai-llm-rs-back-end.vercel.app/api";
 
   useEffect(() => {
     const initDashboard = async () => {

@@ -22,7 +22,7 @@ const KnowledgeBase = () => {
         file: null
     });
 
-    const API_URL = import.meta.env.VITE_API_URL || "https://lexi-med-ai-llm-rs-back-end.vercel.app/api";
+    const API_URL = "https://lexi-med-ai-llm-rs-back-end.vercel.app/api";
     const token = localStorage.getItem('access_token');
 
     // Setup Header Axios Global
