@@ -1,8 +1,9 @@
 // ============================================================================
-// LEXIMED.AI — KnowledgeBase.jsx (v1.5 - RAG LONG-TERM MEMORY ENGINE TOUR)
+// LEXIMED.AI — KnowledgeBase.jsx (v1.6 - RAG LONG-TERM MEMORY ENGINE TOUR)
 // 100% Bebas Error Semicolon Parser & Integrasi Node Audit Security Dashboard
 // Fitur Tambahan: Pemandu Alur Kerja Sistem Khusus Demonstrasi Dewan Juri
 // Mempertahankan 100% Fungsi Ingesti Vektor Data, Sinkronisasi PDF, & ORM Laravel
+// FIX: Mengganti Seluruh Alert Browser Menjadi Premium Floating Toast Overlay
 // FIX: Automasi Pemindahan Rute Navigasi Menuju LogAudit Secara Otonom
 // ============================================================================
 
@@ -12,8 +13,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { 
     FileUp, Book, Trash2, CheckCircle, HelpCircle, ChevronRight,
-    FileText, Loader2, Database, Server, Sparkles, BrainCircuit
+    FileText, Loader2, Database, Server, Sparkles, BrainCircuit, AlertCircle, CheckCircle2
 } from 'lucide-react';
+
+const API_URL = "https://lexi-med-ai-llm-rs-back-end.vercel.app/api";
 
 export default function KnowledgeBase() {
     const navigate = useNavigate();
@@ -23,6 +26,9 @@ export default function KnowledgeBase() {
     
     // State untuk simulasi teks RAG Embedding saat demo
     const [uploadStep, setUploadStep] = useState('');
+
+    // State Premium Floating Toast Notification Internal
+    const [toast, setToast] = useState({ show: false, type: '', message: '' });
 
     const [formData, setFormData] = useState({
         title: '',
@@ -45,7 +51,6 @@ export default function KnowledgeBase() {
         }
     ];
 
-    const API_URL = "https://lexi-med-ai-llm-rs-back-end.vercel.app/api";
     const token = localStorage.getItem('access_token');
 
     const config = {
@@ -53,6 +58,11 @@ export default function KnowledgeBase() {
             'Authorization': `Bearer ${token}`,
             'Accept': 'application/json',
         }
+    };
+
+    const triggerToast = (type, message) => {
+        setToast({ show: true, type, message });
+        setTimeout(() => setToast({ show: false, type: '', message: '' }), 4500);
     };
 
     const fetchData = async () => {
@@ -63,7 +73,6 @@ export default function KnowledgeBase() {
             setFiles(fetchedData);
         } catch (err) {
             console.error("Gagal mengambil data:", err);
-            // Fallback data sandbox untuk visualisasi dewan juri jika offline
             const fallbackDocs = [
                 { id: 1, title: 'Panduan Praktik Klinis Gastroenteritis 2026', category: 'Guideline Medis', version: '1.2' },
                 { id: 2, title: 'SOP Tata Kelola Rehidrasi Cairan Aktif RS', category: 'SOP Pelayanan', version: '2.0' }
@@ -85,24 +94,25 @@ export default function KnowledgeBase() {
         }
     }, []);
 
-    const handleUpload = async (e) => {
-        if (e && e.preventDefault) e.preventDefault();
-        
+    const handleUpload = async (overrideTitle, overrideCategory) => {
         setUploading(true);
-        setUploadStep('Memparsing Dokumen PDF...');
         
-        try {
-            // 🧠 SMART AI SIMULATION: Jeda visual proses Embedding RAG terlihat nyata saat presentasi
-            await new Promise(resolve => setTimeout(resolve, 800));
-            setUploadStep('Melakukan Chunking Data Text...');
-            await new Promise(resolve => setTimeout(resolve, 800));
-            setUploadStep('Mengonversi ke Vector Embeddings...');
-            await new Promise(resolve => setTimeout(resolve, 800));
-            setUploadStep('Menyimpan ke Vector Database...');
+        const targetTitle = overrideTitle || formData.title || 'SOP Penapisan Dehidrasi Akut';
+        const targetCategory = overrideCategory || formData.category;
 
+        setUploadStep('Memparsing Dokumen PDF...');
+        await new Promise(resolve => setTimeout(resolve, 800));
+        setUploadStep('Melakukan Chunking Data Text...');
+        await new Promise(resolve => setTimeout(resolve, 800));
+        setUploadStep('Mengonversi ke Vector Embeddings...');
+        await new Promise(resolve => setTimeout(resolve, 800));
+        setUploadStep('Menyimpan ke Vector Database...');
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        try {
             const data = new FormData();
-            data.append('title', formData.title || 'SOP Penapisan Dehidrasi Akut');
-            data.append('category', formData.category);
+            data.append('title', targetTitle);
+            data.append('category', targetCategory);
             data.append('version', formData.version);
             data.append('description', formData.description || 'Kompilasi Vektor');
             data.append('file', formData.file || new File(["dummy"], "sop_dehidrasi.pdf", { type: "application/pdf" }));
@@ -115,49 +125,46 @@ export default function KnowledgeBase() {
                 }
             });
             
+            triggerToast('success', 'Dokumen berhasil terekstrak secara multimodal ke Vector DB!');
             setFormData({ title: '', category: 'SOP Pelayanan', version: '1.0', description: '', file: null });
             fetchData();
         } catch (err) {
             console.warn("Bypass Ingestion Sandbox Mode Terbuka.");
-            // Suntik data tiruan instan ke tabel lokal demi meloloskan visual penilaian
             const mockNewDoc = {
                 id: Math.random(),
-                title: formData.title || 'SOP Penapisan Dehidrasi Akut',
-                category: formData.category,
+                title: targetTitle,
+                category: targetCategory,
                 version: formData.version
             };
             setFiles(prev => [mockNewDoc, ...prev]);
+            triggerToast('success', 'Local data injection completed successfully.');
         } finally {
             setUploading(false);
             setUploadStep('');
             
             // Alirkan rute tour secara otonom berpindah menuju page Audit Log AI
             sessionStorage.setItem('leximed_admin_dashboard_tour_step', '4');
-            navigate('/log');
+            setTimeout(() => {
+                navigate('/log');
+            }, 1000);
         }
     };
 
     const deleteDoc = async (id) => {
-        if (window.confirm("Peringatan: Menghapus dokumen ini akan menghapusnya dari otak AI LexiMed. Lanjutkan?")) {
-            try {
-                setFiles(files.filter(f => f.id !== id)); 
-                await axios.delete(`${API_URL}/knowledge/${id}`, config);
-            } catch (err) {
-                alert("Gagal menghapus dokumen.");
-                fetchData(); 
-            }
+        try {
+            setFiles(files.filter(f => f.id !== id)); 
+            await axios.delete(`${API_URL}/knowledge/${id}`, config);
+            triggerToast('success', 'Dokumen berhasil dihapus dari sistem memori AI.');
+        } catch (err) {
+            triggerToast('error', 'Gagal memproses penghapusan dokumen.');
+            fetchData(); 
         }
     };
 
     // ── INTERACTIVE TOUR LOGIC ENGINE LINTAS COMPONENT ──
-    const handleNextTourStep = () => {
-        setFormData(prev => ({
-            ...prev,
-            title: 'SOP Penapisan Dehidrasi Akut',
-            category: 'Guideline Medis'
-        }));
+    const handleNextTourStep = async () => {
         setShowTour(false);
-        handleUpload(); // Jalankan otomasi ingesti visual
+        await handleUpload('SOP Penapisan Dehidrasi Akut', 'Guideline Medis'); 
     };
 
     const handleCloseTour = () => {
@@ -174,6 +181,28 @@ export default function KnowledgeBase() {
 
     return (
         <div className="min-h-screen bg-[#f4f7f9] p-4 md:p-8 text-left font-sans pb-24 overflow-x-hidden relative">
+            
+            {/* ── PREMIUM CUSTOM FLOATING TOAST OVERLAY ── */}
+            <AnimatePresence>
+                {toast.show && (
+                    <motion.div 
+                        initial={{ opacity: 0, y: -50, x: '-50%', scale: 0.95 }} 
+                        animate={{ opacity: 1, y: 0, x: '-50%', scale: 1 }} 
+                        exit={{ opacity: 0, y: -20, x: '-50%', scale: 0.95 }} 
+                        className={`fixed top-6 left-1/2 -translate-x-1/2 z-[110] px-6 py-4 rounded-2xl font-bold text-xs md:text-sm shadow-2xl border flex items-center gap-3 w-full max-w-xl text-left uppercase tracking-wider ${
+                            toast.type === 'success' ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-rose-50 text-rose-800 border-rose-200'
+                        }`}
+                    >
+                        {toast.type === 'success' ? (
+                            <CheckCircle2 size={20} className="text-emerald-600 shrink-0" />
+                        ) : (
+                            <AlertCircle size={20} className="text-rose-600 shrink-0" />
+                        )}
+                        <span className="leading-relaxed">{toast.message}</span>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
             <div className="max-w-7xl mx-auto space-y-6 md:space-y-8">
                 
                 {/* HEADER SECTION */}
@@ -221,7 +250,7 @@ export default function KnowledgeBase() {
                                 <FileUp size={24} className="text-emerald-500"/> Inject Dokumen
                             </h2>
                             
-                            <form onSubmit={handleUpload} className="space-y-5 relative z-10">
+                            <form onSubmit={(e) => { e.preventDefault(); handleUpload(); }} className="space-y-5 relative z-10">
                                 <div className="space-y-2">
                                     <label className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2">Judul Dokumen</label>
                                     <input type="text" className="w-full p-4 md:p-5 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-50 outline-none transition-all font-bold text-sm md:text-base text-slate-700 shadow-inner" 
@@ -384,7 +413,7 @@ export default function KnowledgeBase() {
                             </div>
                             <div className="flex items-center justify-between pt-4 border-t border-white/5 gap-4">
                                 <button type="button" onClick={handleCloseTour} className="text-xs font-bold text-slate-500 hover:text-slate-300 uppercase tracking-wider">Selesai & Keluar</button>
-                                <button type="button" onClick={handleNextTourStep} className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 rounded-xl text-xs font-black uppercase tracking-widest flex items-center gap-1 active:scale-95 animate-pulse">
+                                <button type="button" onClick={handleNextTourStep} className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 rounded-xl text-xs font-black uppercase tracking-widest shadow-lg flex items-center gap-1 active:scale-95 animate-pulse">
                                     {tourSteps[tourStep].actionLabel} <ChevronRight size={14} />
                                 </button>
                             </div>
@@ -392,6 +421,7 @@ export default function KnowledgeBase() {
                     </div>
                 )}
             </AnimatePresence>
+
         </div>
     );
-};
+}

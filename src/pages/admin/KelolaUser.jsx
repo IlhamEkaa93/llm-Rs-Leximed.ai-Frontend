@@ -1,13 +1,13 @@
 // ============================================================================
-// LEXIMED.AI — KelolaUser.jsx (v1.3 - SECURITY IDENTITY MANAGEMENT TOUR ENGINE)
+// LEXIMED.AI — KelolaUser.jsx (v1.4 - SECURITY IDENTITY MANAGEMENT STATION)
 // 100% Bebas Error Semicolon Parser & Integrasi Node Audit Security Dashboard
 // Fitur Tambahan: Pemandu Alur Kerja Sistem Khusus Demonstrasi Dewan Juri
 // Mempertahankan 100% Fungsi CRUD Real-time State Lokal & Sinkronisasi Supabase
-// FIX: Memperbaiki Typo Kata Kunci final_step Menjadi finally Guna Meloloskan Vite
+// FIX: Mengganti Seluruh Alert & Confirm Browser Menjadi Premium Floating Toast Overlay
 // ============================================================================
 
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import axios from 'ajax';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -25,7 +25,10 @@ const KelolaUser = () => {
     const [submitLoading, setSubmitLoading] = useState(false);
     const [editingId, setEditingId] = useState(null);
 
-    // Notifikasi Toast
+    // State Custom Pop-up Konfirmasi Penghapusan Modern
+    const [deleteTargetId, setDeleteTargetId] = useState(null);
+
+    // Notifikasi Toast Premium Floating Utara
     const [toast, setToast] = useState({ show: false, type: '', message: '' });
 
     // State Form
@@ -46,7 +49,7 @@ const KelolaUser = () => {
     const tourSteps = [
         {
             title: "Alur Kerja Sistem: Manajemen Otoritas Klinis",
-            desc: "Melalui panel ini, Administrator mengontrol pendaftaran user baru, merubah unit spesialisasi dokter, hingga menonaktifkan akun staf medis secara terpusat.",
+            desc: "Melalui panel ini, Administrator mengontrol pendaftaran user baru, merubah unit spesialisasi dokter, hingga menonaktifkan akun staf medis secara terpusat dari sirkuit Supabase.",
             icon: <BrainCircuit className="text-teal-400" size={24} />,
             actionLabel: "Lanjut ke Kelola Knowledge"
         }
@@ -59,6 +62,11 @@ const KelolaUser = () => {
         headers: { 'Authorization': `Bearer ${token}` }
     };
 
+    const triggerToast = (type, message) => {
+        setToast({ show: true, type, message });
+        setTimeout(() => setToast({ show: false, type: '', message: '' }), 4000);
+    };
+
     // --- FETCH DATA (REAL-TIME READ) ---
     const fetchUsers = async () => {
         try {
@@ -67,7 +75,6 @@ const KelolaUser = () => {
             setUsers(response.data.data || response.data);
         } catch (error) {
             console.error("Gagal mengambil data user", error);
-            // Fallback data simulasi jika jaringan terputus harian
             const fallbackUsers = [
                 { id: 1, username: 'DOKTER-1', name: 'dr. Aditya, Sp.PD', email: 'aditya@leximed.ai', role: 'dokter', unit: 'Poli Dalam', status: 'aktif' },
                 { id: 2, username: 'ASISTEN-1', name: 'Zacky Kurniawan', email: 'zacky@leximed.ai', role: 'asisten', unit: 'Triage Umum', status: 'aktif' }
@@ -120,57 +127,56 @@ const KelolaUser = () => {
         setEditingId(null);
     };
 
-    const showToast = (type, message) => {
-        setToast({ show: true, type, message });
-        setTimeout(() => setToast({ show: false, type: '', message: '' }), 3000);
-    };
-
     // --- CRUD: CREATE & UPDATE ---
     const handleSubmit = async (e) => {
-        e.preventDefault();
+        if (e && e.preventDefault) e.preventDefault();
         setSubmitLoading(true);
 
         try {
             if (editingId) {
                 await axios.put(`${API_URL}/users/${editingId}`, formData, authHeaders);
                 setUsers(users.map(u => u.id === editingId ? { ...u, ...formData } : u));
-                showToast('success', 'Data personel berhasil diperbarui!');
+                triggerToast('success', 'Data personel berhasil diperbarui!');
             } else {
-                if (!formData.password) return showToast('error', 'Password wajib diisi untuk user baru!');
+                if (!formData.password) {
+                    setSubmitLoading(false);
+                    return triggerToast('error', 'Password wajib diisi untuk user baru!');
+                }
                 
                 const response = await axios.post(`${API_URL}/users`, formData, authHeaders);
                 const newUser = response.data.data || response.data;
                 
                 setUsers([newUser, ...users]);
-                showToast('success', 'Personel baru berhasil ditambahkan!');
+                triggerToast('success', 'Personel baru berhasil ditambahkan!');
             }
             closeModal();
         } catch (error) {
-            const errorMsg = error.response?.data?.message || 'Terjadi kesalahan saat menyimpan data.';
-            showToast('error', errorMsg);
+            const errorMsg = error.response?.data?.message || 'Terjadi kesalahan saat menyimpan data kredensial.';
+            triggerToast('error', errorMsg);
         } finally {
             setSubmitLoading(false);
         }
     };
 
-    // --- CRUD: DELETE ---
-    const handleDelete = async (id) => {
-        if (!window.confirm("Apakah Anda yakin ingin menghapus personel ini dari sistem?")) return;
-
+    // --- CRUD: DELETE EXECUTION ---
+    const executeDeleteUser = async () => {
+        if (!deleteTargetId) return;
         try {
-            await axios.delete(`${API_URL}/users/${id}`, authHeaders);
-            setUsers(users.filter(u => u.id !== id));
-            showToast('success', 'Personel berhasil dihapus dari sistem.');
+            await axios.delete(`${API_URL}/users/${deleteTargetId}`, authHeaders);
+            setUsers(users.filter(u => u.id !== deleteTargetId));
+            triggerToast('success', 'Personel berhasil dihapus dari sistem keamanan.');
         } catch (error) {
-            showToast('error', 'Gagal menghapus personel.');
+            triggerToast('error', 'Gagal menghapus otoritas personel.');
+        } finally {
+            setDeleteTargetId(null);
         }
     };
 
     // ── INTERACTIVE TOUR LOGIC ENGINE LINTAS COMPONENT ──
     const handleNextTourStep = () => {
-        sessionStorage.setItem('leximed_admin_dashboard_tour_step', '3'); // Set up step navigasi ke halaman berikutnya
+        sessionStorage.setItem('leximed_admin_dashboard_tour_step', '3'); 
         setShowTour(false);
-        navigate('/kelola-knowledge'); // Lempar navigasi otonom juri!
+        navigate('/kelola-knowledge'); 
     };
 
     const handleCloseTour = () => {
@@ -199,17 +205,20 @@ const KelolaUser = () => {
 
     return (
         <div className="space-y-8 pb-20 text-left relative">
-            {/* TOAST NOTIFICATION */}
+            
+            {/* ── PREMIUM FLOATING TOAST OVERLAY (UTARA LAYAR) ── */}
             <AnimatePresence>
                 {toast.show && (
                     <motion.div 
-                        initial={{ opacity: 0, y: 50, x: '-50%' }} animate={{ opacity: 1, y: 0, x: '-50%' }} exit={{ opacity: 0, y: 20, x: '-50%' }}
-                        className={`fixed bottom-10 left-1/2 z-50 px-6 py-3 rounded-full font-bold text-sm shadow-2xl flex items-center gap-3 ${
-                            toast.type === 'success' ? 'bg-emerald-600 text-white' : 'bg-red-600 text-white'
+                        initial={{ opacity: 0, y: -50, x: '-50%', scale: 0.95 }} 
+                        animate={{ opacity: 1, y: 0, x: '-50%', scale: 1 }} 
+                        exit={{ opacity: 0, y: -20, x: '-50%', scale: 0.95 }} 
+                        className={`fixed top-6 left-1/2 -translate-x-1/2 z-[110] px-6 py-4 rounded-2xl font-black text-xs md:text-sm shadow-2xl border flex items-center gap-3 w-full max-w-xl text-left uppercase tracking-wider ${
+                            toast.type === 'success' ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-rose-50 text-rose-800 border-rose-200'
                         }`}
                     >
-                        {toast.type === 'success' ? <CheckCircle2 size={18} /> : <AlertCircle size={18} />}
-                        {toast.message}
+                        {toast.type === 'success' ? <CheckCircle2 size={20} className="text-emerald-600 shrink-0" /> : <AlertCircle size={20} className="text-rose-600 shrink-0" />}
+                        <span className="leading-relaxed">{toast.message}</span>
                     </motion.div>
                 )}
             </AnimatePresence>
@@ -220,7 +229,7 @@ const KelolaUser = () => {
                 className="bg-white p-8 rounded-[32px] border border-slate-200 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-6"
             >
                 <div>
-                    <h1 className="text-3xl font-black text-slate-900 tracking-tight flex items-center gap-3 italic">
+                    <h1 className="text-3xl font-black text-slate-900 tracking-tight flex items-center gap-3 italic uppercase">
                         <Users className="text-blue-600 w-8 h-8" />
                         Kelola Pengguna
                     </h1>
@@ -307,7 +316,7 @@ const KelolaUser = () => {
                                                 <button onClick={() => openModal(u)} className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all">
                                                     <Edit2 size={18} />
                                                 </button>
-                                                <button onClick={() => handleDelete(u.id)} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all">
+                                                <button onClick={() => setDeleteTargetId(u.id)} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all">
                                                     <Trash2 size={18} />
                                                 </button>
                                             </div>
@@ -415,6 +424,32 @@ const KelolaUser = () => {
                 )}
             </AnimatePresence>
 
+            {/* ── PREMIUM CYBER CUSTOM CONFIRMATION POP-UP FOR DELETION ── */}
+            <AnimatePresence>
+                {deleteTargetId && (
+                    <div className="fixed inset-0 z-[100] bg-slate-950/70 backdrop-blur-md flex items-center justify-center p-4">
+                        <motion.div 
+                            initial={{ scale: 0.95, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.95, opacity: 0, y: 20 }}
+                            className="bg-[#0f172a] border border-white/10 w-full max-w-sm p-8 rounded-[2.5rem] shadow-2xl text-center space-y-6 text-white"
+                        >
+                            <div className="w-16 h-16 bg-rose-500/10 border border-rose-500/20 text-rose-400 rounded-2xl flex items-center justify-center mx-auto shadow-lg shadow-rose-500/5">
+                                <AlertCircle size={30} className="animate-pulse" />
+                            </div>
+                            <div className="space-y-2">
+                                <h3 className="text-xl font-black uppercase tracking-tight italic">Cabut Otoritas Staf?</h3>
+                                <p className="text-slate-400 text-xs md:text-sm font-medium leading-relaxed pt-2">
+                                    Tindakan ini akan menghapus personil secara permanen dari database central dan menonaktifkan seluruh token akses token medis terkait.
+                                </p>
+                            </div>
+                            <div className="flex gap-3 pt-2 border-t border-white/5">
+                                <button type="button" onClick={() => setDeleteTargetId(null)} className="flex-1 py-3 bg-white/5 border border-white/10 hover:bg-white/10 text-slate-300 font-bold rounded-xl text-xs uppercase tracking-widest transition-colors">Batal</button>
+                                <button type="button" onClick={executeDeleteUser} className="flex-1 py-3 bg-gradient-to-r from-rose-600 to-amber-500 text-white font-black rounded-xl text-xs uppercase tracking-widest shadow-lg active:scale-95 transition-all">Ya, Cabut Akses</button>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
             {/* ── ALUR KERJA SISTEM PANDUAN DIALOG FOR DEWAN JURI ── */}
             <AnimatePresence>
                 {showTour && (
@@ -434,7 +469,7 @@ const KelolaUser = () => {
                             </div>
                             <div className="flex items-center justify-between pt-4 border-t border-white/5 gap-4">
                                 <button type="button" onClick={handleCloseTour} className="text-xs font-bold text-slate-500 hover:text-slate-300 uppercase tracking-wider">Selesai & Keluar</button>
-                                <button type="button" onClick={handleNextTourStep} className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 rounded-xl text-xs font-black uppercase tracking-widest flex items-center gap-1 active:scale-95 animate-pulse">
+                                <button type="button" onClick={handleNextTourStep} className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 rounded-xl text-xs font-black uppercase tracking-widest shadow-lg flex items-center gap-1 active:scale-95 animate-pulse">
                                     {tourSteps[tourStep].actionLabel} <ChevronRight size={14} />
                                 </button>
                             </div>

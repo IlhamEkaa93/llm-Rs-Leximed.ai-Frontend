@@ -1,10 +1,10 @@
 // ============================================================================
-// LEXIMED.AI — DashboardAsisten.jsx (v2.6 - RE-VISIT & WORKFLOW ORCHESTRATOR)
+// LEXIMED.AI — DashboardAsisten.jsx (v2.7 - ISO REALTIME QUEUE ARCHITECTURE)
 // 100% Bebas Error Semicolon Parser & Integrasi Dual-Engine Triage Dashboard
 // Fitur Tambahan: Antrean Harian Otomatis + Panel Form Pencarian Spesifik Global
 // Fitur Utama: Alur Kerja Sistem Guided Tour Pop-up Lintas Halaman Otonom Juri
 // Mempertahankan 100% Layout Grid Animasi Seksi, Estetika Clean, & Motion Core
-// FIX: Membersihkan Duplikasi Catch Block Penyebab Vite Compilation Error 500
+// FIX: Kalibrasi Filter Penanggalan ISO Standard (Sinkronisasi Mutlak Pasien Re-visit)
 // ============================================================================
 
 import React, { useState, useEffect } from 'react';
@@ -27,7 +27,7 @@ const DashboardAsisten = () => {
     const [error, setError] = useState(null);
     const [activePatientNorm, setActivePatientNorm] = useState(null);
 
-    // State Tambahan untuk Form Pencarian Spesifik (Model Dokter)
+    // State Tambahan untuk Form Pencarian Spesifik
     const [searchTerm, setSearchTerm] = useState('');
     const [searchLoading, setSearchLoading] = useState(false);
 
@@ -43,8 +43,8 @@ const DashboardAsisten = () => {
             actionLabel: "Mulai Panduan"
         },
         {
-            title: "Langkah Kunci: Pilih Pasien Aktif",
-            desc: "Untuk memulai penginputan Tanda Vital (TTV) dan keluhan utama pasien, klik tombol aksi utama di bawah untuk mengunci data pasien simulasi Tn. Aditya.",
+            title: "Langkah Kunci: Pilih Pasien決 Kunci Konteks",
+            desc: "Untuk memulai penginputan Tanda Vital (TTV) dan keluhan utama pasien, klik tombol aksi utama di bawah untuk mengunci data pasien simulasi dari antrean.",
             icon: <Users className="text-blue-400" size={24} />,
             actionLabel: "Simulasikan Pengukuran TTV"
         }
@@ -73,7 +73,7 @@ const DashboardAsisten = () => {
         }
     }, []);
 
-    // ── 1. AMBIL DATA ANTREAN HARIAN ──
+    // ── 1. AMBIL DATA ANTREAN HARIAN REAL-TIME ──
     const fetchPatients = async () => {
         if (!token) {
             setError("Sesi Anda telah habis. Silakan login kembali.");
@@ -91,39 +91,35 @@ const DashboardAsisten = () => {
             });
 
             const rawData = response.data;
-            const patientsArray = Array.isArray(rawData) ? rawData : (rawData.data || []);
+            const patientsArray = Array.isArray(rawData) ? rawData : (rawData.data || Object.values(rawData || {}));
 
-            const today = new Date().toLocaleDateString('id-ID', {
-                day: '2-digit', month: '2-digit', year: 'numeric'
-            });
+            // 🚀 FIX MUTLAK: Deteksi penanggalan hari ini menggunakan format ISO (YYYY-MM-DD)
+            const todayIso = new Date().toISOString().split('T')[0];
 
-            // Saring ketat hanya pasien harian
+            // Saring ketat antrean pasien harian (Bekerja akurat untuk registrasi baru maupun berobat ulang)
             const todaysPatients = patientsArray.filter(p => {
-                const isTodayStr = p.date === today;
-                const isTodayIso = p.created_at && String(p.created_at).startsWith(new Date().toISOString().split('T')[0]);
-                return isTodayStr || isTodayIso;
+                const targetDateStr = p.date ? String(p.date) : '';
+                const targetCreatedAtStr = p.created_at ? String(p.created_at).split('T')[0] : '';
+                
+                // Loloskan jika kolom date database cocok ATAU stempel created_at adalah hari ini
+                return targetDateStr.includes(todayIso) || targetCreatedAtStr.includes(todayIso);
             });
+
+            // Urutkan antrean agar re-visit atau pendaftaran paling anyar berada di posisi paling atas
+            todaysPatients.sort((a, b) => new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at));
 
             setPatients(todaysPatients);
             setFilteredPatients(todaysPatients);
             setError(null);
         } catch (err) {
             console.error("Error Fetch Patients:", err);
-            // Fallback antrean harian amfibi jika gateway cloud terputus
-            const fallbackHarian = [
-                { id: 1, name: "TN. ADITYA", norm: "RM-001", status: "Rawat Jalan", date: "09/06/2026" },
-                { id: 2, name: "NY. SITI AMINAH", norm: "RM-002", status: "Rawat Jalan", date: "09/06/2026" },
-                { id: 3, name: "AN. RIZKY", norm: "RM-003", status: "Gawat Darurat", date: "09/06/2026" }
-            ];
-            setPatients(fallbackHarian);
-            setFilteredPatients(fallbackHarian);
-            setError(null);
+            setError("Gagal menyinkronkan data dengan Supabase Cloud Gateway Node.");
         } finally {
             setLoading(false);
         }
     };
 
-    // FILTER INSTAN UNTUK SEARCH BAR ANTREAN HARIAN
+    // Filter instan pencarian search bar antrean harian
     const handleSearch = (e) => {
         const query = e.target.value.toLowerCase();
         setSearchQuery(query);
@@ -141,19 +137,19 @@ const DashboardAsisten = () => {
         setFilteredPatients(filtered);
     };
 
-    // ── 2. SUBMIT PENCARIAN SPESIFIK GLOBAL (MODEL DOKTER) ──
+    // ── 2. SUBMIT PENCARIAN SPESIFIK GLOBAL (LOOKUP ENGINE MASTER DATABASE) ──
     const handleSearchSubmit = async (e) => {
         e.preventDefault();
         if (!searchTerm.trim()) return alert("Masukkan Nomor RM atau Nama pasien terlebih dahulu!");
 
         setSearchLoading(true);
         try {
-            const response = await axios.get(`${API_URL}/patients-list`, {
+            const response = await axios.get(`${API_URL}/patients-master`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
 
             const rawData = response.data;
-            const fullMasterPatients = Array.isArray(rawData) ? rawData : (rawData.data || []);
+            const fullMasterPatients = Array.isArray(rawData) ? rawData : (rawData.data || Object.values(rawData || {}));
 
             const target = fullMasterPatients.find(p => 
                 String(p.name).toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -184,18 +180,24 @@ const DashboardAsisten = () => {
         
         localStorage.setItem('active_patient', JSON.stringify(patientDataToSave));
         setActivePatientNorm(rmIdentifier);
+        
+        // Pemicu otomatis agar tour pop-up di halaman InputAsisten langsung menyala otonom
+        sessionStorage.setItem('leximed_asisten_tour_step', 'input_ttv');
         navigate('/asisten/input-pemeriksaan');
     };
 
-    // ── INTERACTIVE TOUR LOGIC ENGINE ──
+    // ── INTERACTIVE TOUR LOGIC ENGINE AUTOMATION FOR JUDGES ──
     const handleNextTourStep = () => {
         if (tourStep === 0) {
             setTourStep(1);
         } else if (tourStep === 1) {
-            const targetSimPatient = patients.find(p => p.norm === "RM-001") || {
+            // Pilih secara otonom pasien teranyar dari daftar antrean harian riil
+            const targetSimPatient = filteredPatients.length > 0 ? filteredPatients[0] : {
                 id: 1, name: "TN. ADITYA", norm: "RM-001", status: "Rawat Jalan"
             };
-            localStorage.setItem('active_patient', JSON.stringify(targetSimPatient));
+            const rmIdentifier = targetSimPatient.norm || targetSimPatient.no_rm || "RM-001";
+            
+            localStorage.setItem('active_patient', JSON.stringify({ ...targetSimPatient, norm: rmIdentifier }));
             sessionStorage.setItem('leximed_asisten_tour_step', 'input_ttv');
             setShowTour(false);
             navigate('/asisten/input-pemeriksaan');
@@ -287,7 +289,7 @@ const DashboardAsisten = () => {
                         ) : filteredPatients.length === 0 ? (
                             <div className="flex flex-col items-center justify-center py-20 text-slate-400 space-y-4 border-2 border-dashed border-slate-200 rounded-3xl bg-slate-50">
                                 <UserPlus className="w-10 h-10 text-slate-300" />
-                                <p className="font-bold uppercase tracking-widest text-[10px]">Belum ada antrean masuk.</p>
+                                <p className="font-bold uppercase tracking-widest text-[10px]">Belum ada antrean masuk hari ini.</p>
                             </div>
                         ) : (
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -320,7 +322,7 @@ const DashboardAsisten = () => {
                                                             {rmNumber}
                                                         </span>
                                                         <span className="text-[9px] font-black uppercase tracking-widest text-blue-500 bg-blue-50 px-2 py-0.5 rounded-full">
-                                                            {patient.status || 'Rawat Jalan'}
+                                                            {patient.status_treatment || patient.status || 'Rawat Jalan'}
                                                         </span>
                                                     </div>
                                                     <h4 className="text-base font-black text-slate-800 leading-tight uppercase truncate" title={patient.name}>
@@ -348,7 +350,7 @@ const DashboardAsisten = () => {
                     </div>
                 </div>
 
-                {/* ── COLUMN KANAN: CARD CARI PASIEN SPESIFIK ── */}
+                {/* COLUMN KANAN: CARD CARI PASIEN SPESIFIK GLOBAL */}
                 <div className="space-y-6">
                     <div className="bg-[#0f172a] p-6 rounded-[24px] text-white shadow-2xl relative overflow-hidden group">
                         <h3 className="text-lg font-black mb-6 flex items-center gap-2 text-left">
@@ -398,9 +400,7 @@ const DashboardAsisten = () => {
                             
                             <div className="space-y-3">
                                 <div className="flex items-center gap-3">
-                                    <div className="p-2 bg-white/5 border border-white/10 rounded-xl">
-                                        {tourSteps[tourStep].icon}
-                                    </div>
+                                    <div className="p-2 bg-white/5 border border-white/10 rounded-xl">{tourSteps[tourStep].icon}</div>
                                     <h3 className="text-base font-black uppercase tracking-tight italic text-white">
                                         {tourSteps[tourStep].title}
                                     </h3>
@@ -412,7 +412,7 @@ const DashboardAsisten = () => {
                             
                             <div className="flex items-center justify-between pt-4 border-t border-white/5 gap-4">
                                 <button 
-                                    type="button"
+                                    type="button" 
                                     onClick={handleCloseTour} 
                                     className="text-xs font-bold text-slate-500 hover:text-slate-300 uppercase tracking-wider"
                                 >

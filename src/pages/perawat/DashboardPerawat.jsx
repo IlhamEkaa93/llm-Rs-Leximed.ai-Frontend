@@ -1,11 +1,22 @@
+// ============================================================================
+// LEXIMED.AI — DashboardPerawat.jsx (v3.0 - INPATIENT CORE ORCHESTRATOR)
+// 100% Bebas Error Semicolon Parser & Proteksi Integritas State Lintas Halaman
+// Fitur Unggulan: Live Interactive Guided Tour Pop-up Otonom Khusus Dewan Juri
+// Mempertahankan 100% Estetika Clean Dashboard, Layout Grid, & Sinkronisasi RME
+// FIX: Automasi Pengisian Form & Eksekusi Otonom Berbasis Skenario Juri
+// FIX: Mengganti Seluruh Alert Browser Menjadi Premium Floating Toast Overlay
+// ============================================================================
+
 import React, { useState, useEffect } from 'react';
 import { 
   Search, Users, Clock, ClipboardCheck, Loader2, 
   Database, LogOut, Activity, FileText,
-  Home, SunMoon, Layout, ArrowRight, HelpCircle, ChevronRight
+  Home, SunMoon, Layout, ArrowRight, HelpCircle, ChevronRight, AlertCircle, CheckCircle2
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+
+const API_URL = "https://lexi-med-ai-llm-rs-back-end.vercel.app/api";
 
 export default function DashboardPerawat() {
   const navigate = useNavigate();
@@ -18,11 +29,12 @@ export default function DashboardPerawat() {
   const [stats, setStats] = useState([]);
   const [user, setUser] = useState(null);
 
+  // State Premium Floating Toast Notification
+  const [toast, setToast] = useState({ show: false, type: '', message: '' });
+
   // ── STATE: INTERACTIVE WORKFLOW TOUR PANDUAN JURI ──
   const [showTour, setShowTour] = useState(false);
   const [tourStep, setTourStep] = useState(0);
-
-  const API_URL = "https://lexi-med-ai-llm-rs-back-end.vercel.app/api";
 
   const tourSteps = [
     {
@@ -33,23 +45,22 @@ export default function DashboardPerawat() {
     },
     {
       title: "Langkah 1: Autentikasi Unit & Shift Jaga",
-      desc: "Sebelum memeriksa pasien, Anda wajib mengunci posisi penugasan Anda pada dropdown 'Unit Layanan Klinis' dan 'Shift Penugasan'. Parameter ini penting untuk akurasi pencatatan log serah terima (handover) pasien.",
+      desc: "Sistem secara otomatis mengunci posisi penugasan Anda pada dropdown 'Unit Layanan Klinis' dan 'Shift Penugasan' demi akurasi pencatatan log serah terima (handover) pasien rawat inap.",
       icon: <Home className="text-amber-400" size={24} />,
-      actionLabel: "Pahami Langkah 1"
+      actionLabel: "Kunci Posisi Tugas"
     },
     {
-      title: "Langkah 2: Ekstraksi Rekam Medis (RM)",
-      desc: "Ketik Nomor RM atau nama subjek pasien pada kolom input, lalu klik 'Eksekusi'. Sistem akan melakukan query terenkripsi ke database Supabase untuk menarik identitas lengkap pasien secara instan.",
+      title: "Langkah 2: Ekstraksi Rekam Medis Pasien Rawat Inap",
+      desc: "Sistem otomatis menyuntikkan nomor RM pasien rawat inap aktif. Klik tombol di bawah untuk melakukan query terenkripsi ke database cloud Supabase secara instan.",
       icon: <Search className="text-emerald-400" size={24} />,
-      actionLabel: "Pahami Langkah 2"
-    },
-    {
-      title: "Langkah 3: Otomatisasi via Neural Core Llama 3.3",
-      desc: "Setelah data pasien ditarik, sistem akan membawa Anda ke modul pengisian catatan. Di sana, Llama 3.3 Engine akan mengonversi poin-poin observasi mentah Anda menjadi dokumen asuhan keperawatan standar resmi rumah sakit.",
-      icon: <Activity className="text-purple-400" size={24} />,
-      actionLabel: "Selesai & Mengerti"
+      actionLabel: "Eksekusi Tarik Data"
     }
   ];
+
+  const triggerToast = (type, message) => {
+    setToast({ show: true, type, message });
+    setTimeout(() => setToast({ show: false, type: '', message: '' }), 4000);
+  };
 
   useEffect(() => {
     const initDashboard = async () => {
@@ -79,14 +90,12 @@ export default function DashboardPerawat() {
 
         const data = await response.json();
         
-        // MENGGUNAKAN DATA REAL-TIME DARI Supabase MURNI
         setStats([
           { label: 'Total Pasien Terdaftar', value: data.today_patients || '0', icon: <Users size={24} />, color: '#3b82f6', bg: 'bg-blue-50' },
           { label: 'Antrean Generasi AI', value: data.pending_ai || '0', icon: <Clock size={24} />, color: '#f59e0b', bg: 'bg-amber-50' },
           { label: 'Dokumen Tervalidasi', value: data.completed_resumes || '0', icon: <ClipboardCheck size={24} />, color: '#10b981', bg: 'bg-emerald-50' },
         ]);
       } catch (e) {
-        // Fallback jika API Backend offline
         setStats([
           { label: 'Koneksi Database', value: 'Offline', icon: <Users size={24} />, color: '#ef4444', bg: 'bg-red-50' },
           { label: 'Status AI Engine', value: 'Offline', icon: <Clock size={24} />, color: '#ef4444', bg: 'bg-red-50' },
@@ -100,12 +109,21 @@ export default function DashboardPerawat() {
     initDashboard();
   }, [navigate]);
 
+  // ── ADVANCED TOUR AUTOMATION CONTROLLER (PANGGUNG JURI OTONOM) ──
   const handleNextTourStep = () => {
-    if (tourStep < tourSteps.length - 1) {
-      setTourStep(prev => prev + 1);
-    } else {
+    if (tourStep === 0) {
+      // Mengisi Unit dan Shift secara otomatis
+      setRuang('MAWAR');
+      setShift('PAGI');
+      setTourStep(1);
+    } else if (tourStep === 1) {
+      // Menyuntikkan nomor RM pasien rawat inap untuk disimulasikan
+      setRm('RM-3');
+      setTourStep(2);
+    } else if (tourStep === 2) {
       sessionStorage.setItem('leximed_nurse_tour_completed', 'true');
       setShowTour(false);
+      handleSearchPatient("RM-3", "MAWAR", "PAGI"); // Trigger eksekusi penarikan data langsung
     }
   };
 
@@ -120,12 +138,15 @@ export default function DashboardPerawat() {
     setShowTour(true);
   };
 
-  const handleSearchPatient = async () => {
-    const rawInput = rm.trim();
-    if (!rawInput) return alert("Silakan masukkan Nomor RM atau Nama Pasien.");
-    if (!ruang || !shift) return alert("Tentukan Ruang dan Shift tugas Anda.");
+  const handleSearchPatient = async (overrideRm, overrideRuang, overrideShift) => {
+    const targetRm = overrideRm || rm.trim();
+    const targetRuang = overrideRuang || ruang;
+    const targetShift = overrideShift || shift;
+
+    if (!targetRm) return triggerToast('error', "Silakan masukkan Nomor RM atau Nama Pasien.");
+    if (!targetRuang || !targetShift) return triggerToast('error', "Tentukan Ruang dan Shift tugas Anda terlebih dahulu.");
     
-    let searchQuery = rawInput;
+    let searchQuery = targetRm;
     if (/^\d+$/.test(searchQuery)) searchQuery = `RM-${searchQuery}`;
     else if (searchQuery.toLowerCase().startsWith('rm-')) searchQuery = searchQuery.toUpperCase();
 
@@ -146,16 +167,20 @@ export default function DashboardPerawat() {
       const finalPatientSession = {
         ...patientData,
         norm: patientData.no_rm || patientData.norm || patientData.patient_id || searchQuery,
-        current_unit: ruang,
-        current_shift: shift,
-        session_start: new Date().toLocaleTimeString()
+        current_unit: targetRuang,
+        current_shift: targetShift,
+        session_start: new Date().toLocaleTimeString('id-ID') + ' WIB'
       };
 
       localStorage.setItem('active_patient', JSON.stringify(finalPatientSession));
-      navigate('/tambah-catatan'); 
+      triggerToast('success', `Konteks Pasien ${patientData.name || targetRm} Berhasil Dikunci!`);
+      
+      setTimeout(() => {
+        navigate('/tambah-catatan'); 
+      }, 1000);
       
     } catch (err) {
-      alert(`Pencarian Gagal: ${err.message}`);
+      triggerToast('error', `Pencarian Gagal: ${err.message}`);
     } finally {
       setSearchLoading(false);
     }
@@ -174,8 +199,29 @@ export default function DashboardPerawat() {
   );
 
   return (
-    <div className="max-w-7xl mx-auto pb-24 text-left font-sans antialiased p-4 md:p-0">
+    <div className="max-w-7xl mx-auto pb-24 text-left font-sans antialiased p-4 md:p-0 relative">
       
+      {/* ── PREMIUM FLOATING TOAST NOTIFICATION ── */}
+      <AnimatePresence>
+        {toast.show && (
+          <motion.div 
+            initial={{ opacity: 0, y: -50, x: '-50%', scale: 0.95 }} 
+            animate={{ opacity: 1, y: 0, x: '-50%', scale: 1 }} 
+            exit={{ opacity: 0, y: -20, x: '-50%', scale: 0.95 }} 
+            className={`fixed top-6 left-1/2 -translate-x-1/2 z-[110] px-6 py-4 rounded-2xl font-black text-xs md:text-sm shadow-2xl border flex items-center gap-3 w-full max-w-xl text-left uppercase tracking-wider ${
+              toast.type === 'success' ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-rose-50 text-rose-800 border-rose-200'
+            }`}
+          >
+            {toast.type === 'success' ? (
+              <CheckCircle2 size={20} className="text-emerald-600 shrink-0" />
+            ) : (
+              <AlertCircle size={20} className="text-rose-600 shrink-0" />
+            )}
+            <span className="leading-relaxed">{toast.message}</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* FLOATING REPOSITION TOMBOL PEMANDU JURI */}
       <div className="w-full flex justify-end mb-4">
         <button 
@@ -197,7 +243,7 @@ export default function DashboardPerawat() {
             Nurse <span className="text-blue-600">{user?.name?.split(' ')[0]}</span>
           </h1>
           <div className="flex items-center gap-3 mt-3">
-             <span className="bg-[#0f172a] text-white px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg">
+             <span className="bg-slate-900 text-white px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg">
                Clinical Station
              </span>
              <span className="text-slate-400 font-bold text-xs flex items-center gap-1.5 uppercase tracking-tighter">
@@ -208,7 +254,7 @@ export default function DashboardPerawat() {
         
         <div className="flex items-center gap-4 relative z-10 w-full lg:w-auto">
             <div className="flex-1 lg:flex-none flex items-center gap-3 px-6 py-4 bg-emerald-50 text-emerald-700 rounded-2xl border border-emerald-100 text-[10px] font-black uppercase tracking-widest shadow-inner">
-                <Database size={16} /> Supabase Ver. 16.2
+                <Database size={16} /> Supabase Central Core
             </div>
             <button onClick={handleLogout} className="p-4 bg-white border border-slate-200 text-slate-400 hover:text-red-500 rounded-2xl transition-all shadow-sm active:scale-95 group">
                 <LogOut size={20} className="group-hover:-translate-x-0.5 transition-transform" />
@@ -236,7 +282,7 @@ export default function DashboardPerawat() {
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2 flex items-center gap-2"><Home size={12}/> Unit Layanan Klinis</label>
                     <select 
                         value={ruang} onChange={(e) => setRuang(e.target.value)}
-                        className="w-full bg-slate-50 border-2 border-slate-100 p-5 rounded-2xl font-bold text-slate-700 outline-none focus:border-blue-500 transition-all cursor-pointer shadow-inner"
+                        className="w-full bg-slate-50 border-2 border-slate-100 p-5 rounded-2xl font-bold text-slate-700 outline-none focus:border-blue-500 transition-all cursor-pointer shadow-inner text-sm"
                     >
                         <option value="">-- Autentikasi Unit --</option>
                         <option value="UGD">Unit Gawat Darurat (UGD)</option>
@@ -249,7 +295,7 @@ export default function DashboardPerawat() {
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2 flex items-center gap-2"><SunMoon size={12}/> Shift Penugasan</label>
                     <select 
                         value={shift} onChange={(e) => setShift(e.target.value)}
-                        className="w-full bg-slate-50 border-2 border-slate-100 p-5 rounded-2xl font-bold text-slate-700 outline-none focus:border-blue-500 transition-all cursor-pointer shadow-inner"
+                        className="w-full bg-slate-50 border-2 border-slate-100 p-5 rounded-2xl font-bold text-slate-700 outline-none focus:border-blue-500 transition-all cursor-pointer shadow-inner text-sm"
                     >
                         <option value="">-- Sinkronisasi Shift --</option>
                         <option value="PAGI">Pagi (07:00 - 14:00)</option>
@@ -260,18 +306,18 @@ export default function DashboardPerawat() {
             </div>
 
             <div className="space-y-3 pt-4">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2 flex items-center gap-2"><Users size={12}/> Nomor Rekam Medis (RM) / Nama</label>
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2 flex items-center gap-2"><Users size={12}/> Nomor Rekam Medis (RM) / Nama Pasien</label>
               <div className="flex flex-col sm:flex-row gap-4">
                 <input 
-                  type="text" placeholder="Masukkan ID Pasien untuk menarik data..." 
+                  type="text" placeholder="Masukkan ID Pasien (Contoh: RM-3)..." 
                   className="flex-1 bg-slate-50 border-2 border-slate-100 focus:border-blue-500 focus:bg-white rounded-2xl p-6 text-xl font-black text-slate-800 outline-none transition-all placeholder:text-slate-300 shadow-inner"
                   value={rm} onChange={(e) => setRm(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleSearchPatient()}
                 />
                 <button 
-                  onClick={handleSearchPatient}
+                  onClick={() => handleSearchPatient()}
                   disabled={searchLoading || !rm.trim() || !ruang || !shift}
-                  className="bg-blue-600 hover:bg-[#0f172a] text-white px-10 py-6 rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-2xl shadow-blue-200 transition-all active:scale-95 flex items-center justify-center gap-3 disabled:bg-slate-100 disabled:text-slate-300 disabled:shadow-none"
+                  className="bg-blue-600 hover:bg-slate-900 text-white px-10 py-6 rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-2xl shadow-blue-200 transition-all active:scale-95 flex items-center justify-center gap-3 disabled:bg-slate-100 disabled:text-slate-300 disabled:shadow-none"
                 >
                   {searchLoading ? <Loader2 className="animate-spin" size={20} /> : <><ArrowRight size={20}/> Eksekusi</>}
                 </button>
@@ -279,7 +325,7 @@ export default function DashboardPerawat() {
             </div>
           </motion.div>
 
-          {/* STATS TILES (MURNI DARI DATABASE) */}
+          {/* STATS TILES */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {stats.map((s, i) => (
               <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }} key={i} 
@@ -294,42 +340,31 @@ export default function DashboardPerawat() {
             ))}
           </div>
 
-          {/* SECTION TAMBAHAN: ALUR KERJA SISTEM */}
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }} 
-            animate={{ opacity: 1, y: 0 }} 
-            transition={{ delay: 0.3 }}
-            className="bg-white p-10 md:p-12 rounded-[3.5rem] border border-slate-200 shadow-sm space-y-8"
-          >
+          {/* SECTION OPERASIONAL */}
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="bg-white p-10 md:p-12 rounded-[3.5rem] border border-slate-200 shadow-sm space-y-8" >
             <div className="flex items-center gap-5">
-              <div className="p-4 bg-slate-50 text-slate-900 rounded-2xl border border-slate-200 shadow-inner">
-                <FileText size={24} />
-              </div>
+              <div className="p-4 bg-slate-50 text-slate-900 rounded-2xl border border-slate-200 shadow-inner"><FileText size={24} /></div>
               <div>
                 <h3 className="text-2xl font-black text-slate-900 tracking-tighter uppercase italic leading-none">Alur Kerja Sistem</h3>
                 <p className="text-slate-400 font-bold text-xs uppercase tracking-widest mt-2">Prosedur Operasional Sesi Klinis LexiMed.ai</p>
               </div>
             </div>
-
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 relative">
               <div className="space-y-2 p-4 bg-slate-50 rounded-2xl border border-slate-100 shadow-inner">
                 <div className="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center font-black text-xs shadow-md">01</div>
                 <h4 className="font-black text-xs text-slate-900 uppercase tracking-tight">Identifikasi</h4>
                 <p className="text-[10px] text-slate-400 font-bold leading-relaxed uppercase">Input No. RM/Nama, pilih Unit & Shift Layanan Aktif.</p>
               </div>
-
               <div className="space-y-2 p-4 bg-slate-50 rounded-2xl border border-slate-100 shadow-inner">
-                <div className="w-8 h-8 rounded-xl bg-[#0f172a] text-white flex items-center justify-center font-black text-xs shadow-md">02</div>
+                <div className="w-8 h-8 rounded-xl bg-slate-900 text-white flex items-center justify-center font-black text-xs shadow-md">02</div>
                 <h4 className="font-black text-xs text-slate-900 uppercase tracking-tight">Observasi</h4>
                 <p className="text-[10px] text-slate-400 font-bold leading-relaxed uppercase">Tarik data rekam medis dan inisialisasi catatan klinis baru.</p>
               </div>
-
               <div className="space-y-2 p-4 bg-slate-50 rounded-2xl border border-slate-100 shadow-inner">
                 <div className="w-8 h-8 rounded-xl bg-amber-500 text-white flex items-center justify-center font-black text-xs shadow-md">03</div>
                 <h4 className="font-black text-xs text-slate-900 uppercase tracking-tight">Neural Core</h4>
                 <p className="text-[10px] text-slate-400 font-bold leading-relaxed uppercase">Llama 3.3 Engine memproses resume asuhan keperawatan otomatis.</p>
               </div>
-
               <div className="space-y-2 p-4 bg-slate-50 rounded-2xl border border-slate-100 shadow-inner">
                 <div className="w-8 h-8 rounded-xl bg-emerald-500 text-white flex items-center justify-center font-black text-xs shadow-md">04</div>
                 <h4 className="font-black text-xs text-slate-900 uppercase tracking-tight">Sinkronisasi</h4>
@@ -341,16 +376,10 @@ export default function DashboardPerawat() {
 
         {/* RIGHT COLUMN: SYSTEM STATUS (SIDEBAR) */}
         <div className="lg:col-span-4 h-full">
-            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} 
-              className="bg-[#0f172a] rounded-[3.5rem] p-10 text-white relative overflow-hidden h-full shadow-2xl flex flex-col border-4 border-white"
-            >
+            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="bg-[#0f172a] rounded-[3.5rem] p-10 text-white relative overflow-hidden h-full shadow-2xl flex flex-col border-4 border-white" >
               <div className="absolute top-0 right-0 p-8 opacity-[0.05] rotate-12 pointer-events-none"><ClipboardCheck size={250} /></div>
-              
               <div className="relative z-10 flex-1 flex flex-col text-left">
-                <h3 className="text-blue-500 text-[10px] font-black uppercase tracking-[0.4em] mb-12 flex items-center gap-3">
-                  <Activity size={14} className="animate-pulse" /> Neural Darsi Core
-                </h3>
-                
+                <h3 className="text-blue-500 text-[10px] font-black uppercase tracking-[0.4em] mb-12 flex items-center gap-3"><Activity size={14} className="animate-pulse" /> Neural Darsi Core</h3>
                 <div className="space-y-6">
                     <div className="p-8 bg-white/5 rounded-[2.5rem] border border-white/5 space-y-4">
                         <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center shadow-lg"><FileText size={24}/></div>
@@ -361,17 +390,13 @@ export default function DashboardPerawat() {
                             </p>
                         </div>
                     </div>
-
                     <div className="p-8 bg-emerald-500/10 rounded-[2.5rem] border border-emerald-500/20 flex items-center gap-6">
                         <div className="w-4 h-4 bg-emerald-500 rounded-full animate-ping shrink-0" />
                         <span className="text-[10px] font-black text-emerald-400 uppercase tracking-[0.2em]">Neural Engine Llama 3.3 Standby</span>
                     </div>
                 </div>
-
                 <div className="mt-auto pt-10 border-t border-white/5 text-center">
-                   <p className="text-[9px] text-slate-600 font-bold uppercase tracking-widest leading-loose">
-                     Intelligence Healthcare Secured<br/>LexiMed.ai Encryption Standard
-                   </p>
+                   <p className="text-[9px] text-slate-600 font-bold uppercase tracking-widest leading-loose">Intelligence Healthcare Secured<br/>LexiMed.ai Encryption Standard</p>
                 </div>
               </div>
             </motion.div>
@@ -383,12 +408,7 @@ export default function DashboardPerawat() {
       <AnimatePresence>
           {showTour && (
               <div className="fixed inset-0 z-[70] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
-                  <motion.div 
-                      initial={{ scale: 0.95, y: 20 }} 
-                      animate={{ scale: 1, y: 0 }} 
-                      exit={{ scale: 0.95, y: 20 }} 
-                      className="bg-[#0f172a] border border-white/10 w-full max-w-md p-6 md:p-8 rounded-[2rem] shadow-2xl relative text-left space-y-6 text-white"
-                  >
+                  <motion.div initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 20 }} className="bg-[#0f172a] border border-white/10 w-full max-w-md p-6 md:p-8 rounded-[2rem] shadow-2xl relative text-left space-y-6 text-white" >
                       <div className="flex gap-1.5">
                           {tourSteps.map((_, idx) => (
                               <div key={idx} className={`h-1.5 rounded-full transition-all duration-300 ${idx === tourStep ? 'w-8 bg-blue-500' : 'w-2 bg-slate-700'}`}/>
@@ -397,29 +417,15 @@ export default function DashboardPerawat() {
                       
                       <div className="space-y-3">
                           <div className="flex items-center gap-3">
-                              <div className="p-2 bg-white/5 border border-white/10 rounded-xl">
-                                  {tourSteps[tourStep].icon}
-                              </div>
-                              <h3 className="text-base font-black uppercase tracking-tight italic text-white">
-                                  {tourSteps[tourStep].title}
-                              </h3>
+                              <div className="p-2 bg-white/5 border border-white/10 rounded-xl">{tourSteps[tourStep].icon}</div>
+                              <h3 className="text-base font-black uppercase tracking-tight italic text-white">{tourSteps[tourStep].title}</h3>
                           </div>
-                          <p className="text-slate-400 text-sm font-medium leading-relaxed">
-                              {tourSteps[tourStep].desc}
-                          </p>
+                          <p className="text-slate-400 text-sm font-medium leading-relaxed">{tourSteps[tourStep].desc}</p>
                       </div>
                       
                       <div className="flex items-center justify-between pt-4 border-t border-white/5 gap-4">
-                          <button 
-                              onClick={handleCloseTour} 
-                              className="text-xs font-bold text-slate-500 hover:text-slate-300 uppercase tracking-wider"
-                          >
-                              Keluar Tur
-                          </button>
-                          <button 
-                              onClick={handleNextTourStep} 
-                              className="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 rounded-xl text-xs font-black uppercase tracking-widest flex items-center gap-2 active:scale-95 shadow-lg shadow-blue-900/40 transition-all animate-pulse"
-                          >
+                          <button onClick={handleCloseTour} className="text-xs font-bold text-slate-500 hover:text-slate-300 uppercase tracking-wider" >Keluar Tur</button>
+                          <button onClick={handleNextTourStep} className="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 rounded-xl text-xs font-black uppercase tracking-widest flex items-center gap-2 active:scale-95 shadow-lg shadow-blue-900/40 transition-all animate-pulse" >
                               {tourSteps[tourStep].actionLabel} <ChevronRight size={14} />
                           </button>
                       </div>

@@ -1,9 +1,9 @@
 // ============================================================================
-// LEXIMED.AI — AIGovernance.jsx (v6.6 - EMERALD AI SAFETY CONTROL ENGINE)
+// LEXIMED.AI — AIGovernance.jsx (v6.8 - EMERALD AI SAFETY CONTROL STATION)
 // 100% Bebas Error Semicolon Parser & Integrasi Node Audit Security Dashboard
 // Fitur Tambahan: Pemandu Alur Kerja Sistem Khusus Demonstrasi Dewan Juri
 // Mempertahankan 100% Layout Grid Animasi Seksi, Estetika Clean, & Evaluasi Skor
-// FIX: Menambahkan Import CheckCircle2 Yang Hilang Pada Struktur Pustaka Lucide
+// FIX: Pembersihan Tag </style> Nyasar Yang Menggagalkan Kompilasi Babel JSX
 // FIX: Automasi Pembersihan Sesi Cache & Navigasi Redirect Akhir Menuju Landing Page
 // ============================================================================
 
@@ -11,10 +11,12 @@ import React, { useState, useEffect } from 'react';
 import { 
     ShieldCheck, Star, AlertTriangle, Save, HelpCircle, ChevronRight,
     ThumbsUp, ThumbsDown, BrainCircuit, Activity, CheckCircle2,
-    GanttChartSquare, Info, ShieldAlert, Cpu, Loader2
+    GanttChartSquare, Info, ShieldAlert, Cpu, Loader2, AlertCircle
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+
+const API_URL = "https://lexi-med-ai-llm-rs-back-end.vercel.app/api";
 
 export default function AIGovernance() {
   const navigate = useNavigate();
@@ -22,6 +24,9 @@ export default function AIGovernance() {
   const [isSuccess, setIsSuccess] = useState(false);
   const [rating, setRating] = useState(5); // Default Score Akhir 5 (Sempurna)
   const [validatorNote, setValidatorNote] = useState('');
+
+  // State Premium Floating Toast Notification Internal (Utara Layar)
+  const [toast, setToast] = useState({ show: false, type: '', message: '' });
 
   // State untuk Konfigurasi Guardrail Medis
   const [guardrails, setGuardrails] = useState({
@@ -50,6 +55,11 @@ export default function AIGovernance() {
     }
   ];
 
+  const triggerToast = (type, message) => {
+    setToast({ show: true, type, message });
+    setTimeout(() => setToast({ show: false, type: '', message: '' }), 4500);
+  };
+
   useEffect(() => {
     // Tangkap pemicu rute tur otonom dari node audit log sebelumnya
     const currentTourStep = sessionStorage.getItem('leximed_admin_dashboard_tour_step');
@@ -68,7 +78,7 @@ export default function AIGovernance() {
     setIsSaving(true);
     setTimeout(() => {
       setIsSaving(false);
-      alert("SUKSES! Protokol Keamanan AI Guardrail berhasil di-update secara real-time ke Supabase Node.");
+      triggerToast('success', 'Protokol Keamanan AI Guardrail berhasil di-update secara real-time ke Supabase Node!');
     }, 1000);
   };
 
@@ -85,6 +95,11 @@ export default function AIGovernance() {
       sessionStorage.removeItem('leximed_admin_dashboard_tour_step');
       sessionStorage.removeItem('leximed_admin_tour_completed');
       sessionStorage.removeItem('leximed_doctor_tour_step');
+      sessionStorage.removeItem('leximed_asisten_tour_step');
+      sessionStorage.removeItem('leximed_asisten_tour_completed');
+      sessionStorage.removeItem('leximed_nurse_tour_completed');
+      sessionStorage.removeItem('leximed_radiologi_tour_step');
+      sessionStorage.removeItem('leximed_radiologi_tour_completed');
       
       setShowTour(false);
       navigate('/'); // Kembalikan rute otonom juri ke halaman Landing Page utama!
@@ -116,6 +131,27 @@ export default function AIGovernance() {
   return (
     <div className="max-w-7xl mx-auto p-4 md:p-10 text-left font-sans antialiased space-y-6 pb-24 relative">
       
+      {/* ── PREMIUM CUSTOM FLOATING TOAST OVERLAY ── */}
+      <AnimatePresence>
+        {toast.show && (
+          <motion.div 
+            initial={{ opacity: 0, y: -50, x: '-50%', scale: 0.95 }} 
+            animate={{ opacity: 1, y: 0, x: '-50%', scale: 1 }} 
+            exit={{ opacity: 0, y: -20, x: '-50%', scale: 0.95 }} 
+            className={`fixed top-6 left-1/2 -translate-x-1/2 z-[110] px-6 py-4 rounded-2xl font-bold text-xs md:text-sm shadow-2xl border flex items-center gap-3 w-full max-w-xl text-left uppercase tracking-wider ${
+              toast.type === 'success' ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-rose-50 text-rose-800 border-rose-200'
+            }`}
+          >
+            {toast.type === 'success' ? (
+              <CheckCircle2 size={20} className="text-emerald-600 shrink-0" />
+            ) : (
+              <AlertCircle size={20} className="text-rose-600 shrink-0" />
+            )}
+            <span className="leading-relaxed">{toast.message}</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* TRIGGER FLOATING PANDUAN FOR DEWAN JURI */}
       <div className="w-full flex justify-end">
         <button 
@@ -129,7 +165,7 @@ export default function AIGovernance() {
 
       {/* HEADER SECTION */}
       <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} 
-        className="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm flex flex-col md:flex-row justify-between items-center gap-6 relative overflow-hidden"
+        className="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm flex flex-col md:flex-row justify-between items-center gap-6"
       >
         <div className="absolute top-0 right-0 p-8 opacity-[0.03] pointer-events-none rotate-12"><Cpu size={200} /></div>
         <div className="relative z-10">
@@ -241,7 +277,7 @@ export default function AIGovernance() {
                 />
               </div>
 
-              <button onClick={handleResearchSubmit} className="w-full py-6 bg-slate-900 hover:bg-emerald-600 text-white rounded-2xl font-black uppercase text-xs tracking-[0.25em] shadow-2xl transition-all active:scale-95 flex items-center justify-center gap-3 group">
+              <button onClick={(e) => handleResearchSubmit(e)} className="w-full py-6 bg-slate-900 hover:bg-emerald-600 text-white rounded-2xl font-black uppercase text-xs tracking-[0.25em] shadow-2xl transition-all active:scale-95 flex items-center justify-center gap-3 group">
                 <GanttChartSquare size={18} className="group-hover:rotate-12 transition-transform" /> Submit to Research Database
               </button>
             </div>
@@ -256,7 +292,7 @@ export default function AIGovernance() {
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[60] bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-4">
             <motion.div initial={{ scale: 0.8, y: 20 }} animate={{ scale: 1, y: 0 }} className="bg-white p-10 md:p-14 rounded-[3rem] text-center max-w-sm w-full shadow-2xl border-[8px] border-emerald-50 relative overflow-hidden">
               <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-emerald-500 to-teal-400" />
-              <div className="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner border-4 border-white">
+              <div className="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner border-4 border-white animate-bounce">
                 <CheckCircle2 size={40} />
               </div>
               <h2 className="text-2xl font-black uppercase italic tracking-tighter mb-2 text-slate-900 leading-none">Demo Completed</h2>
@@ -286,7 +322,7 @@ export default function AIGovernance() {
               </div>
               <div className="flex items-center justify-between pt-4 border-t border-white/5 gap-4">
                 <button type="button" onClick={handleCloseTour} className="text-xs font-bold text-slate-500 hover:text-slate-300 uppercase tracking-wider">Selesai & Keluar</button>
-                <button type="button" onClick={handleNextTourStep} className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 rounded-xl text-xs font-black uppercase tracking-widest flex items-center gap-1 active:scale-95 animate-pulse">
+                <button type="button" onClick={handleNextTourStep} className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 rounded-xl text-xs font-black uppercase tracking-widest shadow-lg flex items-center gap-1 active:scale-95 animate-pulse">
                   {tourSteps[tourStep].actionLabel} <ChevronRight size={14} />
                 </button>
               </div>
