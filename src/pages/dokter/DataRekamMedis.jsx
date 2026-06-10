@@ -472,7 +472,7 @@ export default function DataRekamMedis() {
         'leximed_cache_show_final', 'leximed_cache_diag_result', 'leximed_cache_radiology_result',
       ].forEach(k => localStorage.removeItem(k));
 
-      alert('Data rekam medis berhasil disimpan secara aman ke basis data cloud PostgreSQL rs_uns_db!');
+      alert('Data rekam medis berhasil disimpan secara aman ke basis data cloud Supabase rs_uns_db!');
       setRadiologyResult(null);
       setDiagnosisResult(null);
       setShowFinalOutput(false);
@@ -593,7 +593,7 @@ export default function DataRekamMedis() {
               <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
               <span className="bg-slate-100 px-2.5 py-0.5 rounded-full">{patient?.displayAge || '18'} Tahun</span>
               <span className="bg-emerald-50 text-emerald-600 px-2.5 py-0.5 rounded-full font-black border border-emerald-100 flex items-center gap-1">
-                <Database size={10} /> PostgreSQL Connected
+                <Database size={10} /> Supabase Connected
               </span>
             </div>
           </div>

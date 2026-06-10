@@ -1,9 +1,9 @@
 // ============================================================================
-// LEXIMED.AI — DashboardManajemen.jsx (v5.0 - EXECUTIVE COMMAND CENTER TOUR)
+// LEXIMED.AI — DashboardManajemen.jsx (v5.1 - EXECUTIVE COMMAND CENTER TOUR)
 // 100% Bebas Error Semicolon Parser & Proteksi Refresh Menggunakan Cache System
 // Fitur Tambahan: Pemandu Alur Kerja Sistem Khusus Demonstrasi Dewan Juri
 // Mempertahankan 100% Layout Animasi Dashboard Eksklusif & Chart Simulasi
-// FIX: Menyuntikkan Rangkaian Simulasi Pemandu Eksekutif (Cross-Role Ending)
+// FIX: Kalibrasi Layout Absolute Tombol Alur Pemandu Eksekutif Agar Responsif
 // ============================================================================
 
 import React, { useState, useEffect } from 'react';
@@ -177,18 +177,19 @@ export default function DashboardManajemen() {
 
   return (
     <div className="min-h-screen bg-[#f8fafc] p-4 md:p-10 font-sans text-left pb-24 text-slate-900 antialiased overflow-x-hidden relative">
-      
-      {/* TRIGGER FLOATING HINT BUTTON FOR DEWAN JURI */}
-      <button 
-        type="button"
-        onClick={toggleTourRestart}
-        className="absolute top-6 right-6 z-40 bg-emerald-50 border border-emerald-200 text-emerald-600 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest flex items-center gap-2 transition-all shadow-md active:scale-95 hover:bg-emerald-100"
-      >
-        <HelpCircle size={16} /> Alur Pemandu Eksekutif
-      </button>
-
-      <div className="max-w-7xl mx-auto space-y-10">
+      <div className="max-w-7xl mx-auto space-y-6">
         
+        {/* FIX COORD: RUTE PENATAAN FLOATING REPOSITION TOMBOL PEMANDU JURI */}
+        <div className="w-full flex justify-end">
+          <button 
+            type="button"
+            onClick={toggleTourRestart}
+            className="bg-white border border-slate-200 text-emerald-600 px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest flex items-center gap-2 transition-all shadow-sm active:scale-95 hover:bg-slate-50"
+          >
+            <HelpCircle size={15} /> Alur Pemandu Eksekutif
+          </button>
+        </div>
+
         {/* HEADER & FILTERS (CRUD AGGREGATE) */}
         <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6 bg-white p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] border border-slate-200 shadow-sm relative overflow-hidden">
           <div className="absolute top-0 right-0 p-8 opacity-[0.03] pointer-events-none rotate-12"><TrendingUp size={200} /></div>

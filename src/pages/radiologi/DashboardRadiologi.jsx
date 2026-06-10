@@ -1,9 +1,10 @@
 // ============================================================================
-// LEXIMED.AI — DashboardRadiologi.jsx (v3.2 - HYBRID PACS TRIAGE & LOOKUP SYSTEM)
+// LEXIMED.AI — DashboardRadiologi.jsx (v3.3 - HYBRID PACS TRIAGE & LOOKUP SYSTEM)
 // 100% Bebas Error Semicolon Parser & Integrasi Dual-Engine Radiologi Dashboard
 // Fitur Tambahan: Antrean Harian Otomatis + Panel Form Pencarian Spesifik Global
+// Fitur Utama: Alur Kerja Sistem Guided Tour Pop-up Lintas Halaman Otonom Juri
 // Mempertahankan 100% Layout Grid Animasi Seksi, Estetika Clean, & Motion Core
-// FIX: Resolving Missing handleLogout Statement & Standardizing Premium Teal Theme
+// FIX: Implementasi Alur Kerja Sistem Sinkron Navigasi & Handle Logout Aman
 // ============================================================================
 
 import React, { useState, useEffect } from 'react';
@@ -11,9 +12,11 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-    Search, Users, Activity, ScanLine, Loader2, Database, LogOut, 
-    FileImage, Layers, ArrowRight, MonitorDot, Cpu, FileText, AlertCircle, CheckCircle2
+    Search, Users, Activity, ScanLine, Loader2, Database, LogOut, HelpCircle,
+    FileImage, Layers, ArrowRight, MonitorDot, Cpu, FileText, AlertCircle, CheckCircle2, ChevronRight, BrainCircuit
 } from 'lucide-react';
+
+const API_URL = "https://lexi-med-ai-llm-rs-back-end.vercel.app/api";
 
 export default function DashboardRadiologi() {
   const navigate = useNavigate();
@@ -32,7 +35,25 @@ export default function DashboardRadiologi() {
   const [stats, setStats] = useState([]);
   const [user, setUser] = useState(null);
 
-  const API_URL = "https://lexi-med-ai-llm-rs-back-end.vercel.app/api";
+  // ── STATE: INTERACTIVE WORKFLOW TOUR PANDUAN JURI ──
+  const [showTour, setShowTour] = useState(false);
+  const [tourStep, setTourStep] = useState(0);
+
+  const tourSteps = [
+    {
+      title: "Alur Kerja Sistem: Antrean Workstation PACS",
+      desc: "Selamat datang di Node Radiologi. Stasiun ini bertugas menerima draf permintaan rujukan scan foto rontgen/MRI dari dokter poliklinik secara terpusat.",
+      icon: <BrainCircuit className="text-teal-400" size={24} />,
+      actionLabel: "Mulai Panduan"
+    },
+    {
+      title: "Langkah Kunci: Pilih Target Pasien Radiologi",
+      desc: "Untuk menyuntikkan file citra medis organ fokal, klik tombol di bawah untuk mengunci konteks antrean harian pasien Tn. Aditya (RM-001).",
+      icon: <Users className="text-blue-400" size={24} />,
+      actionLabel: "Simulasikan Unggah Foto Citra"
+    }
+  ];
+
   const token = localStorage.getItem('access_token');
 
   useEffect(() => {
@@ -52,6 +73,13 @@ export default function DashboardRadiologi() {
         }
       }
       await fetchDashboardData();
+
+      // Deteksi pemicu jalannya demo otonom lintas rute dari role asisten sebelumnya
+      const savedStep = sessionStorage.getItem('leximed_tour_completed'); 
+      if (!sessionStorage.getItem('leximed_radiologi_tour_completed')) {
+        setTourStep(0);
+        setShowTour(true);
+      }
     };
     initDashboard();
   }, [navigate]);
@@ -89,7 +117,7 @@ export default function DashboardRadiologi() {
       const patientsArray = Array.isArray(rawData) ? rawData : (rawData.data || []);
       const todayStr = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
-      // Filter ketat antrean khusus hari ini (Selasa, 9 Juni 2026)
+      // Filter ketat antrean khusus hari ini 
       const todaysPatients = patientsArray.filter(p => {
         return p.date === todayStr || (p.created_at && String(p.created_at).startsWith(new Date().toISOString().split('T')[0]));
       });
@@ -100,7 +128,7 @@ export default function DashboardRadiologi() {
     } catch (err) {
       console.error("Gagal sinkronisasi data rekam medis:", err);
       setError("Gagal memuat antrean database dari cloud gateway.");
-      // Fallback data demo harian
+      
       const fallbackHarian = [
         { id: 1, name: "TN. ADITYA", norm: "RM-001", status: "Rawat Jalan", date: "09/06/2026" },
         { id: 2, name: "NY. SITI AMINAH", norm: "RM-002", status: "Rawat Jalan", date: "09/06/2026" },
@@ -124,7 +152,7 @@ export default function DashboardRadiologi() {
     ));
   };
 
-  // ── 2. SUBMIT PENCARIAN SPESIFIK GLOBAL (DIKEMBARKAN DENGAN MODUL DOKTER & ASISTEN) ──
+  // ── 2. SUBMIT PENCARIAN SPESIFIK GLOBAL ──
   const handleSearchSubmit = async (e) => {
     e.preventDefault();
     const rawInput = searchTerm.trim();
@@ -141,7 +169,6 @@ export default function DashboardRadiologi() {
       });
       const fullMasterPatients = Array.isArray(response.data) ? response.data : (response.data.data || []);
 
-      // Ekstraksi rekam medis global lintas hari
       const targetPatient = fullMasterPatients.find(p => 
         String(p.name).toLowerCase().includes(sQuery.toLowerCase()) || String(p.norm || p.no_rm).toLowerCase().includes(sQuery.toLowerCase())
       );
@@ -169,7 +196,34 @@ export default function DashboardRadiologi() {
     navigate('/radiologi/input');
   };
 
-  // ── FIX FIXED STATEMENT: IMPLEMENTASI HANDLE LOGOUT AMAN ──
+  // ── INTERACTIVE TOUR LOGIC ENGINE LINTAS COMPONENT ──
+  const handleNextTourStep = () => {
+    if (tourStep === 0) {
+      setTourStep(1);
+    } else if (tourStep === 1) {
+      // Injeksi otomatis context pasien harian tiruan untuk mengalirkan simulasi panggung
+      const targetSimPatient = patients.find(p => p.norm === "RM-001") || {
+        id: 1, name: "TN. ADITYA", norm: "RM-001", status: "Rawat Jalan"
+      };
+      localStorage.setItem('active_radiology_patient', JSON.stringify({ ...targetSimPatient, norm: "RM-001" }));
+      sessionStorage.setItem('leximed_radiologi_tour_step', 'upload_dicom');
+      setShowTour(false);
+      navigate('/radiologi/input'); // Pindahkan rute browser otonom juri!
+    }
+  };
+
+  const handleCloseTour = () => {
+    sessionStorage.setItem('leximed_radiologi_tour_completed', 'true');
+    sessionStorage.removeItem('leximed_radiologi_tour_step');
+    setShowTour(false);
+  };
+
+  const toggleTourRestart = () => {
+    sessionStorage.removeItem('leximed_radiologi_tour_completed');
+    setTourStep(0);
+    setShowTour(true);
+  };
+
   const handleLogout = () => {
     localStorage.clear();
     navigate('/login', { replace: true });
@@ -183,7 +237,8 @@ export default function DashboardRadiologi() {
   );
 
   return (
-    <div className="max-w-7xl mx-auto pb-24 text-left font-sans antialiased space-y-8">
+    <div className="max-w-7xl mx-auto pb-24 text-left font-sans antialiased space-y-8 relative">
+      
       {/* HEADER SECTION */}
       <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} 
         className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 bg-white p-8 md:p-10 rounded-[2.5rem] border border-slate-200 shadow-sm overflow-hidden relative"
@@ -203,6 +258,13 @@ export default function DashboardRadiologi() {
           </div>
         </div>
         <div className="relative z-10 flex items-center gap-4">
+          <button 
+            type="button"
+            onClick={toggleTourRestart}
+            className="bg-teal-500/10 text-teal-600 border border-teal-500/20 px-4 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest flex items-center gap-1.5 shadow-sm transition-all"
+          >
+            <HelpCircle size={14} /> ALUR KERJA SISTEM
+          </button>
           <div className="hidden lg:flex items-center gap-4 bg-slate-50 px-8 py-5 rounded-[2rem] border border-slate-200">
              <div className="w-14 h-14 bg-teal-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-teal-100 shrink-0"><Database size={24} /></div>
              <div>
@@ -221,7 +283,7 @@ export default function DashboardRadiologi() {
           <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
             <div className="relative">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-teal-500" size={18} />
-              <input type="text" value={searchQuery} onChange={handleLiveFilter} placeholder="Saring antrean radiologi hari ini..." className="w-full bg-slate-50 border border-slate-100 rounded-xl py-3 pl-12 pr-4 text-sm font-bold text-slate-700 outline-none focus:border-teal-500 focus:bg-white transition-all" />
+              <input type="text" value={searchQuery} onChange={handleLiveFilter} placeholder="Saring antrean radiologi harian..." className="w-full bg-slate-50 border border-slate-100 rounded-xl py-3 pl-12 pr-4 text-sm font-bold text-slate-700 outline-none focus:border-teal-500 focus:bg-white transition-all" />
             </div>
           </div>
 
@@ -236,7 +298,7 @@ export default function DashboardRadiologi() {
             )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <AnimatePresence>
+              <AnimatePresence mode="popLayout">
                 {filteredPatients.map((patient, index) => {
                   const rmNumber = patient.norm || patient.no_rm;
                   const isActive = activePatientNorm === rmNumber;
@@ -252,8 +314,8 @@ export default function DashboardRadiologi() {
                         </div>
                         <h4 className="text-base font-black text-slate-800 leading-tight uppercase truncate">{patient.name}</h4>
                       </div>
-                      <button onClick={() => handleSelectPatient(patient)} className={`w-full py-3 rounded-xl flex items-center justify-center gap-2 font-black text-[10px] uppercase tracking-widest transition-all ${isActive ? 'bg-teal-600 text-white shadow-md' : 'bg-slate-100 text-slate-600 group-hover:bg-teal-500 group-hover:text-white'}`}>
-                        {isActive ? 'Lanjut Analisis' : 'Mulai Analisis'} <ArrowRight size={14} />
+                      <button type="button" onClick={() => handleSelectPatient(patient)} className={`w-full py-3 rounded-xl flex items-center justify-center gap-2 font-black text-[10px] uppercase tracking-widest transition-all ${isActive ? 'bg-teal-600 text-white shadow-md' : 'bg-slate-100 text-slate-600 group-hover:bg-teal-500 group-hover:text-white'}`}>
+                        {isActive ? 'Konteks Terkunci' : 'Mulai Analisis'} <ArrowRight size={14} />
                       </button>
                     </motion.div>
                   );
@@ -276,7 +338,7 @@ export default function DashboardRadiologi() {
           </div>
         </div>
 
-        {/* COLUMN RIGHT: GLOBAL LOOKUP STATION (PERSIS DOKTER) */}
+        {/* COLUMN RIGHT: GLOBAL LOOKUP STATION */}
         <div className="lg:col-span-4 space-y-6">
           <div className="bg-[#0f172a] p-8 rounded-[2.5rem] text-white shadow-2xl relative overflow-hidden border-[4px] border-white">
             <div className="absolute top-0 right-0 w-48 h-48 bg-teal-500/5 rounded-full blur-2xl" />
@@ -285,7 +347,7 @@ export default function DashboardRadiologi() {
             <div className="p-6 bg-white/5 rounded-2xl border border-white/5 mb-8 space-y-3">
               <div className="w-10 h-10 bg-teal-600 rounded-xl flex items-center justify-center shadow-md"><FileText size={20}/></div>
               <h4 className="font-black text-base italic leading-none">Status Modul Radiologi</h4>
-              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wide leading-relaxed">Terhubung ke Llama 3 untuk asistensi ekstraksi otomatis temuan klinis citra PACS.</p>
+              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wide leading-relaxed">Terhubung ke Llama 3 untuk asistensi ekstraksi otomatis temuan citra PACS.</p>
             </div>
 
             <form onSubmit={handleSearchSubmit} className="space-y-4 pt-4 border-t border-white/5">
@@ -298,6 +360,35 @@ export default function DashboardRadiologi() {
           </div>
         </div>
       </div>
+
+      {/* ── ALUR KERJA SISTEM PANDUAN DIALOG FOR DEWAN JURI ── */}
+      <AnimatePresence>
+        {showTour && (
+          <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4">
+            <motion.div initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 20 }} className="bg-[#0f172a] border border-white/10 w-full max-w-md p-6 md:p-8 rounded-[2rem] shadow-2xl relative text-left space-y-6 text-white">
+              <div className="flex gap-1.5">
+                {tourSteps.map((_, idx) => (
+                  <div key={idx} className={`h-1.5 rounded-full transition-all duration-300 ${idx === tourStep ? 'w-8 bg-teal-500' : 'w-2 bg-slate-700'}`}/>
+                ))}
+              </div>
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-white/5 border border-white/10 rounded-xl">{tourSteps[tourStep].icon}</div>
+                  <h3 className="text-base font-black uppercase tracking-tight italic text-white">{tourSteps[tourStep].title}</h3>
+                </div>
+                <p className="text-slate-400 text-xs md:text-sm font-medium leading-relaxed">{tourSteps[tourStep].desc}</p>
+              </div>
+              <div className="flex items-center justify-between pt-4 border-t border-white/5 gap-4">
+                <button type="button" onClick={handleCloseTour} className="text-xs font-bold text-slate-500 hover:text-slate-300 uppercase tracking-wider">Selesai & Keluar</button>
+                <button type="button" onClick={handleNextTourStep} className="px-5 py-2.5 bg-teal-600 hover:bg-teal-500 rounded-xl text-xs font-black uppercase tracking-widest flex items-center gap-1 active:scale-95 animate-pulse">
+                  {tourSteps[tourStep].actionLabel} <ChevronRight size={14} />
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
     </div>
   );
 }

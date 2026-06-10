@@ -37,7 +37,7 @@ export default function DashboardDokter() {
   const tourSteps = [
     {
       title: "Selamat Datang di Ekosistem Dokter LexiMed.ai",
-      desc: "Di dashboard ini, Anda dapat memantau antrean pasien yang terdaftar di bawah wewenang Anda (DPJP) secara real-time dari database PostgreSQL cloud.",
+      desc: "Di dashboard ini, Anda dapat memantau antrean pasien yang terdaftar di bawah wewenang Anda (DPJP) secara real-time dari database Supabase cloud.",
       icon: <Sparkles className="text-emerald-400" size={24} />,
       actionLabel: "Mulai Panduan Alur"
     },

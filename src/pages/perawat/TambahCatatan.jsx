@@ -1,15 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   FileEdit, Activity, Thermometer, Heart, 
   Wind, ClipboardList, Save, ArrowRight, 
-  User, CheckCircle2, History 
+  User, CheckCircle2, History, HelpCircle, ChevronRight
 } from 'lucide-react';
 
 export default function TambahCatatan() {
   const navigate = useNavigate();
   const [patient, setPatient] = useState(null);
+
+  // ── STATE: INTERACTIVE WORKFLOW TOUR PANDUAN JURI ──
+  const [showTour, setShowTour] = useState(false);
+  const [tourStep, setTourStep] = useState(0);
 
   // --- States Sesuai Ketentuan (Poin 12) ---
   const [formData, setFormData] = useState({
@@ -28,6 +32,33 @@ export default function TambahCatatan() {
 
   const [isSaving, setIsSaving] = useState(false);
 
+  const tourSteps = [
+    {
+      title: "Alur Kerja: Pencatatan Klinis Manual",
+      desc: "Halaman ini digunakan untuk mendokumentasikan hasil pemeriksaan fisik, keluhan subjektif, dan intervensi keperawatan mandiri secara komprehensif sebelum diolah oleh kecerdasan artifisial.",
+      icon: <FileEdit className="text-blue-400" size={24} />,
+      actionLabel: "Mulai Panduan"
+    },
+    {
+      title: "Langkah 1: Sinkronisasi Waktu & Keluhan Utama",
+      desc: "Periksa kembali shift penugasan Anda dan ketikkan keluhan utama yang dirasakan pasien (misal: sesak napas akut) untuk mempermudah parameter indexing data klinis.",
+      icon: <History className="text-amber-400" size={24} />,
+      actionLabel: "Pahami Langkah 1"
+    },
+    {
+      title: "Langkah 2: Dokumentasi Narasi Keperawatan",
+      desc: "Isi kolom 'Kondisi Pasien' dan 'Tindakan' secara naratif. Data tekstual mentah inilah yang nantinya akan diekstrak oleh Neural Engine Llama 3.3 menjadi format handover medis formal.",
+      icon: <ClipboardList className="text-purple-400" size={24} />,
+      actionLabel: "Pahami Langkah 2"
+    },
+    {
+      title: "Langkah 3: Validasi Vital Signs & AI Processing",
+      desc: "Masukkan angka indikator vital (Sistolik, Diastolik, Nadi, Suhu, SpO2). Menekan tombol 'Simpan & Ringkas AI' akan menyimpan draf ke database dan langsung memicu pipeline pemrosesan ringkasan otomatis.",
+      icon: <Heart className="text-rose-400" size={24} />,
+      actionLabel: "Selesai & Eksekusi"
+    }
+  ];
+
   useEffect(() => {
     const savedPatient = localStorage.getItem('active_patient');
     if (!savedPatient) {
@@ -35,7 +66,33 @@ export default function TambahCatatan() {
     } else {
       setPatient(JSON.parse(savedPatient));
     }
+
+    // DETEKSI TOUR OTOMATIS KHUSUS DEMO DEWAN JURI
+    const isTourCompleted = sessionStorage.getItem('leximed_add_note_tour_completed');
+    if (!isTourCompleted) {
+      setShowTour(true);
+    }
   }, [navigate]);
+
+  const handleNextTourStep = () => {
+    if (tourStep < tourSteps.length - 1) {
+      setTourStep(prev => prev + 1);
+    } else {
+      sessionStorage.setItem('leximed_add_note_tour_completed', 'true');
+      setShowTour(false);
+    }
+  };
+
+  const handleCloseTour = () => {
+    sessionStorage.setItem('leximed_add_note_tour_completed', 'true');
+    setShowTour(false);
+  };
+
+  const toggleTourRestart = () => {
+    sessionStorage.removeItem('leximed_add_note_tour_completed');
+    setTourStep(0);
+    setShowTour(true);
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -87,6 +144,17 @@ export default function TambahCatatan() {
     <div className="min-h-screen bg-[#fcfcfd] p-4 md:p-10 font-sans text-left pb-24 text-slate-900">
       <div className="max-w-6xl mx-auto space-y-8">
         
+        {/* FLOATING REPOSITION TOMBOL PEMANDU JURI */}
+        <div className="w-full flex justify-end">
+          <button 
+            type="button"
+            onClick={toggleTourRestart}
+            className="bg-white border border-slate-200 text-blue-600 px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest flex items-center gap-2 transition-all shadow-sm active:scale-95 hover:bg-slate-50"
+          >
+            <HelpCircle size={15} /> Alur Pemandu Catatan
+          </button>
+        </div>
+
         {/* HEADER */}
         <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} 
           className="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm flex flex-col md:flex-row justify-between items-center gap-6"
@@ -198,6 +266,56 @@ export default function TambahCatatan() {
           </div>
         </div>
       </div>
+
+      {/* ── MULTI-PAGE GUIDED TOUR DIALOG FOR JUDGES ── */}
+      <AnimatePresence>
+          {showTour && (
+              <div className="fixed inset-0 z-[70] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+                  <motion.div 
+                      initial={{ scale: 0.95, y: 20 }} 
+                      animate={{ scale: 1, y: 0 }} 
+                      exit={{ scale: 0.95, y: 20 }} 
+                      className="bg-[#0f172a] border border-white/10 w-full max-w-md p-6 md:p-8 rounded-[2rem] shadow-2xl relative text-left space-y-6 text-white"
+                  >
+                      <div className="flex gap-1.5">
+                          {tourSteps.map((_, idx) => (
+                              <div key={idx} className={`h-1.5 rounded-full transition-all duration-300 ${idx === tourStep ? 'w-8 bg-blue-500' : 'w-2 bg-slate-700'}`}/>
+                          ))}
+                      </div>
+                      
+                      <div className="space-y-3">
+                          <div className="flex items-center gap-3">
+                              <div className="p-2 bg-white/5 border border-white/10 rounded-xl">
+                                  {tourSteps[tourStep].icon}
+                              </div>
+                              <h3 className="text-base font-black uppercase tracking-tight italic text-white">
+                                  {tourSteps[tourStep].title}
+                              </h3>
+                          </div>
+                          <p className="text-slate-400 text-sm font-medium leading-relaxed">
+                              {tourSteps[tourStep].desc}
+                          </p>
+                      </div>
+                      
+                      <div className="flex items-center justify-between pt-4 border-t border-white/5 gap-4">
+                          <button 
+                              onClick={handleCloseTour} 
+                              className="text-xs font-bold text-slate-500 hover:text-slate-300 uppercase tracking-wider"
+                          >
+                              Keluar Tur
+                          </button>
+                          <button 
+                              onClick={handleNextTourStep} 
+                              className="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 rounded-xl text-xs font-black uppercase tracking-widest flex items-center gap-2 active:scale-95 shadow-lg shadow-blue-900/40 transition-all animate-pulse"
+                          >
+                              {tourSteps[tourStep].actionLabel} <ChevronRight size={14} />
+                          </button>
+                      </div>
+                  </motion.div>
+              </div>
+          )}
+      </AnimatePresence>
+
     </div>
   );
 }

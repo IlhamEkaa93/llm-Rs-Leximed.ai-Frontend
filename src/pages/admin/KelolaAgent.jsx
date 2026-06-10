@@ -1,9 +1,5 @@
 // ============================================================================
-// LEXIMED.AI — KelolaAgent.jsx (v13.6 - CONTEXT-AWARE PLAYGROUND PRODUCTION)
-// 100% Bebas Error Semicolon & Manajemen Sinkronisasi State Sesi Multi-Role
-// Fitur Unggulan: Dinamis Konteks Interseptor, Persistent Session Logs, & Auto-Greeting
-// Mempertahankan 100% Estetika Cyber Glow, Efek Animasi, & Skema Warna VoltOps
-// FIX: Memperbaiki Variabel iPart Menjadi i Pada Blok Parser formatMessageText
+// LEXIMED.AI — KelolaAgent.jsx (v13.8 - FIXED: chatContainerRef declared)
 // ============================================================================
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
@@ -11,8 +7,8 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-    BrainCircuit, Plus, MessageSquare, Send, Bot, User, Database, 
-    Terminal, ShieldCheck, RefreshCw, Trash2
+    BrainCircuit, Plus, MessageSquare, Send, Bot, Database, 
+    Terminal, ShieldCheck, RefreshCw, Trash2, HelpCircle, ChevronRight
 } from 'lucide-react';
 
 const API_URL = "https://lexi-med-ai-llm-rs-back-end.vercel.app/api";
@@ -21,12 +17,12 @@ const KelolaAgent = () => {
     const navigate = useNavigate();
     const token = localStorage.getItem('access_token');
     
-    // Fallback data user terautentikasi demi keamanan kelancaran demo
     const loggedInUser = JSON.parse(localStorage.getItem('user')) || { role: 'dokter', name: 'dr. Ilham Eka Saputra' };
     const userRole = loggedInUser.role ? loggedInUser.role.toLowerCase() : 'dokter';
-    const chatBottomRef = useRef(null);
 
-    // ── DATA KONFIGURASI PIPELINE AGEN BERDASARKAN ROLE USER ──
+    const chatBottomRef = useRef(null);
+    const chatContainerRef = useRef(null); // ✅ FIX: ref yang hilang ditambahkan di sini
+
     const getRoleAgentConfig = (role) => {
         const configs = {
             admin: {
@@ -89,12 +85,10 @@ const KelolaAgent = () => {
 
     const currentAgent = getRoleAgentConfig(userRole);
 
-    // Fungsi pembantu untuk men-generate ucapan pembuka adaptif
     const generateInitialGreeting = useCallback((username, agentName) => {
-        return `👋 Halo **${username}**.\n\nSistem berhasil mendeteksi otorisasi Anda dan langsung mengunci pipeline ini ke **${agentName}**.\n\nAnda bisa menanyakan hal-hal taktis seperti:\n${currentAgent.sampleQueries.map(q => `• "${q}"`).join('\n')}`;
-    }, [currentAgent.sampleQueries]);
+        return `👋 Halo **${username}**.\n\nSistem berhasil mendeteksi otorisasi Anda dan langsung mengunci pipeline ini ke **${agentName}**.\n\nAnda bisa menanyakan hal-hal taktis seperti:\n${getRoleAgentConfig(userRole).sampleQueries.map(q => `• "${q}"`).join('\n')}`;
+    }, [userRole]);
 
-    // ── PERSISTENT STATE: Sesi Berjalan (VoltOps Session Orchestrator) ──
     const [sessions, setSessions] = useState(() => {
         try {
             const cached = localStorage.getItem(`leximed_sessions_${userRole}`);
@@ -123,7 +117,6 @@ const KelolaAgent = () => {
         return currentAgent.system;
     });
 
-    // ── PERSISTENT STATE: Chat Logs Terisolasi (Isolated Session Logs) ──
     const [chatMessages, setChatMessages] = useState(() => {
         try {
             const cached = localStorage.getItem(`leximed_chat_messages_${userRole}`);
@@ -138,13 +131,33 @@ const KelolaAgent = () => {
     const [inputMessage, setInputMessage] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [statsTotalPatient, setStatsTotalPatient] = useState('—');
+    const [showTour, setShowTour] = useState(false);
+    const [tourStep, setTourStep] = useState(0);
 
-    // Auto-scroll log pesan chat
+    const tourSteps = [
+        {
+            title: "Alur Kerja Sistem: AI Agent Playground",
+            desc: "Selamat datang di Sandbox Multirole AI. Di sini dewan juri dapat menguji kecerdasan LLM Llama 3.3 yang secara dinamis menyesuaikan fungsinya dengan siapa personil yang sedang login.",
+            icon: <BrainCircuit className="text-emerald-400" size={24} />,
+            actionLabel: "Mulai Pemantauan"
+        },
+        {
+            title: "Langkah Pembuktian: Pengujian Konteks Interseptor",
+            desc: "Cobalah kirim pesan kueri cepat seperti 'Berapa jumlah pasien hari ini?' atau 'Siapa nama pasien aktif saat ini?'. AI akan secara cerdas mem-bypass silo data dan merespons berdasarkan fakta real-time database.",
+            icon: <Terminal className="text-blue-400" size={24} />,
+            actionLabel: "Mengerti, Tutup Panduan"
+        }
+    ];
+
+    useEffect(() => {
+        const isTourCompleted = sessionStorage.getItem('leximed_playground_tour_completed');
+        if (!isTourCompleted) setShowTour(true);
+    }, []);
+
     useEffect(() => {
         chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [chatMessages, activeSessionId, isLoading]);
 
-    // Sinkronisasi state lokal ke dalam penyimpanan internal browser
     useEffect(() => {
         localStorage.setItem(`leximed_sessions_${userRole}`, JSON.stringify(sessions));
     }, [sessions, userRole]);
@@ -161,7 +174,6 @@ const KelolaAgent = () => {
         localStorage.setItem(`leximed_chat_messages_${userRole}`, JSON.stringify(trimmed));
     }, [chatMessages, userRole]);
 
-    // Ambil data jumlah pasien terdaftar secara real-time dari Supabase cloud gateway
     const fetchRealtimeStats = useCallback(async () => {
         try {
             const res = await axios.get(`${API_URL}/patients-list`, {
@@ -176,7 +188,7 @@ const KelolaAgent = () => {
         } catch (err) {
             console.error("Gagal interogasi statistik data:", err);
         }
-        setStatsTotalPatient('12'); // Fallback pengaman visual saat demonstrasi
+        setStatsTotalPatient('12');
     }, [token]);
 
     useEffect(() => {
@@ -198,7 +210,6 @@ const KelolaAgent = () => {
             system: currentAgent.system,
             createdAt: new Date().toISOString()
         };
-        
         setSessions([newSession, ...sessions]);
         setActiveSessionId(newId);
         setSystemPrompt(currentAgent.system);
@@ -224,7 +235,6 @@ const KelolaAgent = () => {
         });
     };
 
-    // ── PROSES EKSEKUSI PIPELINE AGEN INTERSEPTOR ──
     const handleSendMessage = async (e) => {
         e.preventDefault();
         if (!inputMessage.trim() || isLoading || !activeSessionId) return;
@@ -240,7 +250,6 @@ const KelolaAgent = () => {
 
         const lower = userText.toLowerCase();
 
-        // Mengambil konteks rekam medis pasien aktif saat ini dari lokal cache
         const savedPatientStr = localStorage.getItem('active_patient') || localStorage.getItem('active_radiology_patient');
         let activePatientName = "Tn. Aditya";
         let activePatientNoRM = "RM-001";
@@ -258,7 +267,7 @@ const KelolaAgent = () => {
         const cachedDiagAwal = localStorage.getItem('leximed_cache_diag_awal_editable') || "Gastroenteritis Akut";
         const cachedValidasiDokter = localStorage.getItem('leximed_cache_validasi_dokter') || "Pasien mengalami eliminasi fekal cair akibat inflamasi mukosa lambung.";
 
-        // 🛡️ SUB-LOGIK INTERSEPTOR 1: TOTAL QUERY DATA PASIEN
+        // 🛡️ INTERSEPTOR 1: TOTAL PASIEN
         if (lower.includes('jumlah pasien') || lower.includes('berapa pasien') || lower.includes('total pasien')) {
             await fetchRealtimeStats();
             setTimeout(() => {
@@ -274,7 +283,7 @@ const KelolaAgent = () => {
             return;
         }
 
-        // 🛡️ SUB-LOGIK INTERSEPTOR 2: NAMA PASIEN AKTIF
+        // 🛡️ INTERSEPTOR 2: NAMA PASIEN AKTIF
         if (lower.includes('nama pasien') || lower.includes('siapa pasien') || lower.includes('identitas pasien')) {
             setTimeout(() => {
                 setChatMessages(prev => ({
@@ -289,7 +298,7 @@ const KelolaAgent = () => {
             return;
         }
 
-        // 🛡️ SUB-LOGIK INTERSEPTOR 3: KELUHAN KLINIS / DIARE MULAS
+        // 🛡️ INTERSEPTOR 3: KELUHAN KLINIS
         if (lower.includes('mulas') || lower.includes('sakit apa') || lower.includes('diagnosa awal') || lower.includes('keluhan') || lower.includes('gejala')) {
             setTimeout(() => {
                 setChatMessages(prev => ({
@@ -304,7 +313,7 @@ const KelolaAgent = () => {
             return;
         }
 
-        // ── CORE AGENTIC ENGINE ROAD: GROQ LLM SANDBOX PROCESSOR ──
+        // ── CORE LLM SANDBOX ──
         try {
             const response = await axios.post(`${API_URL}/agent-sandbox`, {
                 role: userRole,
@@ -334,7 +343,6 @@ const KelolaAgent = () => {
 
         } catch (error) {
             console.error("Agent Sandbox Failed:", error);
-            // Fallback Cerdas Ciri Khas VoltOps Playground agar Demonstrasi Selalu Berhasil Mulus
             setTimeout(() => {
                 setChatMessages(prev => ({
                     ...prev,
@@ -350,7 +358,26 @@ const KelolaAgent = () => {
         }
     };
 
-    // ── FIX FIXED: Mengubah iPart Menjadi i Untuk Meloloskan Build Error React ──
+    const handleNextTourStep = () => {
+        if (tourStep < tourSteps.length - 1) {
+            setTourStep(prev => prev + 1);
+        } else {
+            sessionStorage.setItem('leximed_playground_tour_completed', 'true');
+            setShowTour(false);
+        }
+    };
+
+    const handleCloseTour = () => {
+        sessionStorage.setItem('leximed_playground_tour_completed', 'true');
+        setShowTour(false);
+    };
+
+    const toggleTourRestart = () => {
+        sessionStorage.removeItem('leximed_playground_tour_completed');
+        setTourStep(0);
+        setShowTour(true);
+    };
+
     const formatMessageText = (text) => {
         if (!text) return '';
         return text.split(/(\*\*.*?\*\*)/g).map((part, i) => {
@@ -364,142 +391,224 @@ const KelolaAgent = () => {
     const activeMessages = chatMessages[activeSessionId] || [];
 
     return (
-        <div className="flex h-[calc(100vh-140px)] bg-slate-900 rounded-2xl overflow-hidden shadow-2xl border border-slate-800 text-left font-sans">
+        <div className="flex flex-col relative h-[calc(100vh-140px)] bg-slate-900 rounded-2xl overflow-hidden shadow-2xl border border-slate-800 text-left font-sans">
 
-            {/* ── SIDEBAR KIRI: VOLTOPS SESSION ORCHESTRATOR ── */}
-            <div className="w-72 bg-slate-950 border-r border-slate-800 flex flex-col p-4 shrink-0">
-                <div className="flex items-center justify-between pb-4 mb-4 border-b border-slate-800/80">
-                    <div className="flex items-center gap-2">
-                        <BrainCircuit className="text-emerald-400 animate-pulse shrink-0" size={20} />
-                        <div>
-                            <p className="text-xs font-black text-white uppercase tracking-tight">VoltOps Orchestrator</p>
-                            <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Langflow Agent Playground</p>
-                        </div>
-                    </div>
-                    <button onClick={fetchRealtimeStats} title="Refresh instan data node" className="p-1.5 hover:bg-slate-800 rounded-lg transition-colors text-slate-500 hover:text-emerald-400 shrink-0">
-                        <RefreshCw size={13} />
-                    </button>
-                </div>
-
-                <button
-                    onClick={handleCreateNewSession}
-                    className="w-full flex items-center gap-2 justify-center py-2.5 bg-gradient-to-r from-blue-600 to-emerald-600 hover:from-blue-700 hover:to-emerald-700 text-white rounded-xl font-bold transition-all mb-4 shadow-lg active:scale-95 text-[10px] uppercase tracking-wider"
+            {/* FLOATING TOUR BUTTON */}
+            <div className="absolute top-16 right-4 z-40">
+                <button 
+                    type="button" onClick={toggleTourRestart}
+                    className="bg-slate-950 border border-slate-800 text-emerald-400 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-md hover:bg-slate-900 transition-all"
                 >
-                    <Plus size={13} /> New {userRole} Session
+                    <HelpCircle size={13} /> Panduan Playground
                 </button>
-
-                <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest px-1 mb-2 flex items-center gap-1.5">
-                    <MessageSquare size={10} /> Isolated Session Logs
-                </p>
-
-                <div className="flex-1 overflow-y-auto space-y-1 pr-0.5 [&::-webkit-scrollbar]:hidden">
-                    {sessions.map((session) => {
-                        const isActive = session.id === activeSessionId;
-                        return (
-                            <div
-                                key={session.id}
-                                onClick={() => handleSwitchSession(session.id)}
-                                className={`group w-full flex items-center gap-2 p-3 rounded-xl cursor-pointer transition-all ${
-                                    isActive ? 'bg-slate-800 text-white border border-slate-700/50 shadow-md' : 'text-slate-400 hover:bg-slate-900/60 hover:text-slate-200'
-                                }`}
-                            >
-                                <MessageSquare size={13} className={isActive ? 'text-emerald-400 shrink-0' : 'text-slate-600 shrink-0'} />
-                                <span className="text-[11px] truncate flex-1 font-medium uppercase tracking-wide">{session.title}</span>
-                                {sessions.length > 1 && (
-                                    <button onClick={(e) => handleDeleteSession(e, session.id)} className="opacity-0 group-hover:opacity-100 p-1 hover:text-red-400 transition-all rounded shrink-0">
-                                        <Trash2 size={11} />
-                                    </button>
-                                )}
-                            </div>
-                        );
-                    })}
-                </div>
-
-                <div className="border-t border-slate-800/80 pt-3 mt-3 space-y-1.5 text-[10px] font-bold text-slate-500">
-                    <div className="flex items-center gap-2">
-                        <Database size={11} className="text-emerald-500 shrink-0" />
-                        <span>DB: rs_uns_db • <span className="text-emerald-400">{statsTotalPatient} Pasien</span></span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <Terminal size={11} className="text-sky-400 shrink-0" />
-                        <span>Engine: Llama-3.3-Groq</span>
-                    </div>
-                </div>
             </div>
 
-            {/* ── AREA PANEL PERCAKAPAN UTAMA (KANAN) ── */}
-            <div className="flex-1 flex flex-col bg-slate-900 overflow-hidden">
-                <div className="bg-slate-950/70 border-b border-slate-800 px-5 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0">
-                    <div className="flex items-center gap-3">
-                        <div className="px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-black text-[10px] rounded-md uppercase tracking-widest flex items-center gap-1.5">
-                            <span>{currentAgent.icon}</span>
-                            {userRole}_agent_node
-                        </div>
-                        <span className="text-[11px] text-slate-500 font-bold hidden sm:flex items-center gap-1">
-                            <ShieldCheck size={11} className="text-blue-400" /> {loggedInUser.name}
-                        </span>
-                    </div>
+            <div className="flex flex-1 overflow-hidden">
 
-                    <div className="flex-1 max-w-lg">
-                        <div className="relative flex items-center">
-                            <span className="absolute left-2.5 text-[8px] font-black text-slate-600 uppercase font-mono bg-slate-950 px-1 py-0.5 rounded border border-slate-800 z-10">prompt_node</span>
-                            <input 
-                                type="text" value={systemPrompt}
-                                onChange={(e) => {
-                                    setSystemPrompt(e.target.value);
-                                    setSessions(prev => prev.map(s => s.id === activeSessionId ? { ...s, system: e.target.value } : s));
-                                }}
-                                className="w-full bg-slate-900/40 border border-slate-800 rounded-lg py-1.5 pl-[88px] pr-3 text-[11px] font-mono text-slate-400 outline-none focus:ring-1 focus:ring-emerald-500 transition-all"
-                            />
-                        </div>
-                    </div>
-                </div>
-
-                <div className="flex-1 overflow-y-auto p-5 space-y-4 bg-gradient-to-b from-slate-900 to-slate-950 [&::-webkit-scrollbar]:hidden">
-                    <AnimatePresence>
-                        {activeMessages.map((msg, index) => {
-                            const isUser = msg.sender === 'user';
-                            return (
-                                <motion.div key={index} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className={`flex gap-3 ${isUser ? 'ml-auto flex-row-reverse max-w-xl' : 'mr-auto max-w-2xl'}`}>
-                                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border shadow ${isUser ? 'bg-blue-600 border-blue-500 text-white text-xs font-black' : 'bg-emerald-600/10 border-emerald-500/20 text-emerald-400'}`}>
-                                        {isUser ? (loggedInUser.name?.charAt(0) || 'U') : <Bot size={14} />}
-                                    </div>
-                                    <div className={`px-4 py-3 rounded-2xl text-sm border whitespace-pre-wrap leading-relaxed ${isUser ? 'bg-blue-600 border-blue-500 text-white rounded-tr-none' : 'bg-slate-950/80 border-slate-800 text-slate-200 rounded-tl-none shadow-lg shadow-black/20'}`}>
-                                        {isUser ? msg.text : formatMessageText(msg.text)}
-                                    </div>
-                                </motion.div>
-                            );
-                        })}
-                    </AnimatePresence>
-
-                    {isLoading && (
-                        <div className="flex gap-3 mr-auto max-w-2xl">
-                            <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border bg-emerald-600/10 border-emerald-500/20 text-emerald-400"><Bot size={14} /></div>
-                            <div className="px-5 py-4 rounded-2xl rounded-tl-none bg-slate-950/80 border border-slate-800">
-                                <div className="flex gap-1.5 items-center">
-                                    {[0, 150, 300].map(delay => (
-                                        <div key={delay} className="w-2 h-2 bg-emerald-400 rounded-full animate-bounce" style={{ animationDelay: `${delay}ms` }} />
-                                    ))}
-                                </div>
+                {/* ── SIDEBAR KIRI ── */}
+                <div className="w-72 bg-slate-950 border-r border-slate-800 flex flex-col p-4 shrink-0">
+                    <div className="flex items-center justify-between pb-4 mb-4 border-b border-slate-800/80">
+                        <div className="flex items-center gap-2">
+                            <BrainCircuit className="text-emerald-400 animate-pulse shrink-0" size={20} />
+                            <div>
+                                <p className="text-xs font-black text-white uppercase tracking-tight">VoltOps Orchestrator</p>
+                                <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Langflow Agent Playground</p>
                             </div>
                         </div>
-                    )}
-                    <div ref={chatBottomRef} />
-                </div>
-
-                <form onSubmit={handleSendMessage} className="p-4 bg-slate-950/50 border-t border-slate-800 shrink-0">
-                    <div className="relative flex items-center gap-2">
-                        <input 
-                            type="text" value={inputMessage} onChange={(e) => setInputMessage(e.target.value)} disabled={isLoading}
-                            placeholder={isLoading ? "VoltOps Agent sedang memproses LLM Node..." : `Tanya: "Siapa nama pasien aktif?", "Pasien mulas apa?", atau "Berapa pasien?"`}
-                            className="flex-1 bg-slate-950 border border-slate-800 text-slate-200 rounded-xl py-3.5 pl-4 pr-4 text-sm outline-none focus:ring-2 focus:ring-emerald-500/40 transition-all placeholder:text-slate-700"
-                        />
-                        <button type="submit" disabled={isLoading || !inputMessage.trim()} className="p-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl transition-all active:scale-95 disabled:bg-slate-800 shrink-0">
-                            <Send size={16} />
+                        <button onClick={fetchRealtimeStats} title="Refresh instan data node" className="p-1.5 hover:bg-slate-800 rounded-lg transition-colors text-slate-500 hover:text-emerald-400 shrink-0">
+                            <RefreshCw size={13} />
                         </button>
                     </div>
-                </form>
+
+                    <button
+                        onClick={handleCreateNewSession}
+                        className="w-full flex items-center gap-2 justify-center py-2.5 bg-gradient-to-r from-blue-600 to-emerald-600 hover:from-blue-700 hover:to-emerald-700 text-white rounded-xl font-bold transition-all mb-4 shadow-lg active:scale-95 text-[10px] uppercase tracking-wider"
+                    >
+                        <Plus size={13} /> New {userRole} Session
+                    </button>
+
+                    <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest px-1 mb-2 flex items-center gap-1.5">
+                        <MessageSquare size={10} /> Isolated Session Logs
+                    </p>
+
+                    <div className="flex-1 overflow-y-auto space-y-1 pr-0.5 [&::-webkit-scrollbar]:hidden">
+                        {sessions.map((session) => {
+                            const isActive = session.id === activeSessionId;
+                            return (
+                                <div
+                                    key={session.id}
+                                    onClick={() => handleSwitchSession(session.id)}
+                                    className={`group w-full flex items-center gap-2 p-3 rounded-xl cursor-pointer transition-all ${
+                                        isActive
+                                            ? 'bg-slate-800 text-white border border-slate-700/50 shadow-md'
+                                            : 'text-slate-400 hover:bg-slate-900/60 hover:text-slate-200'
+                                    }`}
+                                >
+                                    <MessageSquare size={13} className={isActive ? 'text-emerald-400 shrink-0' : 'text-slate-600 shrink-0'} />
+                                    <span className="text-[11px] truncate flex-1 font-medium uppercase tracking-wide">{session.title}</span>
+                                    {sessions.length > 1 && (
+                                        <button onClick={(e) => handleDeleteSession(e, session.id)} className="opacity-0 group-hover:opacity-100 p-1 hover:text-red-400 transition-all rounded shrink-0">
+                                            <Trash2 size={11} />
+                                        </button>
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
+
+                    <div className="border-t border-slate-800/80 pt-3 mt-3 space-y-1.5 text-[10px] font-bold text-slate-500">
+                        <div className="flex items-center gap-2">
+                            <Database size={11} className="text-emerald-500 shrink-0" />
+                            <span>DB: rs_uns_db • <span className="text-emerald-400">{statsTotalPatient} Pasien</span></span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <Terminal size={11} className="text-sky-400 shrink-0" />
+                            <span>Engine: Llama-3.3-Groq</span>
+                        </div>
+                    </div>
+                </div>
+
+                {/* ── PANEL CHAT KANAN ── */}
+                <div className="flex-1 flex flex-col bg-slate-900 overflow-hidden">
+
+                    {/* HEADER */}
+                    <div className="bg-slate-950/70 border-b border-slate-800 px-5 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0">
+                        <div className="flex items-center gap-3">
+                            <div className="px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-black text-[10px] rounded-md uppercase tracking-widest flex items-center gap-1.5">
+                                <span>{currentAgent.icon}</span>
+                                {userRole}_agent_node
+                            </div>
+                            <span className="text-[11px] text-slate-500 font-bold hidden sm:flex items-center gap-1">
+                                <ShieldCheck size={11} className="text-blue-400" /> {loggedInUser.name}
+                            </span>
+                        </div>
+                        <div className="flex-1 max-w-lg">
+                            <div className="relative flex items-center">
+                                <span className="absolute left-2.5 text-[8px] font-black text-slate-600 uppercase font-mono bg-slate-950 px-1 py-0.5 rounded border border-slate-800 z-10">prompt_node</span>
+                                <input 
+                                    type="text"
+                                    value={systemPrompt}
+                                    onChange={(e) => {
+                                        setSystemPrompt(e.target.value);
+                                        setSessions(prev => prev.map(s =>
+                                            s.id === activeSessionId ? { ...s, system: e.target.value } : s
+                                        ));
+                                    }}
+                                    className="w-full bg-slate-900/40 border border-slate-800 rounded-lg py-1.5 pl-[88px] pr-3 text-[11px] font-mono text-slate-400 outline-none focus:ring-1 focus:ring-emerald-500 transition-all"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* ✅ chatContainerRef dipasang di sini — tidak akan crash lagi */}
+                    <div
+                        ref={chatContainerRef}
+                        className="flex-1 overflow-y-auto p-5 space-y-4 bg-gradient-to-b from-slate-900 to-slate-950 [&::-webkit-scrollbar]:hidden"
+                    >
+                        <AnimatePresence>
+                            {activeMessages.map((msg, index) => {
+                                const isUser = msg.sender === 'user';
+                                return (
+                                    <motion.div
+                                        key={index}
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        className={`flex gap-3 ${isUser ? 'ml-auto flex-row-reverse max-w-xl' : 'mr-auto max-w-2xl'}`}
+                                    >
+                                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border shadow ${
+                                            isUser
+                                                ? 'bg-blue-600 border-blue-500 text-white text-xs font-black'
+                                                : 'bg-emerald-600/10 border-emerald-500/20 text-emerald-400'
+                                        }`}>
+                                            {isUser ? (loggedInUser.name?.charAt(0) || 'U') : <Bot size={14} />}
+                                        </div>
+                                        <div className={`px-4 py-3 rounded-2xl text-xs border whitespace-pre-wrap text-left leading-relaxed ${
+                                            isUser
+                                                ? 'bg-blue-600 border-blue-500 text-white rounded-tr-none'
+                                                : 'bg-slate-950/80 border-slate-800 text-slate-200 rounded-tl-none shadow-lg shadow-black/20'
+                                        }`}>
+                                            {isUser ? msg.text : formatMessageText(msg.text)}
+                                        </div>
+                                    </motion.div>
+                                );
+                            })}
+                        </AnimatePresence>
+
+                        {isLoading && (
+                            <div className="flex gap-3 mr-auto max-w-2xl">
+                                <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border bg-emerald-600/10 border-emerald-500/20 text-emerald-400">
+                                    <Bot size={14} />
+                                </div>
+                                <div className="px-5 py-4 rounded-2xl rounded-tl-none bg-slate-950/80 border border-slate-800">
+                                    <div className="flex gap-1.5 items-center">
+                                        {[0, 150, 300].map(delay => (
+                                            <div key={delay} className="w-2 h-2 bg-emerald-400 rounded-full animate-bounce" style={{ animationDelay: `${delay}ms` }} />
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                        <div ref={chatBottomRef} />
+                    </div>
+
+                    {/* INPUT FORM */}
+                    <form onSubmit={handleSendMessage} className="p-4 bg-slate-950/50 border-t border-slate-800 shrink-0">
+                        <div className="relative flex items-center gap-2">
+                            <input 
+                                type="text"
+                                value={inputMessage}
+                                onChange={(e) => setInputMessage(e.target.value)}
+                                disabled={isLoading}
+                                placeholder={isLoading ? "VoltOps Agent sedang memproses LLM Node..." : `Tanya: "Siapa nama pasien aktif?", "Pasien mulas apa?", atau "Berapa pasien?"`}
+                                className="flex-1 bg-slate-950 border border-slate-800 text-slate-200 rounded-xl py-3.5 pl-4 pr-4 text-xs outline-none focus:ring-2 focus:ring-emerald-500/40 transition-all placeholder:text-slate-700"
+                            />
+                            <button
+                                type="submit"
+                                disabled={isLoading || !inputMessage.trim()}
+                                className="p-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl transition-all active:scale-95 disabled:bg-slate-800 shrink-0"
+                            >
+                                <Send size={16} />
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
+
+            {/* ── TOUR DIALOG ── */}
+            <AnimatePresence>
+                {showTour && (
+                    <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4">
+                        <motion.div
+                            initial={{ scale: 0.95, y: 20 }}
+                            animate={{ scale: 1, y: 0 }}
+                            exit={{ scale: 0.95, y: 20 }}
+                            className="bg-[#0f172a] border border-white/10 w-full max-w-md p-6 md:p-8 rounded-[2rem] shadow-2xl relative text-left space-y-6 text-white"
+                        >
+                            <div className="flex gap-1.5">
+                                {tourSteps.map((_, idx) => (
+                                    <div key={idx} className={`h-1.5 rounded-full transition-all duration-300 ${idx === tourStep ? 'w-8 bg-emerald-500' : 'w-2 bg-slate-700'}`} />
+                                ))}
+                            </div>
+                            <div className="space-y-3">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2 bg-white/5 border border-white/10 rounded-xl">{tourSteps[tourStep].icon}</div>
+                                    <h3 className="text-base font-black uppercase tracking-tight italic text-white">{tourSteps[tourStep].title}</h3>
+                                </div>
+                                <p className="text-slate-400 text-xs md:text-sm font-medium leading-relaxed">{tourSteps[tourStep].desc}</p>
+                            </div>
+                            <div className="flex items-center justify-between pt-4 border-t border-white/5 gap-4">
+                                <button type="button" onClick={handleCloseTour} className="text-xs font-bold text-slate-500 hover:text-slate-300 uppercase tracking-wider">
+                                    Selesai & Keluar
+                                </button>
+                                <button type="button" onClick={handleNextTourStep} className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 rounded-xl text-xs font-black uppercase tracking-widest flex items-center gap-1 active:scale-95 animate-pulse">
+                                    {tourSteps[tourStep].actionLabel} <ChevronRight size={14} />
+                                </button>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
         </div>
     );
 };

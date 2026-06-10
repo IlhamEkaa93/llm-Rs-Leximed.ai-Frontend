@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Activity, FileText, ArrowRight, Loader2, Zap, User, 
   CheckCircle2, ShieldCheck, Wand2, Calendar, Clock, MapPin,
-  Sparkles, BrainCircuit
+  Sparkles, BrainCircuit, HelpCircle, ChevronRight
 } from 'lucide-react';
 
 export default function HandoverShift() {
@@ -20,6 +20,37 @@ export default function HandoverShift() {
   
   const [isProcessingAI, setIsProcessingAI] = useState(false);
   const [aiSuccess, setAiSuccess] = useState(false);
+
+  // ── STATE: INTERACTIVE WORKFLOW TOUR PANDUAN JURI ──
+  const [showTour, setShowTour] = useState(false);
+  const [tourStep, setTourStep] = useState(0);
+
+  const tourSteps = [
+    {
+      title: "Alur Kerja: Otomatisasi Handover SBAR",
+      desc: "Selamat datang di modul Ringkasan Shift AI. Di sini, sistem akan mendemonstrasikan kekuatan pemrosesan Llama 3.3 dalam merangkum operan shift keperawatan secara terstruktur.",
+      icon: <BrainCircuit className="text-blue-400" size={24} />,
+      actionLabel: "Mulai Panduan"
+    },
+    {
+      title: "Langkah 1: Sinkronisasi Data Otomatis",
+      desc: "Sistem secara cerdas menarik data vital signs dan catatan mentah dari langkah sebelumnya melalui local caching, lalu menampilkannya langsung di area editor.",
+      icon: <FileText className="text-amber-400" size={24} />,
+      actionLabel: "Pahami Langkah 1"
+    },
+    {
+      title: "Langkah 2: Transformasi Dokumen via AI Engine",
+      desc: "Klik tombol 'Generate AI Report' untuk mensimulasikan Neural Processing. Sistem akan mengekstrak narasi mentah Anda menjadi dokumen komunikasi medis SBAR formal.",
+      icon: <Sparkles className="text-purple-400" size={24} />,
+      actionLabel: "Pahami Langkah 2"
+    },
+    {
+      title: "Langkah 3: Finalisasi Registrasi Rekam Medis",
+      desc: "Setelah dokumen SBAR terbentuk, klik tombol 'Dokumentasi AI' untuk mengunci seluruh berkas asuhan shift ini dan meneruskannya ke pipeline penyimpanan permanen.",
+      icon: <ShieldCheck className="text-emerald-400" size={24} />,
+      actionLabel: "Selesai & Eksekusi"
+    }
+  ];
 
   useEffect(() => {
     const savedPatient = localStorage.getItem('active_patient');
@@ -43,7 +74,33 @@ export default function HandoverShift() {
       setKondisi(`KELUHAN: ${note.keluhan}. OBSERVASI: ${note.kondisi_umum}. VITAL SIGN: TD ${note.td_sistolik}/${note.td_diastolik}, Nadi ${note.nadi}, Suhu ${note.suhu}, SpO2 ${note.spo2}%`);
       setIntervensi(note.tindakan);
     }
+
+    // DETEKSI TOUR OTOMATIS KHUSUS DEMO DEWAN JURI
+    const isTourCompleted = sessionStorage.getItem('leximed_handover_tour_completed');
+    if (!isTourCompleted) {
+      setShowTour(true);
+    }
   }, [navigate]);
+
+  const handleNextTourStep = () => {
+    if (tourStep < tourSteps.length - 1) {
+      setTourStep(prev => prev + 1);
+    } else {
+      sessionStorage.setItem('leximed_handover_tour_completed', 'true');
+      setShowTour(false);
+    }
+  };
+
+  const handleCloseTour = () => {
+    sessionStorage.setItem('leximed_handover_tour_completed', 'true');
+    setShowTour(false);
+  };
+
+  const toggleTourRestart = () => {
+    sessionStorage.removeItem('leximed_handover_tour_completed');
+    setTourStep(0);
+    setShowTour(true);
+  };
 
   const handleAutoFillDemo = () => {
     setKondisi("Pasien post-op appendictomy hari ke-1. Mengeluh nyeri pada luka operasi skala 6/10. Pasien tampak meringis saat bergerak. Kesadaran CM. TD 125/85, Nadi 92x, RR 20x. Luka operasi bersih, tidak ada rembesan darah.");
@@ -114,6 +171,17 @@ export default function HandoverShift() {
     <div className="min-h-screen bg-[#f8fafc] p-4 md:p-10 font-sans text-left pb-24 text-slate-900 antialiased">
       <div className="max-w-7xl mx-auto">
         
+        {/* FLOATING REPOSITION TOMBOL PEMANDU JURI */}
+        <div className="w-full flex justify-end mb-4">
+          <button 
+            type="button"
+            onClick={toggleTourRestart}
+            className="bg-white border border-slate-200 text-blue-600 px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest flex items-center gap-2 transition-all shadow-sm active:scale-95 hover:bg-slate-50"
+          >
+            <HelpCircle size={15} /> Alur Pemandu Handover
+          </button>
+        </div>
+
         {/* HEADER SECTION */}
         <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} 
           className="flex flex-col xl:flex-row justify-between items-center gap-6 mb-10 bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm overflow-hidden"
@@ -257,6 +325,56 @@ export default function HandoverShift() {
           </motion.div>
         </div>
       </div>
+
+      {/* ── MULTI-PAGE GUIDED TOUR DIALOG FOR JUDGES ── */}
+      <AnimatePresence>
+          {showTour && (
+              <div className="fixed inset-0 z-[70] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+                  <motion.div 
+                      initial={{ scale: 0.95, y: 20 }} 
+                      animate={{ scale: 1, y: 0 }} 
+                      exit={{ scale: 0.95, y: 20 }} 
+                      className="bg-[#0f172a] border border-white/10 w-full max-w-md p-6 md:p-8 rounded-[2rem] shadow-2xl relative text-left space-y-6 text-white"
+                  >
+                      <div className="flex gap-1.5">
+                          {tourSteps.map((_, idx) => (
+                              <div key={idx} className={`h-1.5 rounded-full transition-all duration-300 ${idx === tourStep ? 'w-8 bg-blue-500' : 'w-2 bg-slate-700'}`}/>
+                          ))}
+                      </div>
+                      
+                      <div className="space-y-3">
+                          <div className="flex items-center gap-3">
+                              <div className="p-2 bg-white/5 border border-white/10 rounded-xl">
+                                  {tourSteps[tourStep].icon}
+                              </div>
+                              <h3 className="text-base font-black uppercase tracking-tight italic text-white">
+                                  {tourSteps[tourStep].title}
+                              </h3>
+                          </div>
+                          <p className="text-slate-400 text-sm font-medium leading-relaxed">
+                              {tourSteps[tourStep].desc}
+                          </p>
+                      </div>
+                      
+                      <div className="flex items-center justify-between pt-4 border-t border-white/5 gap-4">
+                          <button 
+                              onClick={handleCloseTour} 
+                              className="text-xs font-bold text-slate-500 hover:text-slate-300 uppercase tracking-wider"
+                          >
+                              Keluar Tur
+                          </button>
+                          <button 
+                              onClick={handleNextTourStep} 
+                              className="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 rounded-xl text-xs font-black uppercase tracking-widest flex items-center gap-2 active:scale-95 shadow-lg shadow-blue-900/40 transition-all animate-pulse"
+                          >
+                              {tourSteps[tourStep].actionLabel} <ChevronRight size={14} />
+                          </button>
+                      </div>
+                  </motion.div>
+              </div>
+          )}
+      </AnimatePresence>
+
     </div>
   );
 }

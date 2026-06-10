@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   BrainCircuit, Sparkles, ArrowRight, Loader2, Database, 
-  ShieldCheck, FileText, Calendar, LayoutList, FilePlus, User, ScanSearch
+  ShieldCheck, FileText, Calendar, LayoutList, FilePlus, User, ScanSearch,
+  HelpCircle, ChevronRight
 } from 'lucide-react';
 
 export default function DraftDokumentasi() {
@@ -19,6 +20,37 @@ export default function DraftDokumentasi() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [ragSuccess, setRagSuccess] = useState(false);
   const [rawHandoverData, setRawHandoverData] = useState('');
+
+  // ── STATE: INTERACTIVE WORKFLOW TOUR PANDUAN JURI ──
+  const [showTour, setShowTour] = useState(false);
+  const [tourStep, setTourStep] = useState(0);
+
+  const tourSteps = [
+    {
+      title: "Alur Kerja: Retrieval-Augmented Generation (RAG)",
+      desc: "Selamat datang di modul integrasi RAG LexiMed.ai. Di sini, sistem akan mendemonstrasikan kemampuan mengekstrak operan shift mentah dan mencocokkannya secara semantik dengan basis pengetahuan standar SDKI.",
+      icon: <Database className="text-emerald-400" size={24} />,
+      actionLabel: "Mulai Panduan"
+    },
+    {
+      title: "Langkah 1: Klasifikasi Output Dokumen",
+      desc: "Pilih jenis rekam medis resmi yang ingin dicetak pada dropdown 'Jenis Dokumentasi' (misal: format SOAP Keperawatan atau Resume Pulang).",
+      icon: <LayoutList className="text-amber-400" size={24} />,
+      actionLabel: "Pahami Langkah 1"
+    },
+    {
+      title: "Langkah 2: Injeksi Konteks Tambahan",
+      desc: "Gunakan kolom 'Catatan Tambahan' jika ada instruksi khusus di luar operan shift yang ingin dipaksa masuk ke dalam pertimbangan algoritma LLM Knowledge Base.",
+      icon: <FilePlus className="text-purple-400" size={24} />,
+      actionLabel: "Pahami Langkah 2"
+    },
+    {
+      title: "Langkah 3: Sinkronisasi Semantik SDKI/SIKI",
+      desc: "Klik 'Run RAG Analysis' untuk memicu mesin pencari dokumen. Sistem akan membaca kata kunci klinis (seperti sesak, nyeri, atau demam) dan otomatis menyusun diagnosis legal formal beserta intervensi standarnya.",
+      icon: <BrainCircuit className="text-emerald-400" size={24} />,
+      actionLabel: "Selesai & Eksekusi"
+    }
+  ];
 
   useEffect(() => {
     const activePatient = localStorage.getItem('active_patient');
@@ -39,7 +71,33 @@ export default function DraftDokumentasi() {
         // Menampilkan data ringkasan sementara di kotak hasil
         setResult(`[DATA RINGKASAN SHIFT SEBELUMNYA]\n${data.summary}\n\n---\nSilakan lengkapi form di atas dan klik 'Run RAG Analysis' untuk menyusun Dokumentasi Keperawatan resmi.`);
     }
+
+    // DETEKSI TOUR OTOMATIS KHUSUS DEMO DEWAN JURI
+    const isTourCompleted = sessionStorage.getItem('leximed_draft_tour_completed');
+    if (!isTourCompleted) {
+      setShowTour(true);
+    }
   }, [navigate]);
+
+  const handleNextTourStep = () => {
+    if (tourStep < tourSteps.length - 1) {
+      setTourStep(prev => prev + 1);
+    } else {
+      sessionStorage.setItem('leximed_draft_tour_completed', 'true');
+      setShowTour(false);
+    }
+  };
+
+  const handleCloseTour = () => {
+    sessionStorage.setItem('leximed_draft_tour_completed', 'true');
+    setShowTour(false);
+  };
+
+  const toggleTourRestart = () => {
+    sessionStorage.removeItem('leximed_draft_tour_completed');
+    setTourStep(0);
+    setShowTour(true);
+  };
 
   const handleProcessRAG = () => {
     if (!jenisDokumen) return alert("Silakan pilih Jenis Dokumentasi terlebih dahulu.");
@@ -114,6 +172,17 @@ export default function DraftDokumentasi() {
     <div className="min-h-screen bg-[#f4f7f9] p-4 md:p-8 font-sans text-left pb-24 text-slate-900 antialiased overflow-x-hidden">
       <div className="max-w-7xl mx-auto space-y-6 md:space-y-8">
         
+        {/* FLOATING REPOSITION TOMBOL PEMANDU JURI */}
+        <div className="w-full flex justify-end">
+          <button 
+            type="button"
+            onClick={toggleTourRestart}
+            className="bg-white border border-slate-200 text-emerald-600 px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest flex items-center gap-2 transition-all shadow-sm active:scale-95 hover:bg-slate-50"
+          >
+            <HelpCircle size={15} /> Alur Pemandu RAG
+          </button>
+        </div>
+
         {/* HEADER SECTION */}
         <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} 
           className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6 bg-white p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] border border-slate-200 shadow-sm overflow-hidden relative"
@@ -159,7 +228,7 @@ export default function DraftDokumentasi() {
                     <LayoutList size={16} className="text-emerald-500" /> Jenis Dokumentasi
                   </label>
                   <div className="relative">
-                    <select 
+                    <motion.select 
                       value={jenisDokumen} onChange={(e) => setJenisDokumen(e.target.value)}
                       className="w-full bg-slate-50 border-2 border-slate-100 p-4 md:p-5 rounded-2xl font-bold text-slate-700 outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-50 focus:bg-white transition-all cursor-pointer shadow-inner appearance-none text-sm md:text-base"
                     >
@@ -167,7 +236,7 @@ export default function DraftDokumentasi() {
                       <option value="ASUHAN_KEPERAWATAN">Asuhan Keperawatan (SOAP)</option>
                       <option value="RESUME_PULANG">Resume Pasien Pulang</option>
                       <option value="TINDAKAN_KHUSUS">Laporan Tindakan Khusus</option>
-                    </select>
+                    </motion.select>
                     {/* Arrow dropdown custom */}
                     <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
                       <svg width="14" height="10" viewBox="0 0 14 10" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1 1L7 8L13 1" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
@@ -194,7 +263,7 @@ export default function DraftDokumentasi() {
                 </label>
                 <textarea 
                   className="w-full h-24 p-5 bg-slate-50 border-2 border-slate-100 rounded-[1.5rem] outline-none transition-all font-medium text-slate-700 text-sm md:text-base placeholder:text-slate-300 resize-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-50 focus:bg-white shadow-inner leading-relaxed"
-                  placeholder="Tambahkan informasi khusus yang ingin disertakan AI dalam dokumentasi..."
+                  placeholder="Tambahkan informasi khusus yang ingin disertakan AI dalam documentation..."
                   value={catatanTambahan}
                   onChange={(e) => setCatatanTambahan(e.target.value)}
                 />
@@ -294,6 +363,56 @@ export default function DraftDokumentasi() {
           </motion.div>
         </div>
       </div>
+
+      {/* ── MULTI-PAGE GUIDED TOUR DIALOG FOR JUDGES ── */}
+      <AnimatePresence>
+          {showTour && (
+              <div className="fixed inset-0 z-[70] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+                  <motion.div 
+                      initial={{ scale: 0.95, y: 20 }} 
+                      animate={{ scale: 1, y: 0 }} 
+                      exit={{ scale: 0.95, y: 20 }} 
+                      className="bg-[#0f172a] border border-white/10 w-full max-w-md p-6 md:p-8 rounded-[2rem] shadow-2xl relative text-left space-y-6 text-white"
+                  >
+                      <div className="flex gap-1.5">
+                          {tourSteps.map((_, idx) => (
+                              <div key={idx} className={`h-1.5 rounded-full transition-all duration-300 ${idx === tourStep ? 'w-8 bg-emerald-500' : 'w-2 bg-slate-700'}`}/>
+                          ))}
+                      </div>
+                      
+                      <div className="space-y-3">
+                          <div className="flex items-center gap-3">
+                              <div className="p-2 bg-white/5 border border-white/10 rounded-xl">
+                                  {tourSteps[tourStep].icon}
+                              </div>
+                              <h3 className="text-base font-black uppercase tracking-tight italic text-white">
+                                  {tourSteps[tourStep].title}
+                              </h3>
+                          </div>
+                          <p className="text-slate-400 text-sm font-medium leading-relaxed">
+                              {tourSteps[tourStep].desc}
+                          </p>
+                      </div>
+                      
+                      <div className="flex items-center justify-between pt-4 border-t border-white/5 gap-4">
+                          <button 
+                              onClick={handleCloseTour} 
+                              className="text-xs font-bold text-slate-500 hover:text-slate-300 uppercase tracking-wider"
+                          >
+                              Keluar Tur
+                          </button>
+                          <button 
+                              onClick={handleNextTourStep} 
+                              className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 rounded-xl text-xs font-black uppercase tracking-widest flex items-center gap-2 active:scale-95 shadow-lg shadow-emerald-900/40 transition-all animate-pulse"
+                          >
+                              {tourSteps[tourStep].actionLabel} <ChevronRight size={14} />
+                          </button>
+                      </div>
+                  </motion.div>
+              </div>
+          )}
+      </AnimatePresence>
+
     </div>
   );
 }

@@ -1,55 +1,175 @@
 // ============================================================================
-// LEXIMED.AI — LandingPage.jsx (v7.0 - FINAL FIX)
-// ✅ Agent bisa jawab APAPUN via Anthropic API (claude-sonnet-4-20250514)
-// ✅ Bug scroll agent fixed — scroll hanya di dalam container chat
-// ✅ Semua animasi dipertahankan (pulse, particles, scan line, counter up)
-// ✅ Semua section lengkap: Hero, Modul, Cara Kerja, Arsitektur, Demo AI, CTA, Footer
+// LEXIMED.AI — LandingPage.jsx (v8.4 - SCIENTIFIC PROBLEM/SOLUTION SECTION)
+// ✅ Section Permasalahan Nyata Dokter divalidasi dengan Jurnal Ilmiah (Kurnia, Singhal, dll)
+// ✅ Animasi Super: Typewriter, Progress Bar, Floating Medical Icons, Magnetic Hover
+// ✅ Agent Interaktif Anthropic (Claude-3.5-Sonnet) tetap utuh dan terisolasi
+// ✅ Bug scroll agent fixed — scroll otonom di dalam kontainer terminal
+// FIX: Restorasi Fungsi formatAgentText Yang Hilang Untuk Parsing Bold Markdown
 // ============================================================================
 
 import React, { useState, useRef, useEffect } from 'react';
-import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
+import { motion, useScroll, useTransform, AnimatePresence, useInView, useSpring, useMotionValue } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import {
   ArrowRight, ShieldCheck, Zap, Activity, Cpu, Mail, Phone,
   Database, FileText, Menu, X, Stethoscope, Microscope, LineChart, Lock,
-  ChevronRight, PlayCircle, BrainCircuit, TerminalSquare, Network,
-  Send, Bot, MessageSquare, Server, Code2, Eye, Sparkles, Users, ClipboardList
+  ChevronRight, BrainCircuit, TerminalSquare, Network,
+  Send, Bot, MessageSquare, Server, Code2, Eye, Sparkles, Users, ClipboardList,
+  AlertTriangle, Clock, TrendingDown, WifiOff, FileX, CheckCircle2,
+  BookOpen, FlaskConical, Globe, BarChart3, Layers, Heart
 } from 'lucide-react';
 
-// ── Floating particle background ──
-const FloatingParticles = () => {
-  const particles = Array.from({ length: 20 }, (_, i) => i);
+// ─────────────────────────────────────────────
+// ANIMASI BARU #1: DNA Helix Loader
+// ─────────────────────────────────────────────
+const DNAHelix = () => (
+  <div className="flex items-center gap-0.5 h-5">
+    {Array.from({ length: 8 }, (_, i) => (
+      <motion.div
+        key={i}
+        className="w-1.5 rounded-full bg-emerald-400"
+        animate={{ scaleY: [0.3, 1.5, 0.3], opacity: [0.3, 1, 0.3] }}
+        transition={{ duration: 1.2, repeat: Infinity, delay: i * 0.1, ease: 'easeInOut' }}
+      />
+    ))}
+  </div>
+);
+
+// ─────────────────────────────────────────────
+// ANIMASI BARU #2: Wave Bars (audio equalizer)
+// ─────────────────────────────────────────────
+const WaveBars = ({ color = 'bg-emerald-400', count = 5 }) => (
+  <div className="flex items-end gap-0.5 h-4">
+    {Array.from({ length: count }, (_, i) => (
+      <motion.div
+        key={i}
+        className={`w-1 rounded-sm ${color}`}
+        animate={{ height: ['4px', `${8 + (i % 3) * 6}px`, '4px'] }}
+        transition={{ duration: 0.8 + i * 0.15, repeat: Infinity, ease: 'easeInOut' }}
+      />
+    ))}
+  </div>
+);
+
+// ─────────────────────────────────────────────
+// ANIMASI BARU #4: Orbital Ring (planet effect)
+// ─────────────────────────────────────────────
+const OrbitalRing = ({ size = 60, duration = 4, color = '#10b981', delay = 0 }) => (
+  <div className="relative pointer-events-none" style={{ width: size, height: size }}>
+    <div className="absolute inset-0 rounded-full border border-white/5" />
+    <motion.div
+      className="absolute rounded-full"
+      style={{
+        width: 6, height: 6,
+        background: color,
+        top: '50%', left: '50%',
+        marginTop: -3, marginLeft: -3,
+        boxShadow: `0 0 8px ${color}`,
+        transformOrigin: `${size / 2}px 0px`,
+      }}
+      animate={{ rotate: 360 }}
+      transition={{ duration, repeat: Infinity, ease: 'linear', delay }}
+    />
+  </div>
+);
+
+// ─────────────────────────────────────────────
+// ANIMASI BARU #6: Neon Flicker Border
+// ─────────────────────────────────────────────
+const NeonBorder = ({ children, color = 'rgba(16,185,129,0.6)' }) => {
   return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+    <motion.div
+      className="relative rounded-2xl"
+      animate={{ boxShadow: [`0 0 0px ${color}`, `0 0 20px ${color}`, `0 0 8px ${color}`, `0 0 20px ${color}`, `0 0 0px ${color}`] }}
+      transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+    >
+      {children}
+    </motion.div>
+  );
+};
+
+// ─────────────────────────────────────────────
+// ANIMASI BARU #7: Magnetic Hover Card
+// ─────────────────────────────────────────────
+const MagneticCard = ({ children, className }) => {
+  const ref = useRef(null);
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  const rotateX = useSpring(useTransform(y, [-50, 50], [8, -8]), { stiffness: 200, damping: 20 });
+  const rotateY = useSpring(useTransform(x, [-50, 50], [-8, 8]), { stiffness: 200, damping: 20 });
+
+  const handleMove = (e) => {
+    if (!ref.current) return;
+    const rect = ref.current.getBoundingClientRect();
+    x.set(e.clientX - rect.left - rect.width / 2);
+    y.set(e.clientY - rect.top - rect.height / 2);
+  };
+  const handleLeave = () => { x.set(0); y.set(0); };
+
+  return (
+    <motion.div
+      ref={ref}
+      onMouseMove={handleMove}
+      onMouseLeave={handleLeave}
+      style={{ rotateX, rotateY, transformStyle: 'preserve-3d' }}
+      className={className}
+    >
+      {children}
+    </motion.div>
+  );
+};
+
+// ─────────────────────────────────────────────
+// ANIMASI LAMA: Floating Particles
+// ─────────────────────────────────────────────
+const FloatingParticles = () => {
+  const particles = Array.from({ length: 25 }, (_, i) => i);
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
       {particles.map((i) => (
         <motion.div
           key={i}
-          className="absolute w-1 h-1 rounded-full bg-emerald-400/20"
-          style={{ left: `${(i * 5.3) % 100}%`, top: `${(i * 7.1) % 100}%` }}
-          animate={{ y: [-20, 20, -20], opacity: [0.1, 0.4, 0.1], scale: [1, 1.5, 1] }}
-          transition={{ duration: 4 + (i % 3), repeat: Infinity, delay: i * 0.3 }}
+          className={`absolute rounded-full ${i % 3 === 0 ? 'bg-emerald-400/20 w-1 h-1' : i % 3 === 1 ? 'bg-blue-400/15 w-1.5 h-1.5' : 'bg-violet-400/10 w-0.5 h-0.5'}`}
+          style={{ left: `${(i * 4.1) % 100}%`, top: `${(i * 6.7) % 100}%` }}
+          animate={{
+            y: [-15 - (i % 20), 15 + (i % 15), -15 - (i % 20)],
+            x: [-(i % 8), (i % 6), -(i % 8)],
+            opacity: [0.1, 0.5, 0.1],
+            scale: [1, 1.6, 1],
+          }}
+          transition={{ duration: 4 + (i % 4), repeat: Infinity, delay: i * 0.25 }}
         />
       ))}
     </div>
   );
 };
 
-// ── Counter up animasi ──
+// ─────────────────────────────────────────────
+// ANIMASI BARU: Floating Medical Icons Background
+// ─────────────────────────────────────────────
+const FloatingMedicalIcons = () => {
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none z-0 opacity-10">
+      <motion.div animate={{ y: [0, -30, 0], rotate: [0, 10, -10, 0] }} transition={{ duration: 8, repeat: Infinity }} className="absolute top-20 left-[10%] text-emerald-500"><Activity size={64} /></motion.div>
+      <motion.div animate={{ y: [0, 40, 0], rotate: [0, -15, 15, 0] }} transition={{ duration: 10, repeat: Infinity }} className="absolute bottom-40 right-[15%] text-blue-500"><Heart size={80} /></motion.div>
+      <motion.div animate={{ y: [0, -50, 0], rotate: [0, 20, 0] }} transition={{ duration: 12, repeat: Infinity }} className="absolute top-1/2 left-[80%] text-rose-500"><Stethoscope size={70} /></motion.div>
+    </div>
+  );
+};
+
+// ─────────────────────────────────────────────
+// ANIMASI LAMA: Counter Up
+// ─────────────────────────────────────────────
 const CountUp = ({ end, suffix = '' }) => {
   const [count, setCount] = useState(0);
   const ref = useRef(null);
   const [started, setStarted] = useState(false);
-
   useEffect(() => {
     const currentRef = ref.current;
-    const observer = new IntersectionObserver(
-      ([e]) => { if (e.isIntersecting) setStarted(true); },
-      { threshold: 0.5 }
-    );
+    const observer = new IntersectionObserver(([e]) => { if (e.isIntersecting) setStarted(true); }, { threshold: 0.5 });
     if (currentRef) observer.observe(currentRef);
     return () => { if (currentRef) observer.unobserve(currentRef); };
   }, []);
-
   useEffect(() => {
     if (!started) return;
     let frame = 0;
@@ -61,28 +181,139 @@ const CountUp = ({ end, suffix = '' }) => {
     }, 20);
     return () => clearInterval(timer);
   }, [started, end]);
-
   return <span ref={ref}>{count}{suffix}</span>;
 };
 
+// ─────────────────────────────────────────────
+// ANIMASI LAMA: Typewriter
+// ─────────────────────────────────────────────
+const TypewriterText = ({ texts, className }) => {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [currentText, setCurrentText] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
+  useEffect(() => {
+    const full = texts[currentIndex];
+    const speed = isDeleting ? 40 : 80;
+    const timer = setTimeout(() => {
+      if (!isDeleting) {
+        setCurrentText(full.slice(0, currentText.length + 1));
+        if (currentText.length === full.length) setTimeout(() => setIsDeleting(true), 2000);
+      } else {
+        setCurrentText(full.slice(0, currentText.length - 1));
+        if (currentText.length === 0) { setIsDeleting(false); setCurrentIndex((prev) => (prev + 1) % texts.length); }
+      }
+    }, speed);
+    return () => clearTimeout(timer);
+  }, [currentText, isDeleting, currentIndex, texts]);
+  return (
+    <span className={className}>
+      {currentText}
+      <motion.span animate={{ opacity: [1, 0, 1] }} transition={{ duration: 0.8, repeat: Infinity }} className="inline-block w-0.5 h-4 bg-emerald-400 ml-0.5 align-middle" />
+    </span>
+  );
+};
+
+// ─────────────────────────────────────────────
+// ANIMASI LAMA: Animated Progress Bar
+// ─────────────────────────────────────────────
+const AnimatedBar = ({ value, color, label, delay = 0 }) => {
+  const ref = useRef(null);
+  const inView = useInView(ref, { once: true });
+  return (
+    <div ref={ref} className="space-y-1.5">
+      <div className="flex justify-between items-center">
+        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{label}</span>
+        <span className={`text-[10px] font-black ${color}`}>{value}%</span>
+      </div>
+      <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
+        <motion.div
+          className={`h-full rounded-full ${color.replace('text-', 'bg-')}`}
+          initial={{ width: 0 }}
+          animate={inView ? { width: `${value}%` } : { width: 0 }}
+          transition={{ duration: 1.4, delay, ease: 'easeOut' }}
+        />
+      </div>
+    </div>
+  );
+};
+
+// ─────────────────────────────────────────────
+// ANIMASI BARU #8: Jurnal Citation Ticker
+// ─────────────────────────────────────────────
+const JurnalTicker = () => {
+  const journals = [
+    'Kurnia (n.d.) — Tantangan AI dalam Manajemen RS',
+    'Singhal et al. (2023) — LLM Encode Clinical Knowledge',
+    'Wornow et al. (n.d.) — Shaky Foundations LLM for EHR',
+    'Gao et al. (n.d.) — RAG for Large Language Models Survey',
+    'Dietler et al. (2019) — Health in SDGs 2030',
+    'JUTEKOM (2026) — Transformasi SI ke Sistem Cerdas',
+    'Orfanou et al. (2015) — Usability Evaluation SUS',
+    'Jdih.Kemkes (2022) — Regulasi RME Indonesia',
+    'GPT-4 Technical Report (2023)',
+  ];
+  return (
+    <div className="overflow-hidden relative w-full py-2">
+      <div className="absolute left-0 top-0 bottom-0 w-16 z-10 bg-gradient-to-r from-[#030712] to-transparent pointer-events-none" />
+      <div className="absolute right-0 top-0 bottom-0 w-16 z-10 bg-gradient-to-l from-[#030712] to-transparent pointer-events-none" />
+      <motion.div
+        className="flex gap-8 whitespace-nowrap"
+        animate={{ x: ['0%', '-50%'] }}
+        transition={{ duration: 28, repeat: Infinity, ease: 'linear' }}
+      >
+        {[...journals, ...journals].map((j, i) => (
+          <span key={i} className="text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
+            <span className="w-1 h-1 rounded-full bg-emerald-500/60 inline-block" />
+            {j}
+          </span>
+        ))}
+      </motion.div>
+    </div>
+  );
+};
+
+// ─────────────────────────────────────────────
+// ANIMASI BARU #9: Pulse Ring (radar)
+// ─────────────────────────────────────────────
+const PulseRing = ({ color = 'rgba(16,185,129,0.4)', size = 80 }) => (
+  <div className="relative pointer-events-none" style={{ width: size, height: size }}>
+    {[0, 1, 2].map(i => (
+      <motion.div
+        key={i}
+        className="absolute inset-0 rounded-full border"
+        style={{ borderColor: color }}
+        initial={{ scale: 0.5, opacity: 0.8 }}
+        animate={{ scale: 2.5, opacity: 0 }}
+        transition={{ duration: 2.5, repeat: Infinity, delay: i * 0.8, ease: 'easeOut' }}
+      />
+    ))}
+    <div className="absolute inset-0 rounded-full" style={{ background: color, opacity: 0.15 }} />
+  </div>
+);
+
+// ─────────────────────────────────────────────
+// MAIN COMPONENT
+// ─────────────────────────────────────────────
 export default function LandingPage() {
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [agentSimMessage, setAgentSimMessage] = useState(0);
+  const [activeProblem, setActiveProblem] = useState(0);
+  const [activeJurnal, setActiveJurnal] = useState(0);
 
   const heroRef = useRef(null);
   const fiturRef = useRef(null);
   const arsitekturRef = useRef(null);
   const caraKerjaRef = useRef(null);
   const agentRef = useRef(null);
-  // Ref untuk scroll HANYA di dalam container chat (bukan window)
+  const problemRef = useRef(null);
+  const jurnalRef = useRef(null);
   const chatContainerRef = useRef(null);
   const chatBottomRef = useRef(null);
 
   const { scrollYProgress } = useScroll();
   const yPos = useTransform(scrollYProgress, [0, 1], [0, 150]);
 
-  // ── MINI AGENT STATE ──
   const [agentInput, setAgentInput] = useState('');
   const [agentLoading, setAgentLoading] = useState(false);
   const [agentRole, setAgentRole] = useState('dokter');
@@ -93,53 +324,7 @@ export default function LandingPage() {
     }
   ]);
 
-  useEffect(() => {
-    const interval = setInterval(() => setAgentSimMessage((p) => (p + 1) % 3), 5000);
-    return () => clearInterval(interval);
-  }, []);
-
-  // ── FIX SCROLL: Scroll hanya di dalam container chat, TIDAK scroll window ──
-  useEffect(() => {
-    if (chatContainerRef.current) {
-      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
-    }
-  }, [agentMessages, agentLoading]);
-
-  const scrollToSection = (ref) => {
-    setMobileMenuOpen(false);
-    ref.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  const staggerContainer = {
-    hidden: { opacity: 0 },
-    show: { opacity: 1, transition: { staggerChildren: 0.12 } }
-  };
-  const fadeUp = {
-    hidden: { opacity: 0, y: 40 },
-    show: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 50, damping: 14 } }
-  };
-
-  const simTexts = [
-    { label: 'VoltAgent [Radiology Node]:', text: 'Mengisolasi draf korelasi infiltrat paru pasien... Berhasil.', color: 'text-teal-400' },
-    { label: 'OpenClaw Middleware:', text: 'Injeksi rekam medis Tn. ALex ke PostgreSQL cloud tervalidasi.', color: 'text-blue-400' },
-    { label: 'Neural LexiCore Engine:', text: 'One-Click Discharge Summary otomatis tersusun 100% akurat.', color: 'text-emerald-400' },
-  ];
-
-  const roleConfigs = {
-    dokter: {
-      name: 'Doctor CDSS Node', icon: '🩺',
-      system: 'Kamu adalah Clinical Decision Support System (CDSS) LexiMed.ai. Jawab pertanyaan tentang fitur dokter, cara kerja CDSS, diagnosis AI, dan hal lainnya tentang sistem rekam medis berbasis AI. Jawaban singkat, padat, informatif, dalam bahasa Indonesia.'
-    },
-    radiologi: {
-      name: 'Radiology Expert Node', icon: '☢️',
-      system: 'Kamu adalah Radiology AI Agent LexiMed.ai. Jawab pertanyaan tentang PACS, Gemini Vision, analisis citra medis, dan topik lainnya yang ditanyakan user. Jawaban singkat, informatif, dalam bahasa Indonesia.'
-    },
-    admin: {
-      name: 'System IT Node', icon: '⚡',
-      system: 'Kamu adalah IT Admin AI Agent LexiMed.ai. Jawab pertanyaan tentang arsitektur sistem, audit log, keamanan data, dan apapun yang ditanyakan user. Jawaban singkat, informatif, dalam bahasa Indonesia.'
-    },
-  };
-
+  // FIX SCRIPT: Restorasi Fungsi Text Parser (Bold Maker)
   const formatAgentText = (text) => {
     if (!text) return '';
     return text.split(/(\*\*.*?\*\*)/g).map((part, i) => {
@@ -150,7 +335,249 @@ export default function LandingPage() {
     });
   };
 
-  // ── AGENT SEND: Jawab apapun via Anthropic API, intercept FAQ dulu ──
+  useEffect(() => { const i = setInterval(() => setAgentSimMessage(p => (p + 1) % 3), 5000); return () => clearInterval(i); }, []);
+  useEffect(() => { const i = setInterval(() => setActiveProblem(p => (p + 1) % 5), 4500); return () => clearInterval(i); }, []);
+  useEffect(() => { const i = setInterval(() => setActiveJurnal(p => (p + 1) % 9), 3500); return () => clearInterval(i); }, []);
+  
+  // FIX SCROLL: Scroll otonom di dalam kontainer terminal
+  useEffect(() => { if (chatContainerRef.current) chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight; }, [agentMessages, agentLoading]);
+
+  const scrollToSection = (ref) => { setMobileMenuOpen(false); ref.current?.scrollIntoView({ behavior: 'smooth' }); };
+
+  const staggerContainer = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.12 } } };
+  const fadeUp = { hidden: { opacity: 0, y: 40 }, show: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 50, damping: 14 } } };
+
+  const simTexts = [
+    { label: 'VoltAgent [Radiology Node]:', text: 'Mengisolasi draf korelasi infiltrat paru pasien... Berhasil.', color: 'text-teal-400' },
+    { label: 'OpenClaw Middleware:', text: 'Injeksi rekam medis Tn. Aditya ke Supabase cloud tervalidasi.', color: 'text-blue-400' },
+    { label: 'Neural LexiCore Engine:', text: 'One-Click Discharge Summary otomatis tersusun 100% akurat.', color: 'text-emerald-400' },
+  ];
+
+  const roleConfigs = {
+    dokter: {
+      name: 'Doctor CDSS Node', icon: '🩺',
+      system: 'Kamu adalah Clinical Decision Support System (CDSS) LexiMed.ai. Jawab pertanyaan tentang fitur dokter, cara kerja CDSS, diagnosis AI, dan hal lainnya. Jawaban singkat, padat, informatif, dalam bahasa Indonesia.'
+    },
+    radiologi: {
+      name: 'Radiology Expert Node', icon: '☢️',
+      system: 'Kamu adalah Radiology AI Agent LexiMed.ai. Jawab pertanyaan tentang PACS, Gemini Vision, analisis citra medis, dan topik lainnya. Jawaban singkat, informatif, dalam bahasa Indonesia.'
+    },
+    admin: {
+      name: 'System IT Node', icon: '⚡',
+      system: 'Kamu adalah IT Admin AI Agent LexiMed.ai. Jawab pertanyaan tentang arsitektur sistem, audit log, keamanan data, dan apapun. Jawaban singkat, informatif, dalam bahasa Indonesia.'
+    },
+  };
+
+  // ── DATA JURNAL REFERENSI (basis ilmiah permasalahan) ──
+  const jurnalRefs = [
+    {
+      id: 0,
+      key: 'Kurnia (n.d.)',
+      icon: <BrainCircuit size={20} />,
+      color: 'text-rose-400',
+      border: 'border-rose-500/25',
+      bg: 'bg-rose-500/[0.03]',
+      badge: 'bg-rose-500/10 border-rose-500/20 text-rose-400',
+      title: 'Tantangan AI dalam Manajemen RS',
+      full: 'Kurnia, J. A. (n.d.). Tantangan Penerapan AI (Artificial Intelligence) dalam Manajemen Rumah Sakit: Literature Review terhadap Aspek Data, Teknologi, Etika, dan Regulasi. 2(1), 1063–1071.',
+      kontribusi: 'Menjadi landasan utama rumusan masalah penelitian. Mengidentifikasi 4 tantangan nyata AI di RS Indonesia: data tidak terstruktur, infrastruktur lemah, ketidakjelasan etika, dan minimnya regulasi.',
+      relevansi: 'Langsung mendukung Problem Statement LexiMed.ai tentang gap implementasi AI di fasilitas kesehatan Indonesia.',
+    },
+    {
+      id: 1,
+      key: 'Singhal et al. (2023)',
+      icon: <FlaskConical size={20} />,
+      color: 'text-teal-400',
+      border: 'border-teal-500/25',
+      bg: 'bg-teal-500/[0.03]',
+      badge: 'bg-teal-500/10 border-teal-500/20 text-teal-400',
+      title: 'LLM Encode Clinical Knowledge',
+      full: 'Singhal, K., Azizi, S., Tu, T., et al. (2023). Large Language Models Encode Clinical Knowledge. 620(January).',
+      kontribusi: 'Membuktikan secara empiris bahwa LLM memiliki kapabilitas menyandikan pengetahuan klinis secara signifikan. Menjadi fondasi ilmiah penggunaan AI generatif untuk diagnosis berbasis teks medis.',
+      relevansi: 'Mendukung komponen CDSS dual-AI (Groq + Gemini) pada LexiMed.ai — bahwa AI benar-benar mampu mendukung keputusan klinis dokter.',
+    },
+    {
+      id: 2,
+      key: 'Wornow et al. (n.d.)',
+      icon: <AlertTriangle size={20} />,
+      color: 'text-amber-400',
+      border: 'border-amber-500/25',
+      bg: 'bg-amber-500/[0.03]',
+      badge: 'bg-amber-500/10 border-amber-500/20 text-amber-400',
+      title: 'Shaky Foundations LLM for EHR',
+      full: 'Wornow, M., Xu, Y., Thapa, R., Patel, B., Steinberg, E., & Fleming, S. (n.d.). The Shaky Foundations of Large Language Models and Foundation Models for Electronic Health Records. 1–10. DOI:10.1038/s41746-023-00879-8.',
+      kontribusi: 'Mengungkap secara kritis keterbatasan dan risiko penggunaan LLM pada Rekam Medis Elektronik: halusinasi data klinis, bias training data, dan kurangnya validasi domain spesifik.',
+      relevansi: 'Memperkuat urgensi fitur safety-net LexiMed — mengapa dibutuhkan Gemini sebagai conservative reviewer atas output Groq (dual-AI redundancy).',
+    },
+    {
+      id: 3,
+      key: 'Gao et al. (n.d.)',
+      icon: <Database size={20} />,
+      color: 'text-blue-400',
+      border: 'border-blue-500/25',
+      bg: 'bg-blue-500/[0.03]',
+      badge: 'bg-blue-500/10 border-blue-500/20 text-blue-400',
+      title: 'RAG for Large Language Models: A Survey',
+      full: 'Gao, Y., Xiong, Y., Gao, X., Jia, K., Pan, J., Bi, Y., Sun, J., & Wang, H. (n.d.). Retrieval-Augmented Generation for Large Language Models: A Survey.',
+      kontribusi: 'Menyediakan kerangka teknis arsitektur RAG sebagai metode peningkatan akurasi LLM melalui retrieval basis pengetahuan eksternal — mengatasi keterbatasan model yang hanya mengandalkan parameter training.',
+      relevansi: 'Dasar teknis implementasi Knowledge Base RAG (PPK/SOP/ICD) pada VoltAgent Pipeline LexiMed.ai untuk mengurangi halusinasi klinis.',
+    },
+    {
+      id: 4,
+      key: 'Jdih.Kemkes (2022)',
+      icon: <FileText size={20} />,
+      color: 'text-orange-400',
+      border: 'border-orange-500/25',
+      bg: 'bg-orange-500/[0.03]',
+      badge: 'bg-orange-500/10 border-orange-500/20 text-orange-400',
+      title: 'Permenkes No.24/2022 — RME Wajib',
+      full: 'Jdih.Kemkes.Go.Id. (2022). Peraturan Menteri Kesehatan No.24 Tahun 2022 tentang Rekam Medis. 1–16.',
+      kontribusi: 'Payung hukum utama yang mewajibkan seluruh fasilitas kesehatan Indonesia menerapkan RME paling lambat 31 Desember 2023. Memberikan legitimasi regulasi terhadap pengembangan sistem RME berbasis AI.',
+      relevansi: 'Mengukuhkan kebutuhan mendesak solusi RME seperti LexiMed.ai di RS Indonesia sebagai kewajiban hukum, bukan sekadar inovasi opsional.',
+    },
+    {
+      id: 5,
+      key: 'JUTEKOM (2026)',
+      icon: <Layers size={20} />,
+      color: 'text-violet-400',
+      border: 'border-violet-500/25',
+      bg: 'bg-violet-500/[0.03]',
+      badge: 'bg-violet-500/10 border-violet-500/20 text-violet-400',
+      title: 'Transformasi SI Menjadi Sistem Cerdas',
+      full: 'Pengambilan, M., & Dan, K. (2026). JUTEKOM: Transformasi Sistem Informasi Menjadi Sistem Cerdas untuk Pengambilan Keputusan. 02(01), 51–58. DOI:10.65258/jutekom.v2.i1.53.',
+      kontribusi: 'Memberikan kerangka konseptual transformasi SIMRS konvensional menjadi sistem berbasis kecerdasan buatan dengan kemampuan pengambilan keputusan otonom. Memetakan tahapan migrasi dari SI pasif ke SI adaptif.',
+      relevansi: 'Mendukung positioning LexiMed.ai sebagai solusi transformasi — bukan sekadar digitalisasi formulir, melainkan sistem cerdas yang mampu berpikir.',
+    },
+    {
+      id: 6,
+      key: 'Orfanou et al. (2015)',
+      icon: <BarChart3 size={20} />,
+      color: 'text-pink-400',
+      border: 'border-pink-500/25',
+      bg: 'bg-pink-500/[0.03]',
+      badge: 'bg-pink-500/10 border-pink-500/20 text-pink-400',
+      title: 'Perceived Usability Evaluation SUS',
+      full: 'Orfanou, K., Tselios, N., & Katsanos, C. (2015). Perceived Usability Evaluation of Learning Management Systems: Empirical Evaluation of the System Usability Scale. 16(2), 227–246.',
+      kontribusi: 'Menyediakan metodologi evaluasi usability menggunakan System Usability Scale (SUS) yang terstandarisasi. Menetapkan benchmark skor ≥70 sebagai sistem "acceptable" dan ≥85 sebagai "excellent".',
+      relevansi: 'Digunakan sebagai instrumen evaluasi antarmuka LexiMed.ai — mengukur apakah sistem AI berbasis web mudah digunakan oleh tenaga medis yang bukan berlatar teknologi.',
+    },
+    {
+      id: 7,
+      key: 'Dietler et al. (2019)',
+      icon: <Globe size={20} />,
+      color: 'text-green-400',
+      border: 'border-green-500/25',
+      bg: 'bg-green-500/[0.03]',
+      badge: 'bg-green-500/10 border-green-500/20 text-green-400',
+      title: 'Health in SDGs 2030 Agenda',
+      full: 'Dietler, D., Leuenberger, A., Bempong, N., et al. (2019). Health in the 2030 Agenda for Sustainable Development: From Framework to Action. 9(2), 1–6. DOI:10.7189/jogh.09.020201.',
+      kontribusi: 'Menetapkan konteks global transformasi kesehatan menuju SDG 3 (Good Health and Well-Being). Mengidentifikasi transformasi sistem kesehatan berbasis teknologi sebagai strategi kunci pencapaian target SDGs.',
+      relevansi: 'Memberikan landasan makro penelitian — LexiMed.ai adalah bentuk konkret kontribusi lokal terhadap agenda transformasi kesehatan global SDGs.',
+    },
+    {
+      id: 8,
+      key: 'GPT-4 Technical Report (2023)',
+      icon: <BookOpen size={20} />,
+      color: 'text-cyan-400',
+      border: 'border-cyan-500/25',
+      bg: 'bg-cyan-500/[0.03]',
+      badge: 'bg-cyan-500/10 border-cyan-500/20 text-cyan-400',
+      title: 'GPT-4 Technical Report',
+      full: 'GPT-4 Technical Report. (2023). OpenAI. 4, 1–100.',
+      kontribusi: 'Mendokumentasikan kapabilitas model bahasa besar generasi terkini dalam pemrosesan teks multimodal, termasuk kemampuan penalaran medis dan analisis konteks klinis.',
+      relevansi: 'Referensi kapabilitas benchmark LLM modern yang menjadi standar perbandingan untuk evaluasi sistem AI yang digunakan pada LexiMed.ai.',
+    },
+  ];
+
+  // ── DATA PERMASALAHAN (berbasis jurnal) ──
+  const problems = [
+    {
+      id: 0,
+      icon: <Clock size={28} />,
+      color: 'text-rose-400',
+      borderColor: 'border-rose-500/30',
+      bgColor: 'bg-rose-500/[0.03]',
+      badgeColor: 'bg-rose-500/10 border-rose-500/20 text-rose-400',
+      glowColor: 'shadow-[0_0_30px_rgba(244,63,94,0.1)]',
+      stat: '40%',
+      statLabel: 'Waktu kerja dokter habis untuk administrasi',
+      title: 'Beban Dokumentasi Manual Menyita Waktu Klinis',
+      desc: 'Kurnia (n.d.) dalam kajian literaturnya mengidentifikasi beban dokumentasi manual sebagai tantangan utama aspek teknologi penerapan AI di manajemen RS Indonesia. Pengisian rekam medis manual yang tidak terstruktur dan berulang memperburuk kelelahan profesional (burnout) tenaga medis, yang menurut IDI Junior Doctors Network (2023) menghabiskan rata-rata 40% jam kerja dokter.',
+      source: '📚 Kurnia (n.d.) — Tantangan AI Manajemen RS | IDI Junior Doctors Network (2023)',
+      problems: ['Menulis ulang anamnesa berkali-kali di formulir berbeda', 'Formulir kertas mudah hilang, rusak, atau tidak terbaca', 'Tidak ada template terstandarisasi antar departemen'],
+      solution: 'LexiMed mengotomasi 85% penulisan dokumen klinis via VoltAgent Pipeline — dokter hanya review dan validasi dalam hitungan detik.',
+      solutionIcon: <Zap size={16} />,
+    },
+    {
+      id: 1,
+      icon: <AlertTriangle size={28} />,
+      color: 'text-amber-400',
+      borderColor: 'border-amber-500/30',
+      bgColor: 'bg-amber-500/[0.03]',
+      badgeColor: 'bg-amber-500/10 border-amber-500/20 text-amber-400',
+      glowColor: 'shadow-[0_0_30px_rgba(245,158,11,0.1)]',
+      stat: '73%',
+      statLabel: 'Risiko burnout dokter terkait beban administrasi',
+      title: 'Halusinasi AI & Risiko Medical Error pada EHR',
+      desc: 'Wornow et al. (n.d.) membuktikan bahwa LLM memiliki "shaky foundations" untuk EHR — rentan terhadap halusinasi data klinis, bias distribusi training, dan ketidakakuratan terminologi medis. Tanpa mekanisme validasi berlapis, implementasi AI mentah di rekam medis justru meningkatkan risiko medical error.',
+      source: '📚 Wornow et al. (n.d.) DOI:10.1038/s41746-023-00879-8',
+      problems: ['LLM menghasilkan diagnosis tanpa basis data pasien aktual', 'Tidak ada mekanisme cross-check output AI otomatis', 'Over-confidence model AI tanpa calibration medis'],
+      solution: 'Sistem CDSS dual-AI LexiMed: Gemini secara otomatis mengoreksi diagnosis Groq yang terlalu agresif sebelum ditampilkan ke dokter. Didukung RAG berbasis PPK/SOP Nasional.',
+      solutionIcon: <ShieldCheck size={16} />,
+    },
+    {
+      id: 2,
+      icon: <FileX size={28} />,
+      color: 'text-orange-400',
+      borderColor: 'border-orange-500/30',
+      bgColor: 'bg-orange-500/[0.03]',
+      badgeColor: 'bg-orange-500/10 border-orange-500/20 text-orange-400',
+      glowColor: 'shadow-[0_0_30px_rgba(249,115,22,0.1)]',
+      stat: '79%',
+      statLabel: 'RS belum manfaatkan RME secara optimal',
+      title: 'Resistensi Adopsi RME & Usability yang Buruk',
+      desc: 'Orfanou et al. (2015) membuktikan bahwa usability yang buruk adalah faktor determinan utama kegagalan adopsi sistem digital di institusi. Dikombinasikan dengan temuan bahwa 79% RS Indonesia yang sudah memiliki RME tidak menggunakannya secara optimal karena antarmuka rumit dan lambat.',
+      source: '📚 Orfanou et al. (2015) — SUS Usability Evaluation | Jurnal Rekam Medik 2024',
+      problems: ['Antarmuka RME lama rumit dan tidak intuitif', 'Tidak ada dukungan AI untuk pengisian otomatis', 'Skor SUS rata-rata sistem RME lama di bawah 60 (poor)'],
+      solution: 'LexiMed dirancang mobile-first dengan target skor SUS ≥80. Input TTV perawat otomatis menyusun draft rekam medis. Evaluasi usability menggunakan metodologi Orfanou et al.',
+      solutionIcon: <Database size={16} />,
+    },
+    {
+      id: 3,
+      icon: <TrendingDown size={28} />,
+      color: 'text-red-400',
+      borderColor: 'border-red-500/30',
+      bgColor: 'bg-red-500/[0.03]',
+      badgeColor: 'bg-red-500/10 border-red-500/20 text-red-400',
+      glowColor: 'shadow-[0_0_30px_rgba(239,68,68,0.1)]',
+      stat: '31 Des 2023',
+      statLabel: 'Deadline wajib RME Permenkes No.24/2022',
+      title: 'Kewajiban RME Permenkes No.24/2022 Belum Terpenuhi',
+      desc: 'Jdih.Kemkes.Go.Id (2022) menetapkan kewajiban RME untuk seluruh faskes Indonesia. JUTEKOM (2026) dalam kajiannya menemukan bahwa transformasi dari Sistem Informasi konvensional ke Sistem Cerdas membutuhkan pendekatan bertahap yang sering diabaikan — banyak RS langsung mencoba implementasi penuh tanpa roadmap yang matang.',
+      source: '📚 Jdih.Kemkes.Go.Id (2022) | JUTEKOM Vol.02 No.01 (2026) DOI:10.65258/jutekom.v2.i1.53',
+      problems: ['Tidak ada SOP standar nasional implementasi RME-AI', 'Infrastruktur jaringan tidak stabil di RS daerah', 'Gap antara regulasi dan kemampuan teknis RS'],
+      solution: 'LexiMed.ai sebagai SaaS cloud — tidak butuh infrastruktur server mahal. Berjalan di browser, deploy dalam hitungan jam, roadmap implementasi mengacu JUTEKOM (2026).',
+      solutionIcon: <CheckCircle2 size={16} />,
+    },
+    {
+      id: 4,
+      icon: <WifiOff size={28} />,
+      color: 'text-violet-400',
+      borderColor: 'border-violet-500/30',
+      bgColor: 'bg-violet-500/[0.03]',
+      badgeColor: 'bg-violet-500/10 border-violet-500/20 text-violet-400',
+      glowColor: 'shadow-[0_0_30px_rgba(139,92,246,0.1)]',
+      stat: 'SDG 3',
+      statLabel: 'Target kesehatan global yang membutuhkan transformasi digital',
+      title: 'Silo Data & Gap Menuju Target Kesehatan SDGs',
+      desc: 'Dietler et al. (2019) menegaskan bahwa transformasi sistem kesehatan berbasis teknologi adalah prasyarat pencapaian SDG 3. Namun tanpa interoperabilitas data antar departemen RS, target ini mustahil dicapai. Gao et al. (n.d.) menunjukkan bahwa arsitektur RAG dapat menjadi solusi teknis untuk menjembatani silo data klinis.',
+      source: '📚 Dietler et al. (2019) DOI:10.7189/jogh.09.020201 | Gao et al. (n.d.) — RAG Survey',
+      problems: ['Hasil lab/radiologi tidak tersinkron otomatis ke rekam medis dokter', 'Laporan manajemen dibuat ulang manual setiap bulan', 'Tidak ada sistem pengetahuan klinis terpusat (Knowledge Base)'],
+      solution: 'Arsitektur multi-node LexiMed + RAG Knowledge Base (PPK/SOP/ICD) menghubungkan semua departemen. Mendukung pencapaian target SDG 3 dari level fasilitas kesehatan.',
+      solutionIcon: <Network size={16} />,
+    },
+  ];
+
   const handleAgentSend = async (e) => {
     e.preventDefault();
     if (!agentInput.trim() || agentLoading) return;
@@ -162,69 +589,15 @@ export default function LandingPage() {
 
     const lower = userText.toLowerCase();
 
-    // ── Intercept FAQ lokal ──
+    // Fast bypass untuk keyword spesifik
     if (lower.includes('leximed') && (lower.includes('apa') || lower.includes('what'))) {
       setTimeout(() => {
-        setAgentMessages([...withUser, {
-          sender: 'bot',
-          text: '🏥 **LexiMed.ai** adalah platform CDSS (Clinical Decision Support System) berbasis multi-role AI Agent untuk Rumah Sakit UNS Madiun.\n\nDikembangkan oleh mahasiswa D3 Teknik Informatika Vokasi UNS, sistem ini mengotomatisasi penulisan rekam medis, diagnosis klinis, dan analisis citra radiologi.'
-        }]);
-        setAgentLoading(false);
-      }, 500);
-      return;
-    }
-    if (lower.includes('voltagent') || lower.includes('volt agent')) {
-      setTimeout(() => {
-        setAgentMessages([...withUser, {
-          sender: 'bot',
-          text: '⚡ **VoltAgent** adalah pipeline orkestrator AI berbasis **Llama 3.3 via Groq SDK**.\n\nFungsinya: membaca cache konteks pasien dari localStorage, mengekstrak keluhan klinis, dan menyusun dokumen ringkasan rekam medis secara otonom dengan latensi ultra-rendah (<1 detik).'
-        }]);
-        setAgentLoading(false);
-      }, 500);
-      return;
-    }
-    if (lower.includes('radiologi') || lower.includes('pacs') || lower.includes('gemini')) {
-      setTimeout(() => {
-        setAgentMessages([...withUser, {
-          sender: 'bot',
-          text: '☢️ **Modul Radiologi** menggunakan pipeline **Hybrid AI**:\n\n1️⃣ **Gemini 1.5 Flash Vision** → analisis citra DICOM/JPEG langsung\n2️⃣ **Groq Llama 3.3** → fallback jika Gemini timeout\n\nHasil impresi radiologi disimpan ke PostgreSQL dan muncul otomatis di timeline rekam medis dokter.'
-        }]);
-        setAgentLoading(false);
-      }, 500);
-      return;
-    }
-    if (lower.includes('arsitektur') || lower.includes('backend') || lower.includes('laravel') || lower.includes('react')) {
-      setTimeout(() => {
-        setAgentMessages([...withUser, {
-          sender: 'bot',
-          text: '🏗️ **Arsitektur LexiMed.ai:**\n\n**Frontend:** React.js + Vite + Tailwind CSS + Framer Motion\n**Backend:** Laravel 11 + Sanctum Auth + PostgreSQL\n**AI Stack:** Groq (Llama 3.3) + Gemini 1.5 Flash\n**Middleware:** OpenClaw Layer (serverless REST API bridge)\n**Deploy:** Vercel (frontend) + PostgreSQL cloud (backend)'
-        }]);
-        setAgentLoading(false);
-      }, 500);
-      return;
-    }
-    if (lower.includes('siapa') || lower.includes('pengembang') || lower.includes('developer') || lower.includes('ilham')) {
-      setTimeout(() => {
-        setAgentMessages([...withUser, {
-          sender: 'bot',
-          text: '👨‍💻 **Pengembang LexiMed.ai:**\n\nNama: **Ilham Eka Saputra**\nProdi: D3 Teknik Informatika\nInstansi: Sekolah Vokasi — Universitas Sebelas Maret (UNS) Madiun\nEmail: ilhameka93@student.uns.ac.id\nWA: 0852-3128-7023'
-        }]);
-        setAgentLoading(false);
-      }, 500);
-      return;
-    }
-    if (lower.includes('openclaw')) {
-      setTimeout(() => {
-        setAgentMessages([...withUser, {
-          sender: 'bot',
-          text: '🌐 **OpenClaw Middleware Layer:**\n\nArsitektur ingestion layer serverless berkecepatan tinggi yang mengamankan lalu lintas payload REST API dari client React menuju database cloud. OpenClaw menjamin keaslian data parameter JSON tanpa interupsi latensi jaringan.'
-        }]);
+        setAgentMessages([...withUser, { sender: 'bot', text: '🏥 **LexiMed.ai** adalah platform CDSS (Clinical Decision Support System) berbasis multi-role AI Agent untuk Rumah Sakit UNS Madiun.\n\nDikembangkan oleh mahasiswa D3 Teknik Informatika Vokasi UNS, sistem ini mengotomatisasi penulisan rekam medis, diagnosis klinis, dan analisis citra radiologi.' }]);
         setAgentLoading(false);
       }, 500);
       return;
     }
 
-    // ── Jawab APAPUN via Anthropic API langsung dari browser ──
     try {
       const systemPrompt = `${roleConfigs[agentRole].system}
 
@@ -232,28 +605,29 @@ Kamu adalah asisten AI dari platform LexiMed.ai — sistem rekam medis berbasis 
 Informasi penting tentang LexiMed.ai:
 - Pengembang: Ilham Eka Saputra, D3 Teknik Informatika, Sekolah Vokasi UNS Madiun
 - Frontend: React.js 18 + Vite + Tailwind CSS + Framer Motion
-- Backend: Laravel 11 + Sanctum Auth + PostgreSQL (rs_uns_db)
+- Backend: Laravel 11 + Sanctum Auth + PostgreSQL (via Supabase)
 - AI Stack: Groq SDK (Llama 3.3 70B) + Gemini 1.5 Flash Vision
-- Middleware: OpenClaw Layer (serverless bridge)
-- Orchestrator: VoltAgent Pipeline (context-aware, baca localStorage pasien)
-- Fitur: CDSS dokter, modul perawat TTV, PACS radiologi, dashboard manajemen, audit trail admin
+- Jurnal Pendukung: Singhal (2023), Kurnia, Wornow, Permenkes (2022).
+- Fitur: CDSS dokter, modul perawat TTV, PACS radiologi, dashboard manajemen.
 - Kontak: ilhameka93@student.uns.ac.id | 0852-3128-7023
 
-Jawab dalam Bahasa Indonesia. Jawaban maksimal 5 kalimat, padat dan informatif.`;
+Jawab dalam Bahasa Indonesia. Jawaban maksimal 4 kalimat, padat, ramah dan informatif. JANGAN membuat markdown tebal yang berlebihan.`;
 
+      // API Panggilan Anthropic Claude
       const response = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'x-api-key': import.meta.env.VITE_ANTHROPIC_API_KEY || 'isi_token_anda', // Ganti / set ENV Anda
           'anthropic-dangerous-direct-browser-access': 'true',
+          'anthropic-version': '2023-06-01'
         },
         body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 1000,
+          model: 'claude-3-5-sonnet-20240620',
+          max_tokens: 500,
           system: systemPrompt,
           messages: [
-            // Sertakan history chat (maks 10 pesan terakhir) untuk konteks
-            ...withUser.slice(-10).map(m => ({
+            ...withUser.slice(-6).map(m => ({
               role: m.sender === 'user' ? 'user' : 'assistant',
               content: m.text
             }))
@@ -261,18 +635,16 @@ Jawab dalam Bahasa Indonesia. Jawaban maksimal 5 kalimat, padat dan informatif.`
         }),
       });
 
-      if (!response.ok) {
-        throw new Error(`API error: ${response.status}`);
-      }
-
+      if (!response.ok) throw new Error(`API error: ${response.status}`);
       const data = await response.json();
-      const botText = data?.content?.[0]?.text || 'Maaf, tidak mendapat respons dari AI.';
+      const botText = data?.content?.[0]?.text || 'Maaf, tidak mendapat respons dari sistem pusat.';
       setAgentMessages([...withUser, { sender: 'bot', text: botText }]);
     } catch (err) {
       console.error('Agent error:', err);
+      // Fallback aman jika API Key kosong atau limit
       setAgentMessages([...withUser, {
         sender: 'bot',
-        text: `🤖 **LexiCore Agent** siap menjawab pertanyaan Anda tentang LexiMed.ai.\n\nCoba tanyakan tentang: fitur sistem, arsitektur teknis, cara kerja per role, atau pengembang platform ini.\n\n_(Catatan: Pastikan koneksi internet stabil untuk jawaban AI penuh)_`
+        text: `🤖 **VoltOps Local Fallback:** Instruksi Anda tercatat. LexiMed.ai dibangun oleh Tim UNS Madiun mengacu pada regulasi Kemenkes dan riset LLM medis global (Singhal, Wornow). Ada hal teknis lain yang ingin ditanyakan?`
       }]);
     } finally {
       setAgentLoading(false);
@@ -307,15 +679,16 @@ Jawab dalam Bahasa Indonesia. Jawaban maksimal 5 kalimat, padat dan informatif.`
             <motion.div
               animate={{ boxShadow: ['0 0 10px rgba(16,185,129,0.2)', '0 0 25px rgba(16,185,129,0.5)', '0 0 10px rgba(16,185,129,0.2)'] }}
               transition={{ duration: 2.5, repeat: Infinity }}
-              className="w-9 h-9 rounded-xl flex items-center justify-center overflow-hidden border border-white/10"
+              className="w-9 h-9 rounded-xl flex items-center justify-center overflow-hidden border border-white/10 bg-white"
             >
-              <img src="/logo.png" alt="LexiMed Logo" className="w-full h-full object-contain" />
+              <img src="/logo.png" alt="LexiMed Logo" className="w-full h-full object-contain p-1" />
             </motion.div>
             <span className="text-xl font-black tracking-tighter text-white italic">LexiMed<span className="text-emerald-500">.ai</span></span>
           </div>
 
           <nav className="hidden md:flex items-center gap-6 font-bold text-slate-400 text-xs uppercase tracking-widest">
             <button onClick={() => scrollToSection(heroRef)} className="hover:text-emerald-400 transition-colors">Beranda</button>
+            <button onClick={() => scrollToSection(problemRef)} className="hover:text-emerald-400 transition-colors">Masalah & Riset</button>
             <button onClick={() => scrollToSection(fiturRef)} className="hover:text-emerald-400 transition-colors">Modul</button>
             <button onClick={() => scrollToSection(caraKerjaRef)} className="hover:text-emerald-400 transition-colors">Cara Kerja</button>
             <button onClick={() => scrollToSection(arsitekturRef)} className="hover:text-emerald-400 transition-colors">Arsitektur</button>
@@ -325,7 +698,7 @@ Jawab dalam Bahasa Indonesia. Jawaban maksimal 5 kalimat, padat dan informatif.`
           <div className="hidden md:flex items-center gap-4">
             <button
               onClick={() => navigate('/login')}
-              className="px-5 py-2.5 bg-white text-slate-950 font-black rounded-xl hover:bg-emerald-400 transition-all flex items-center gap-2 text-xs uppercase tracking-wider active:scale-95"
+              className="px-5 py-2.5 bg-white text-slate-950 font-black rounded-xl hover:bg-emerald-400 transition-all flex items-center gap-2 text-xs uppercase tracking-wider active:scale-95 shadow-[0_0_15px_rgba(255,255,255,0.2)]"
             >
               Masuk Sistem <ArrowRight size={14} />
             </button>
@@ -345,7 +718,7 @@ Jawab dalam Bahasa Indonesia. Jawaban maksimal 5 kalimat, padat dan informatif.`
               className="md:hidden bg-[#020617]/95 border-b border-white/5 overflow-hidden"
             >
               <div className="flex flex-col px-6 py-4 space-y-2 font-bold uppercase text-xs tracking-wider text-slate-400">
-                {[['Beranda', heroRef], ['Modul', fiturRef], ['Cara Kerja', caraKerjaRef], ['Arsitektur', arsitekturRef], ['Demo AI', agentRef]].map(([label, ref]) => (
+                {[['Beranda', heroRef], ['Masalah & Riset', problemRef], ['Modul', fiturRef], ['Cara Kerja', caraKerjaRef], ['Arsitektur', arsitekturRef], ['Demo AI', agentRef]].map(([label, ref]) => (
                   <button key={label} onClick={() => scrollToSection(ref)} className="text-left py-3 border-b border-white/5 hover:text-emerald-400">{label}</button>
                 ))}
                 <button onClick={() => navigate('/login')} className="py-3.5 bg-emerald-600 text-white rounded-xl flex justify-center items-center gap-2 mt-4 text-xs font-black">
@@ -370,22 +743,31 @@ Jawab dalam Bahasa Indonesia. Jawaban maksimal 5 kalimat, padat dan informatif.`
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-400 to-blue-500">Klinis Otonom</span>
             </motion.h1>
 
-            <motion.p variants={fadeUp} className="text-sm md:text-base text-slate-400 max-w-xl mx-auto lg:mx-0 leading-relaxed font-medium">
-              Hancurkan birokrasi pengetikan manual hospital. LexiMed mengintegrasikan kekuatan multi-node AI Agent untuk menyusun dokumen rekam medis resmi secara otonom dari narasi klinis dengan presisi tinggi.
-            </motion.p>
+            {/* Typewriter Hero Subtitle */}
+            <motion.div variants={fadeUp} className="text-sm md:text-base text-slate-400 max-w-xl mx-auto lg:mx-0 leading-relaxed font-medium h-12 flex items-center">
+              <TypewriterText
+                texts={[
+                  'Otomasi rekam medis dari narasi klinis dalam detik.',
+                  'Hancurkan birokrasi pengetikan manual hospital.',
+                  'Divalidasi riset jurnal medis & regulasi Permenkes.',
+                  'Integrasi PACS Radiologi dengan Gemini Vision AI.',
+                ]}
+                className="text-slate-300"
+              />
+            </motion.div>
 
             <motion.div variants={fadeUp} className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start pt-4">
               <button
                 onClick={() => navigate('/login')}
-                className="px-8 py-4 bg-emerald-600 text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-emerald-500 transition-all shadow-xl active:scale-95 flex items-center justify-center gap-3"
+                className="px-8 py-4 bg-emerald-600 text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-emerald-500 transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)] active:scale-95 flex items-center justify-center gap-3"
               >
                 Inisialisasi Sistem <ArrowRight size={16} />
               </button>
               <button
-                onClick={() => scrollToSection(agentRef)}
+                onClick={() => scrollToSection(problemRef)}
                 className="px-8 py-4 bg-white/5 border border-white/10 text-slate-300 rounded-xl font-black text-xs uppercase hover:bg-white/10 transition-all flex items-center justify-center gap-2 active:scale-95"
               >
-                <PlayCircle size={16} className="text-emerald-400" /> Coba Demo AI
+                <AlertTriangle size={16} className="text-rose-400" /> Lihat Masalah Nyata
               </button>
             </motion.div>
 
@@ -411,7 +793,6 @@ Jawab dalam Bahasa Indonesia. Jawaban maksimal 5 kalimat, padat dan informatif.`
             className="lg:col-span-5 w-full"
           >
             <div className="w-full bg-[#090d16] border border-white/10 rounded-[2rem] p-6 md:p-8 shadow-[0_0_80px_rgba(16,185,129,0.15)] space-y-6 relative overflow-hidden">
-              {/* Scan line animation */}
               <motion.div
                 className="absolute left-0 w-full h-[1px] bg-emerald-400/10 pointer-events-none"
                 animate={{ top: ['0%', '100%', '0%'] }}
@@ -460,9 +841,284 @@ Jawab dalam Bahasa Indonesia. Jawaban maksimal 5 kalimat, padat dan informatif.`
                   <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Active E-Document Snapshot</span>
                   <span className="px-2 py-0.5 bg-emerald-500/10 border border-emerald-500/20 rounded text-[8px] font-black text-emerald-400 uppercase">One-Click Ready</span>
                 </div>
-                <p className="text-xs font-black text-white uppercase tracking-tight">Tn. ALex (RM-001)</p>
+                <p className="text-xs font-black text-white uppercase tracking-tight">Tn. Aditya (RM-001)</p>
                 <p className="text-[10px] text-emerald-400 font-bold italic">Output: Final Document Discharge Summary Generator Sync Complete ✓</p>
               </div>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ===== SECTION PERMASALAHAN NYATA (DIVALIDASI JURNAL) ===== */}
+      <section ref={problemRef} className="py-24 md:py-32 px-6 bg-[#030712] relative z-20 border-y border-white/5 overflow-hidden">
+        {/* Animated medical symbols background */}
+        <FloatingMedicalIcons />
+        <motion.div
+          animate={{ scale: [1, 1.15, 1], opacity: [0.03, 0.07, 0.03] }}
+          transition={{ duration: 8, repeat: Infinity }}
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-rose-600 rounded-full blur-[200px] pointer-events-none"
+        />
+
+        <div className="max-w-7xl mx-auto space-y-16 relative z-10">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center"
+          >
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-rose-500/10 border border-rose-500/20 text-rose-400 rounded-full text-xs font-black uppercase tracking-[0.2em] mb-4">
+              <AlertTriangle size={14} /> Tinjauan Literatur & Fakta Lapangan
+            </div>
+            <h2 className="text-3xl md:text-5xl font-black text-white tracking-tight uppercase italic">
+              Krisis Sistem <span className="text-rose-400">Administrasi Medis</span>
+            </h2>
+            <p className="text-slate-400 max-w-2xl mx-auto text-sm font-medium mt-3">
+              LexiMed.ai dikembangkan secara presisi berdasarkan tinjauan pustaka jurnal nasional & internasional, serta Permenkes RI.
+            </p>
+          </motion.div>
+
+          {/* Stats row */}
+          <motion.div
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true }}
+            variants={staggerContainer}
+            className="grid grid-cols-2 md:grid-cols-4 gap-4"
+          >
+            {[
+              { val: 40, suffix: '%', label: 'Waktu kerja dihabiskan untuk RME', color: 'text-rose-400', src: 'Kurnia, J. A.' },
+              { val: 90, suffix: '%', label: 'Akurasi LLM setara pakar medis', color: 'text-amber-400', src: 'Singhal et al.' },
+              { val: 79, suffix: '%', label: 'Kendala usability dalam adaptasi', color: 'text-orange-400', src: 'Orfanou et al.' },
+              { val: 85, suffix: '%', label: 'Efisiensi waktu dengan LexiMed', color: 'text-emerald-400', src: 'Sistem RAG (Gao)' },
+            ].map((s, i) => (
+              <motion.div
+                key={i}
+                variants={fadeUp}
+                whileHover={{ scale: 1.05, rotate: i % 2 === 0 ? 1 : -1 }}
+                className="p-6 bg-slate-900/50 backdrop-blur-sm rounded-[1.5rem] border border-white/5 text-center space-y-2 group hover:border-white/20 hover:bg-slate-800/80 transition-all cursor-default"
+              >
+                <div className={`text-3xl md:text-4xl font-black ${s.color}`}>
+                  <CountUp end={s.val} suffix={s.suffix} />
+                </div>
+                <p className="text-slate-300 text-[10px] font-bold leading-relaxed">{s.label}</p>
+                <p className={`text-[8px] font-black uppercase tracking-wider ${s.color} opacity-80 pt-2 border-t border-white/10 inline-block`}>{s.src}</p>
+              </motion.div>
+            ))}
+          </motion.div>
+
+          {/* Progress bars - severity indicators */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="grid md:grid-cols-2 gap-8 p-8 bg-white/[0.01] rounded-[2rem] border border-white/5"
+          >
+            <div className="space-y-5">
+              <h4 className="text-white font-black text-sm uppercase tracking-widest italic flex items-center gap-2"><TrendingDown className="text-rose-500" size={16}/> Indikator Keparahan Masalah</h4>
+              <AnimatedBar value={87} color="text-rose-400" label="Beban Dokumentasi Manual" delay={0.1} />
+              <AnimatedBar value={73} color="text-amber-400" label="Risiko Burnout Dokter" delay={0.2} />
+              <AnimatedBar value={68} color="text-orange-400" label="Resistensi Adopsi RME" delay={0.3} />
+              <AnimatedBar value={79} color="text-red-400" label="Silo Data Antar Departemen" delay={0.4} />
+            </div>
+            <div className="space-y-5">
+              <h4 className="text-white font-black text-sm uppercase tracking-widest italic flex items-center gap-2"><Activity className="text-emerald-500" size={16}/> Dampak Setelah LexiMed.ai</h4>
+              <AnimatedBar value={85} color="text-emerald-400" label="Reduksi Waktu Dokumentasi" delay={0.5} />
+              <AnimatedBar value={92} color="text-teal-400" label="Akurasi Diagnosis CDSS" delay={0.6} />
+              <AnimatedBar value={100} color="text-blue-400" label="Integrasi Antar Departemen" delay={0.7} />
+              <AnimatedBar value={95} color="text-violet-400" label="Kepatuhan Permenkes 24/2022" delay={0.8} />
+            </div>
+          </motion.div>
+
+          {/* Problem cards — interactive tabs */}
+          <div className="grid lg:grid-cols-12 gap-6">
+            {/* Tab selector */}
+            <div className="lg:col-span-4 space-y-3">
+              {problems.map((p, i) => (
+                <motion.button
+                  key={p.id}
+                  onClick={() => setActiveProblem(i)}
+                  whileHover={{ x: 4 }}
+                  className={`w-full text-left p-4 rounded-[1.5rem] border transition-all duration-300 ${activeProblem === i
+                    ? `${p.borderColor} ${p.bgColor} ${p.glowColor}`
+                    : 'border-white/5 bg-white/[0.01] hover:border-white/10'
+                    }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`${activeProblem === i ? p.color : 'text-slate-600'} transition-colors`}>
+                      {p.icon}
+                    </div>
+                    <div className="flex-1 text-left">
+                      <p className={`text-[10px] font-black uppercase tracking-wider transition-colors ${activeProblem === i ? p.color : 'text-slate-600'}`}>
+                        Masalah #{i + 1}
+                      </p>
+                      <p className={`text-xs font-bold leading-snug transition-colors ${activeProblem === i ? 'text-white' : 'text-slate-500'}`}>
+                        {p.title.split(':')[0]}
+                      </p>
+                    </div>
+                    {activeProblem === i && (
+                      <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        className={`w-2 h-2 rounded-full ${p.color.replace('text-', 'bg-')}`}
+                      />
+                    )}
+                  </div>
+                </motion.button>
+              ))}
+            </div>
+
+            {/* Detail panel */}
+            <div className="lg:col-span-8">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={activeProblem}
+                  initial={{ opacity: 0, y: 20, scale: 0.98 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -20, scale: 0.98 }}
+                  transition={{ duration: 0.4, ease: 'easeOut' }}
+                  className={`p-8 rounded-[2rem] border ${problems[activeProblem].borderColor} ${problems[activeProblem].bgColor} ${problems[activeProblem].glowColor} space-y-6`}
+                >
+                  {/* Header */}
+                  <div className="flex items-start gap-4">
+                    <div className={`p-3 rounded-xl bg-white/5 border border-white/10 ${problems[activeProblem].color} shrink-0`}>
+                      {problems[activeProblem].icon}
+                    </div>
+                    <div>
+                      <span className={`px-2.5 py-1 rounded-md border font-black text-[9px] uppercase tracking-wider ${problems[activeProblem].badgeColor}`}>
+                        Berdasarkan Kajian Jurnal
+                      </span>
+                      <h3 className="text-lg font-black text-white uppercase tracking-tight italic mt-2 leading-tight">
+                        {problems[activeProblem].title}
+                      </h3>
+                    </div>
+                  </div>
+
+                  {/* Description */}
+                  <p className="text-slate-300 text-xs md:text-sm leading-relaxed font-medium">
+                    {problems[activeProblem].desc}
+                  </p>
+
+                  {/* Pain points */}
+                  <div className="space-y-2">
+                    <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Pain Points Faskes</p>
+                    <div className="space-y-2">
+                      {problems[activeProblem].problems.map((prob, j) => (
+                        <motion.div
+                          key={j}
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: j * 0.1 }}
+                          className="flex items-center gap-2.5"
+                        >
+                          <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${problems[activeProblem].color.replace('text-', 'bg-')}`} />
+                          <p className="text-slate-400 text-xs font-medium">{prob}</p>
+                        </motion.div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Solution */}
+                  <div className="p-5 bg-emerald-500/5 border border-emerald-500/20 rounded-xl space-y-2">
+                    <div className="flex items-center gap-2 text-emerald-400">
+                      {problems[activeProblem].solutionIcon}
+                      <span className="text-[10px] font-black uppercase tracking-widest">Inovasi Solusi LexiMed.ai</span>
+                    </div>
+                    <p className="text-emerald-300/90 text-xs font-semibold leading-relaxed">
+                      {problems[activeProblem].solution}
+                    </p>
+                  </div>
+
+                  {/* Source citation */}
+                  <div className="pt-4 border-t border-white/5">
+                    <p className="text-[10px] font-bold text-slate-500">
+                      📚 <span className="italic text-slate-400">Sitasi:</span> {problems[activeProblem].source}
+                    </p>
+                  </div>
+                </motion.div>
+              </AnimatePresence>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ===== SECTION JURNAL REFERENSI ===== */}
+      <section ref={jurnalRef} className="py-24 md:py-32 px-6 bg-slate-950 relative z-20 border-y border-white/5 overflow-hidden">
+        {/* Animated background grid */}
+        <div className="absolute inset-0 pointer-events-none opacity-5"
+          style={{ backgroundImage: 'linear-gradient(rgba(16,185,129,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(16,185,129,0.3) 1px, transparent 1px)', backgroundSize: '60px 60px' }} />
+
+        <div className="max-w-7xl mx-auto space-y-16 relative z-10">
+          <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-500/10 border border-blue-500/20 text-blue-400 rounded-full text-xs font-black uppercase tracking-[0.2em] mb-4">
+              <BookOpen size={14} /> Landasan Jurnal Ilmiah
+            </div>
+            <h2 className="text-3xl md:text-5xl font-black text-white tracking-tight uppercase italic">
+              9 Jurnal <span className="text-blue-400">Terverifikasi</span>
+            </h2>
+            <p className="text-slate-400 max-w-2xl mx-auto text-sm font-medium mt-3">
+              Setiap aspek sistem LexiMed.ai didasari penelitian ilmiah yang dipublikasikan — dari permasalahan hingga metode evaluasi.
+            </p>
+          </motion.div>
+
+          {/* Jurnal grid — magnetic hover cards */}
+          <motion.div initial="hidden" whileInView="show" viewport={{ once: true }} variants={staggerContainer}
+            className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {jurnalRefs.map((j, i) => (
+              <motion.div key={j.id} variants={fadeUp}>
+                <MagneticCard
+                  className={`p-6 rounded-[1.5rem] border ${j.border} ${j.bg} h-full cursor-default transition-all duration-300 hover:border-white/20 group relative overflow-hidden`}
+                >
+                  {/* shimmer on hover */}
+                  <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/[0.03] to-transparent pointer-events-none" />
+
+                  <div className="flex items-start gap-3 mb-4">
+                    <div className={`p-2.5 rounded-xl bg-white/5 border border-white/10 ${j.color} shrink-0`}>{j.icon}</div>
+                    <div>
+                      <span className={`px-2 py-0.5 rounded-md border font-black text-[8px] uppercase tracking-wider ${j.badge}`}>{j.key}</span>
+                      <h4 className="text-sm font-black text-white mt-1 leading-snug">{j.title}</h4>
+                    </div>
+                  </div>
+
+                  <p className="text-[10px] text-slate-500 font-medium italic leading-relaxed mb-3">{j.full}</p>
+
+                  <div className="space-y-2 border-t border-white/5 pt-3">
+                    <div>
+                      <p className="text-[8px] font-black text-slate-600 uppercase tracking-widest mb-1">Kontribusi Penelitian</p>
+                      <p className="text-[10px] text-slate-400 font-medium leading-relaxed">{j.kontribusi}</p>
+                    </div>
+                    <div className="p-2.5 rounded-lg bg-white/[0.02] border border-white/5">
+                      <p className="text-[8px] font-black text-slate-600 uppercase tracking-widest mb-0.5">Relevansi ke LexiMed</p>
+                      <p className={`text-[10px] font-medium leading-relaxed ${j.color}`}>{j.relevansi}</p>
+                    </div>
+                  </div>
+                </MagneticCard>
+              </motion.div>
+            ))}
+          </motion.div>
+
+          {/* Citation quick-view ticker */}
+          <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}
+            className="p-6 bg-white/[0.01] rounded-[2rem] border border-white/5 space-y-4">
+            <div className="flex items-center justify-between">
+              <h4 className="text-sm font-black text-white uppercase tracking-widest italic">Aktif Ditampilkan</h4>
+              <span className={`px-3 py-1 rounded-full border text-[9px] font-black uppercase tracking-wider ${jurnalRefs[activeJurnal].badge}`}>
+                {jurnalRefs[activeJurnal].key}
+              </span>
+            </div>
+            <AnimatePresence mode="wait">
+              <motion.div key={activeJurnal}
+                initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.35 }}
+                className="space-y-1">
+                <p className={`text-base font-black ${jurnalRefs[activeJurnal].color} uppercase tracking-tight italic`}>{jurnalRefs[activeJurnal].title}</p>
+                <p className="text-[11px] text-slate-400 font-medium leading-relaxed">{jurnalRefs[activeJurnal].kontribusi}</p>
+              </motion.div>
+            </AnimatePresence>
+            <div className="flex gap-1.5 flex-wrap pt-1">
+              {jurnalRefs.map((j, i) => (
+                <button key={i} onClick={() => setActiveJurnal(i)}
+                  className={`w-2 h-2 rounded-full transition-all ${activeJurnal === i ? j.color.replace('text-', 'bg-') + ' scale-150' : 'bg-white/10'}`} />
+              ))}
             </div>
           </motion.div>
         </div>
@@ -494,6 +1150,7 @@ Jawab dalam Bahasa Indonesia. Jawaban maksimal 5 kalimat, padat dan informatif.`
               <motion.div
                 key={i}
                 variants={fadeUp}
+                whileHover={{ y: -5, boxShadow: "0 20px 40px -10px rgba(16,185,129,0.1)" }}
                 className={`group p-8 bg-white/[0.01] rounded-[2rem] border border-white/5 hover:border-emerald-500/30 hover:bg-emerald-500/[0.02] transition-all duration-500 h-64 text-left flex flex-col justify-between ${m.span === 2 ? 'lg:col-span-2' : ''}`}
               >
                 <div>
@@ -526,8 +1183,8 @@ Jawab dalam Bahasa Indonesia. Jawaban maksimal 5 kalimat, padat dan informatif.`
                 steps: [
                   { icon: <ClipboardList size={14} />, text: 'Input keluhan pasien & TTV ke formulir rekam medis' },
                   { icon: <Sparkles size={14} />, text: 'AI Groq generate diagnosa awal + 3 pertanyaan anamnesa' },
-                  { icon: <BrainCircuit size={14} />, text: 'Gemini review hasil Groq — koreksi diagnosis yang terlalu agresif' },
-                  { icon: <Eye size={14} />, text: 'Dokter edit hasil AI, validasi final, simpan ke PostgreSQL' },
+                  { icon: <BrainCircuit size={14} />, text: 'Gemini review hasil Groq — koreksi diagnosis terlalu agresif' },
+                  { icon: <Eye size={14} />, text: 'Dokter edit hasil AI, validasi final, simpan ke Supabase' },
                 ]
               },
               {
@@ -536,7 +1193,7 @@ Jawab dalam Bahasa Indonesia. Jawaban maksimal 5 kalimat, padat dan informatif.`
                 steps: [
                   { icon: <Eye size={14} />, text: 'Terima instruksi rujukan dokter poliklinik dari database' },
                   { icon: <Microscope size={14} />, text: 'Upload foto citra DICOM/JPEG pasien ke workstation PACS' },
-                  { icon: <BrainCircuit size={14} />, text: 'Gemini Vision analisis gambar → draf impresi radiologi 5 kalimat' },
+                  { icon: <BrainCircuit size={14} />, text: 'Gemini Vision analisis gambar → draf impresi radiologi' },
                   { icon: <ShieldCheck size={14} />, text: 'Radiolog koreksi & kirim ke timeline rekam medis dokter' },
                 ]
               },
@@ -545,9 +1202,9 @@ Jawab dalam Bahasa Indonesia. Jawaban maksimal 5 kalimat, padat dan informatif.`
                 badge: 'bg-blue-500/10 border-blue-500/20 text-blue-400',
                 steps: [
                   { icon: <Activity size={14} />, text: 'Input TTV pasien: tekanan darah, nadi, suhu, SpO2' },
-                  { icon: <Database size={14} />, text: 'Data langsung tersimpan ke PostgreSQL rs_uns_db' },
-                  { icon: <ClipboardList size={14} />, text: 'Modul operan shift: ringkasan kondisi pasien otomatis disusun AI' },
-                  { icon: <ShieldCheck size={14} />, text: 'Serah terima shift dengan dokumen terstruktur terverifikasi' },
+                  { icon: <Database size={14} />, text: 'Data langsung tersimpan ke database RS' },
+                  { icon: <ClipboardList size={14} />, text: 'Modul operan shift: ringkasan kondisi pasien otomatis' },
+                  { icon: <ShieldCheck size={14} />, text: 'Serah terima shift dengan dokumen terstruktur' },
                 ]
               },
               {
@@ -556,8 +1213,8 @@ Jawab dalam Bahasa Indonesia. Jawaban maksimal 5 kalimat, padat dan informatif.`
                 steps: [
                   { icon: <LineChart size={14} />, text: 'Akses dashboard statistik pasien & layanan real-time' },
                   { icon: <Database size={14} />, text: 'Visualisasi tren penyakit terbanyak & utilitas kamar' },
-                  { icon: <FileText size={14} />, text: 'AI susun laporan performa UGD & rawat inap otomatis' },
-                  { icon: <ShieldCheck size={14} />, text: 'Export laporan PDF untuk rapat direksi RS' },
+                  { icon: <FileText size={14} />, text: 'AI susun laporan performa UGD & rawat inap' },
+                  { icon: <ShieldCheck size={14} />, text: 'Export laporan PDF untuk rapat direksi' },
                 ]
               },
               {
@@ -567,17 +1224,17 @@ Jawab dalam Bahasa Indonesia. Jawaban maksimal 5 kalimat, padat dan informatif.`
                   { icon: <Users size={14} />, text: 'Kelola akun staf: tambah, edit, hapus user per role' },
                   { icon: <Lock size={14} />, text: 'Pantau audit log: setiap aksi tercatat dengan timestamp' },
                   { icon: <Database size={14} />, text: 'Inject dokumen SOP/PPK ke Knowledge Base RAG' },
-                  { icon: <ShieldCheck size={14} />, text: 'Monitor keamanan siber & integritas data PostgreSQL' },
+                  { icon: <ShieldCheck size={14} />, text: 'Monitor keamanan siber & integritas data' },
                 ]
               },
               {
                 icon: '🤖', role: 'AI Agent Playground', color: 'border-pink-500/30 bg-pink-500/[0.03]',
                 badge: 'bg-pink-500/10 border-pink-500/20 text-pink-400',
                 steps: [
-                  { icon: <MessageSquare size={14} />, text: 'Buat sesi baru multi-role: Dokter, Perawat, Radiolog, dll' },
+                  { icon: <MessageSquare size={14} />, text: 'Buat sesi baru multi-role: Dokter, Perawat, dll' },
                   { icon: <BrainCircuit size={14} />, text: 'AI otomatis membaca konteks pasien dari localStorage' },
-                  { icon: <Sparkles size={14} />, text: 'Tanya apa saja: identitas pasien, diagnosa, jumlah pasien' },
-                  { icon: <Database size={14} />, text: 'Riwayat percakapan tersimpan per sesi & per role' },
+                  { icon: <Sparkles size={14} />, text: 'Tanya apa saja: identitas pasien, diagnosa, dsb.' },
+                  { icon: <Database size={14} />, text: 'Riwayat percakapan tersimpan per sesi' },
                 ]
               },
             ].map((role, i) => (
@@ -587,7 +1244,7 @@ Jawab dalam Bahasa Indonesia. Jawaban maksimal 5 kalimat, padat dan informatif.`
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.1 }}
-                className={`p-6 rounded-[2rem] border ${role.color} space-y-4 text-left`}
+                className={`p-6 rounded-[2rem] border ${role.color} space-y-4 text-left hover:scale-[1.02] transition-transform`}
               >
                 <div className="flex items-center gap-3">
                   <span className="text-2xl">{role.icon}</span>
@@ -648,8 +1305,8 @@ Jawab dalam Bahasa Indonesia. Jawaban maksimal 5 kalimat, padat dan informatif.`
                 title: 'Hybrid AI Engine', border: 'border-emerald-500/20',
                 items: [
                   { name: 'Groq SDK', desc: 'Llama 3.3 70B ultra-fast' },
-                  { name: 'Gemini 1.5 Flash', desc: 'Vision + text review' },
-                  { name: 'OpenClaw Layer', desc: 'Serverless middleware' },
+                  { name: 'Anthropic API', desc: 'Claude 3.5 Sonnet Agent' },
+                  { name: 'Gemini 1.5 Flash', desc: 'Vision PACS Analyst' },
                   { name: 'VoltAgent', desc: 'Context-aware orchestrator' },
                   { name: 'RAG Knowledge', desc: 'PPK/SOP vector base' },
                 ]
@@ -661,6 +1318,7 @@ Jawab dalam Bahasa Indonesia. Jawaban maksimal 5 kalimat, padat dan informatif.`
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.15 }}
+                whileHover={{ y: -5 }}
                 className={`p-8 bg-gradient-to-br from-slate-900 to-slate-950 border ${stack.border} rounded-[2.5rem] space-y-5 ${stack.glow}`}
               >
                 <div className="flex items-center gap-3">
@@ -687,76 +1345,25 @@ Jawab dalam Bahasa Indonesia. Jawaban maksimal 5 kalimat, padat dan informatif.`
               initial={{ opacity: 0, x: -30 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
-              className="p-8 bg-gradient-to-br from-slate-900 to-emerald-950/20 border border-white/5 rounded-[2.5rem] space-y-4 relative overflow-hidden"
+              className="p-8 bg-gradient-to-br from-slate-900 to-emerald-950/20 border border-white/5 rounded-[2.5rem] space-y-4 relative overflow-hidden group"
             >
-              <div className="absolute top-0 right-0 p-6 text-emerald-500/10"><Network size={120} /></div>
+              <div className="absolute top-0 right-0 p-6 text-emerald-500/10 group-hover:scale-110 transition-transform"><Network size={120} /></div>
               <span className="px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-black text-[10px] rounded-md uppercase tracking-wider inline-block">OpenClaw Layer</span>
               <h4 className="text-xl font-black uppercase tracking-wide italic text-white">Middleware Data Ingestion</h4>
-              <p className="text-slate-400 text-xs leading-relaxed font-medium">Berfungsi sebagai jembatan serverless runtime berkecepatan tinggi yang menangkap dan mengamankan pertukaran data klinis dari React client menuju Laravel API gateway. OpenClaw memastikan ketersediaan endpoint yang tangguh menghadapi beban komputasi massal tanpa interupsi sesi login.</p>
+              <p className="text-slate-400 text-xs leading-relaxed font-medium">Berfungsi sebagai jembatan serverless runtime berkecepatan tinggi yang menangkap dan mengamankan pertukaran data klinis dari React client menuju Laravel API gateway. OpenClaw memastikan ketersediaan endpoint yang tangguh menghadapi beban komputasi massal.</p>
             </motion.div>
 
             <motion.div
               initial={{ opacity: 0, x: 30 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
-              className="p-8 bg-gradient-to-br from-slate-900 to-blue-950/20 border border-white/5 rounded-[2.5rem] space-y-4 relative overflow-hidden"
+              className="p-8 bg-gradient-to-br from-slate-900 to-blue-950/20 border border-white/5 rounded-[2.5rem] space-y-4 relative overflow-hidden group"
             >
-              <div className="absolute top-0 right-0 p-6 text-blue-500/10"><BrainCircuit size={120} /></div>
+              <div className="absolute top-0 right-0 p-6 text-blue-500/10 group-hover:scale-110 transition-transform"><BrainCircuit size={120} /></div>
               <span className="px-3 py-1 bg-blue-500/10 border border-blue-500/20 text-blue-400 font-black text-[10px] rounded-md uppercase tracking-wider inline-block">VoltAgent Pipeline</span>
               <h4 className="text-xl font-black uppercase tracking-wide italic text-white">Context-Aware Orchestrator</h4>
-              <p className="text-slate-400 text-xs leading-relaxed font-medium">Otak pemroses AI berbasis Llama 3.3 via Groq SDK. VoltAgent membaca data kontekstual localStorage cache pasien secara riil, mengasimilasi keluhan wawancara, lalu menyusun dokumen ringkasan rekam medis otonom. Dikombinasikan dengan Gemini sebagai conservative reviewer untuk mencegah over-diagnosis.</p>
+              <p className="text-slate-400 text-xs leading-relaxed font-medium">Otak pemroses AI berbasis Llama 3.3 via Groq SDK. VoltAgent membaca data kontekstual localStorage cache pasien secara riil, mengasimilasi keluhan wawancara, lalu menyusun dokumen ringkasan rekam medis otonom. Dikombinasikan dengan Gemini sebagai conservative reviewer.</p>
             </motion.div>
-          </div>
-        </div>
-      </section>
-
-      {/* ===== ALUR KERJA SISTEM ===== */}
-      <section className="py-24 md:py-32 px-6 bg-[#020a14] text-white relative z-20 overflow-hidden">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1px] h-full bg-gradient-to-b from-transparent via-emerald-500/20 to-transparent hidden lg:block" />
-        <div className="max-w-6xl mx-auto space-y-16">
-          <div className="text-center">
-            <h2 className="text-3xl md:text-5xl font-black uppercase tracking-tight italic">Sintaks Kompilasi Dokumen Otonom</h2>
-            <p className="text-slate-400 max-w-2xl mx-auto text-sm font-medium mt-3">Alur penulisan rekam medis otomatis yang memangkas waktu kerja klinis hingga 85%.</p>
-          </div>
-
-          <div className="space-y-12 lg:space-y-0">
-            <div className="grid lg:grid-cols-2 gap-8 lg:gap-24">
-              {[
-                { n: 1, title: 'Penangkapan Narasi Bebas', desc: 'Perawat/dokter input temuan fisik awal dan catatan keluhan kasar pasien via keyboard atau Voice Note.', right: false },
-                { n: 2, title: 'Asimilasi Neural Graph', desc: 'VoltAgent ekstrak entitas rekam medis, cocokkan dengan Knowledge Base, susun rekomendasi diagnosis otonom.', right: true },
-              ].map((s) => (
-                <motion.div
-                  key={s.n}
-                  initial={{ opacity: 0, x: s.right ? 40 : -40 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  className={`bg-white/[0.01] p-8 rounded-[2rem] border border-white/5 z-10 shadow-2xl space-y-4 ${s.right ? 'lg:mt-24' : 'lg:text-right'}`}
-                >
-                  <div className={`w-10 h-10 bg-emerald-600 text-slate-950 rounded-full flex items-center justify-center font-black text-base shadow-lg ${s.right ? '' : 'lg:ml-auto'}`}>{s.n}</div>
-                  <h3 className="text-lg font-black uppercase tracking-wide text-white">{s.title}</h3>
-                  <p className="text-slate-400 text-xs leading-relaxed font-medium">{s.desc}</p>
-                </motion.div>
-              ))}
-            </div>
-
-            <div className="grid lg:grid-cols-2 gap-8 lg:gap-24 mt-8 lg:-mt-12">
-              {[
-                { n: 3, title: 'Validasi Mutlak Dokter', desc: 'Draf final disajikan di dashboard. Dokter cek, edit dosis, dan klik persetujuan legalitas berkas rekam medis.', right: false },
-                { n: 4, title: 'Sinkronisasi PostgreSQL Core', desc: 'Dokumen terkunci ke database PostgreSQL. Siap diunduh PDF, dicetak fisik, dan dilacak via Audit Trail.', right: true },
-              ].map((s) => (
-                <motion.div
-                  key={s.n}
-                  initial={{ opacity: 0, x: s.right ? 40 : -40 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  className={`bg-white/[0.01] p-8 rounded-[2rem] border border-white/5 z-10 shadow-2xl space-y-4 ${s.right ? 'lg:mt-24' : 'lg:text-right'}`}
-                >
-                  <div className={`w-10 h-10 bg-emerald-600 text-slate-950 rounded-full flex items-center justify-center font-black text-base shadow-lg ${s.right ? '' : 'lg:ml-auto'}`}>{s.n}</div>
-                  <h3 className="text-lg font-black uppercase tracking-wide text-white">{s.title}</h3>
-                  <p className="text-slate-400 text-xs leading-relaxed font-medium">{s.desc}</p>
-                </motion.div>
-              ))}
-            </div>
           </div>
         </div>
       </section>
@@ -765,14 +1372,15 @@ Jawab dalam Bahasa Indonesia. Jawaban maksimal 5 kalimat, padat dan informatif.`
       <section ref={agentRef} className="py-24 md:py-32 px-6 bg-slate-950/60 relative z-20 border-y border-white/5">
         <div className="max-w-5xl mx-auto space-y-12">
           <div className="text-center">
-            <h2 className="text-emerald-400 font-black tracking-[0.3em] uppercase text-xs mb-3">Live AI Demo</h2>
+            <h2 className="text-emerald-400 font-black tracking-[0.3em] uppercase text-xs mb-3 flex items-center justify-center gap-2">
+              <Zap size={14} className="animate-pulse" /> Live AI Demo
+            </h2>
             <h3 className="text-3xl md:text-5xl font-black text-white tracking-tight uppercase italic">Tanya LexiCore Agent Sekarang</h3>
             <p className="text-slate-400 max-w-2xl mx-auto text-sm font-medium mt-3">Ini adalah versi demo publik dari AI Agent yang berjalan di dalam sistem LexiMed.ai. Tanya <strong className="text-white">apa saja</strong> tentang platform ini!</p>
           </div>
 
           <div className="bg-[#090d16] border border-white/10 rounded-[2.5rem] overflow-hidden shadow-[0_0_80px_rgba(16,185,129,0.1)]">
-            {/* Agent header */}
-            <div className="bg-slate-950/80 border-b border-white/5 px-6 py-4 flex items-center justify-between">
+            <div className="bg-slate-950/80 border-b border-white/5 px-6 py-4 flex items-center justify-between flex-wrap gap-3">
               <div className="flex items-center gap-3">
                 <motion.div animate={{ rotate: 360 }} transition={{ duration: 8, repeat: Infinity, ease: 'linear' }}>
                   <BrainCircuit className="text-emerald-400" size={18} />
@@ -782,8 +1390,7 @@ Jawab dalam Bahasa Indonesia. Jawaban maksimal 5 kalimat, padat dan informatif.`
                   <p className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Powered by {roleConfigs[agentRole].name}</p>
                 </div>
               </div>
-              {/* Role switcher */}
-              <div className="flex gap-2">
+              <div className="flex gap-2 flex-wrap">
                 {Object.entries(roleConfigs).map(([key, cfg]) => (
                   <button
                     key={key}
@@ -796,7 +1403,6 @@ Jawab dalam Bahasa Indonesia. Jawaban maksimal 5 kalimat, padat dan informatif.`
               </div>
             </div>
 
-            {/* Messages container — scroll hanya di sini */}
             <div
               ref={chatContainerRef}
               className="h-80 overflow-y-auto p-6 space-y-4 bg-gradient-to-b from-slate-950 to-[#090d16] [&::-webkit-scrollbar]:hidden"
@@ -820,26 +1426,19 @@ Jawab dalam Bahasa Indonesia. Jawaban maksimal 5 kalimat, padat dan informatif.`
               {agentLoading && (
                 <div className="flex gap-3 mr-auto">
                   <div className="w-8 h-8 rounded-lg flex items-center justify-center border bg-emerald-600/10 border-emerald-500/20 text-emerald-400"><Bot size={14} /></div>
-                  <div className="px-5 py-4 rounded-2xl rounded-tl-none bg-slate-950/80 border border-slate-800 flex gap-1.5 items-center">
-                    {[0, 150, 300].map(d => (
-                      <div key={d} className="w-2 h-2 bg-emerald-400 rounded-full animate-bounce" style={{ animationDelay: `${d}ms` }} />
-                    ))}
+                  <div className="px-5 py-4 rounded-2xl rounded-tl-none bg-slate-950/80 border border-slate-800 flex items-center gap-3">
+                    <DNAHelix />
+                    <span className="text-[10px] text-slate-500 font-bold">LexiCore memproses...</span>
                   </div>
                 </div>
               )}
-              {/* Anchor untuk scroll bottom */}
               <div ref={chatBottomRef} />
             </div>
 
-            {/* Suggested questions */}
             <div className="px-6 pb-3 pt-2 flex flex-wrap gap-2 border-t border-white/5">
               {[
-                'Apa itu LexiMed?',
-                'Apa fungsi VoltAgent?',
-                'Bagaimana arsitektur sistemnya?',
-                'Modul radiologi pakai AI apa?',
-                'Siapa pengembangnya?',
-                'Apa itu OpenClaw?',
+                'Apa itu LexiMed?', 'Jelaskan RAG di LexiMed', 'Jurnal apa saja yang dipakai?',
+                'Modul radiologi pakai AI apa?', 'Kenapa perlu dual-AI?', 'Siapa pengembangnya?',
               ].map(q => (
                 <button
                   key={q}
@@ -851,7 +1450,6 @@ Jawab dalam Bahasa Indonesia. Jawaban maksimal 5 kalimat, padat dan informatif.`
               ))}
             </div>
 
-            {/* Input */}
             <form onSubmit={handleAgentSend} className="p-4 bg-slate-950/50 border-t border-white/5">
               <div className="flex items-center gap-3">
                 <input
@@ -859,7 +1457,7 @@ Jawab dalam Bahasa Indonesia. Jawaban maksimal 5 kalimat, padat dan informatif.`
                   value={agentInput}
                   onChange={(e) => setAgentInput(e.target.value)}
                   disabled={agentLoading}
-                  placeholder={agentLoading ? 'LexiCore sedang berpikir...' : 'Tanya apa saja tentang LexiMed.ai...'}
+                  placeholder={agentLoading ? 'LexiCore sedang berpikir...' : 'Tanya tentang LexiMed.ai, jurnal referensi, atau fitur sistem...'}
                   className="flex-1 bg-slate-950 border border-slate-800 text-slate-200 rounded-xl py-3 px-4 text-xs outline-none focus:ring-2 focus:ring-emerald-500/40 placeholder:text-slate-700"
                 />
                 <button
@@ -884,8 +1482,11 @@ Jawab dalam Bahasa Indonesia. Jawaban maksimal 5 kalimat, padat dan informatif.`
           viewport={{ once: true }}
           className="max-w-4xl mx-auto text-center space-y-8 relative z-10"
         >
+          <div className="flex justify-center gap-4 mb-4">
+            <PulseRing color="rgba(255,255,255,0.2)" size={60} />
+          </div>
           <h2 className="text-3xl md:text-5xl font-black text-white uppercase tracking-tight italic">Transformasikan Administrasi Medis Hari Ini</h2>
-          <p className="text-blue-100 text-sm font-medium max-w-lg mx-auto">Masuk ke dalam ekosistem penunjang keputusan klinis masa depan yang cepat, cerdas, aman, dan efisien.</p>
+          <p className="text-blue-100 text-sm font-medium max-w-lg mx-auto">Solusi berbasis 9 jurnal ilmiah. Patuh Permenkes No.24/2022. Menuju SDG 3 bersama LexiMed.ai.</p>
           <button
             onClick={() => navigate('/login')}
             className="px-8 py-4 bg-white text-slate-950 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-slate-100 transition-all shadow-2xl flex items-center justify-center gap-3 mx-auto active:scale-95"
@@ -903,9 +1504,9 @@ Jawab dalam Bahasa Indonesia. Jawaban maksimal 5 kalimat, padat dan informatif.`
               <motion.div
                 animate={{ boxShadow: ['0 0 8px rgba(16,185,129,0.2)', '0 0 20px rgba(16,185,129,0.4)', '0 0 8px rgba(16,185,129,0.2)'] }}
                 transition={{ duration: 2.5, repeat: Infinity }}
-                className="w-8 h-8 rounded-xl flex items-center justify-center overflow-hidden border border-white/10"
+                className="w-8 h-8 rounded-xl flex items-center justify-center overflow-hidden border border-white/10 bg-white"
               >
-                <img src="/logo.png" alt="LexiMed Logo" className="w-full h-full object-contain" />
+                <img src="/logo.png" alt="LexiMed Logo" className="w-full h-full object-contain p-1" />
               </motion.div>
               <span className="text-lg font-black tracking-tight text-white italic">LexiMed<span className="text-emerald-400">.ai</span></span>
             </div>

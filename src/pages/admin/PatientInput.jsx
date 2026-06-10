@@ -73,7 +73,7 @@ export default function PatientInput() {
         },
         {
             title: "Alur Kerja Sistem: Distribusi Otoritas DPJP",
-            desc: "Setelah pasien terdaftar, data akan otomatis masuk ke database cloud PostgreSQL dan didistribusikan secara real-time ke dasbor Dokter dan Perawat terkait.",
+            desc: "Setelah pasien terdaftar, data akan otomatis masuk ke database cloud Supabase dan didistribusikan secara real-time ke dasbor Dokter dan Perawat terkait.",
             icon: <ShieldCheck className="text-emerald-400" size={24} />,
             actionLabel: "Simulasikan Input"
         },
@@ -269,7 +269,7 @@ export default function PatientInput() {
                                 <div>
                                     <h1 className="text-4xl font-black tracking-tight italic">Registrasi Pasien</h1>
                                     <p className="text-blue-400 text-xs font-black uppercase tracking-[0.3em] mt-2 flex items-center gap-2">
-                                        <Database size={14} /> Master Data Central • PostgreSQL
+                                        <Database size={14} /> Master Data Central • Supabase
                                     </p>
                                 </div>
                             </div>

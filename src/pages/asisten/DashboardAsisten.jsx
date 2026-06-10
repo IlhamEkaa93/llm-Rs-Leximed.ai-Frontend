@@ -1,9 +1,10 @@
 // ============================================================================
-// LEXIMED.AI — DashboardAsisten.jsx (v2.4 - HYBRID DAILY QUEUE & GLOBAL LOOKUP)
+// LEXIMED.AI — DashboardAsisten.jsx (v2.6 - RE-VISIT & WORKFLOW ORCHESTRATOR)
 // 100% Bebas Error Semicolon Parser & Integrasi Dual-Engine Triage Dashboard
 // Fitur Tambahan: Antrean Harian Otomatis + Panel Form Pencarian Spesifik Global
+// Fitur Utama: Alur Kerja Sistem Guided Tour Pop-up Lintas Halaman Otonom Juri
 // Mempertahankan 100% Layout Grid Animasi Seksi, Estetika Clean, & Motion Core
-// FIX: Pembersihan String Menggantung Baris 260 Untuk Meloloskan Build Vite
+// FIX: Membersihkan Duplikasi Catch Block Penyebab Vite Compilation Error 500
 // ============================================================================
 
 import React, { useState, useEffect } from 'react';
@@ -11,8 +12,8 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-    Users, Search, Calendar, UserPlus, 
-    ArrowRight, Loader2, Database, AlertCircle, CheckCircle2 
+    Users, Search, Calendar, UserPlus, HelpCircle,
+    ArrowRight, Loader2, Database, AlertCircle, CheckCircle2, ChevronRight, BrainCircuit 
 } from 'lucide-react';
 
 const DashboardAsisten = () => {
@@ -30,6 +31,25 @@ const DashboardAsisten = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [searchLoading, setSearchLoading] = useState(false);
 
+    // ── STATE: INTERACTIVE WORKFLOW TOUR PANDUAN JURI ──
+    const [showTour, setShowTour] = useState(false);
+    const [tourStep, setTourStep] = useState(0);
+
+    const tourSteps = [
+        {
+            title: "Alur Kerja Sistem: Stasiun Kerja Asisten",
+            desc: "Selamat datang di Node Triage Asisten Medis. Di sini, data pasien harian yang dikirim oleh Admin akan muncul di antrean tunggu 'Ready' secara real-time.",
+            icon: <BrainCircuit className="text-teal-400" size={24} />,
+            actionLabel: "Mulai Panduan"
+        },
+        {
+            title: "Langkah Kunci: Pilih Pasien Aktif",
+            desc: "Untuk memulai penginputan Tanda Vital (TTV) dan keluhan utama pasien, klik tombol aksi utama di bawah untuk mengunci data pasien simulasi Tn. Aditya.",
+            icon: <Users className="text-blue-400" size={24} />,
+            actionLabel: "Simulasikan Pengukuran TTV"
+        }
+    ];
+
     const API_URL = "https://lexi-med-ai-llm-rs-back-end.vercel.app/api";
     const token = localStorage.getItem('access_token');
 
@@ -44,6 +64,13 @@ const DashboardAsisten = () => {
             }
         }
         fetchPatients();
+
+        // Cek apakah ada pemicu tur berkelanjutan dari halaman pendaftaran admin
+        const savedStep = sessionStorage.getItem('leximed_admin_tour_completed');
+        if (savedStep && !sessionStorage.getItem('leximed_asisten_tour_completed')) {
+            setTourStep(0);
+            setShowTour(true);
+        }
     }, []);
 
     // ── 1. AMBIL DATA ANTREAN HARIAN ──
@@ -66,12 +93,11 @@ const DashboardAsisten = () => {
             const rawData = response.data;
             const patientsArray = Array.isArray(rawData) ? rawData : (rawData.data || []);
 
-            // Ambil tanggal hari ini format lokal (dd/mm/yyyy) untuk filter harian
             const today = new Date().toLocaleDateString('id-ID', {
                 day: '2-digit', month: '2-digit', year: 'numeric'
             });
 
-            // Saring ketat hanya pasien hari ini (Selasa, 9 Juni 2026)
+            // Saring ketat hanya pasien harian
             const todaysPatients = patientsArray.filter(p => {
                 const isTodayStr = p.date === today;
                 const isTodayIso = p.created_at && String(p.created_at).startsWith(new Date().toISOString().split('T')[0]);
@@ -83,7 +109,7 @@ const DashboardAsisten = () => {
             setError(null);
         } catch (err) {
             console.error("Error Fetch Patients:", err);
-            // Fallback antrean harian jika server terputus
+            // Fallback antrean harian amfibi jika gateway cloud terputus
             const fallbackHarian = [
                 { id: 1, name: "TN. ADITYA", norm: "RM-001", status: "Rawat Jalan", date: "09/06/2026" },
                 { id: 2, name: "NY. SITI AMINAH", norm: "RM-002", status: "Rawat Jalan", date: "09/06/2026" },
@@ -109,8 +135,8 @@ const DashboardAsisten = () => {
 
         const filtered = patients.filter(p => {
             const name = p.name ? String(p.name).toLowerCase() : '';
-            const norm = (p.norm || p.no_rm) ? String(p.norm || p.no_rm).toLowerCase() : '';
-            return name.includes(query) || norm.includes(query);
+            const fontNorm = (p.norm || p.no_rm) ? String(p.norm || p.no_rm).toLowerCase() : '';
+            return name.includes(query) || fontNorm.includes(query);
         });
         setFilteredPatients(filtered);
     };
@@ -161,8 +187,35 @@ const DashboardAsisten = () => {
         navigate('/asisten/input-pemeriksaan');
     };
 
+    // ── INTERACTIVE TOUR LOGIC ENGINE ──
+    const handleNextTourStep = () => {
+        if (tourStep === 0) {
+            setTourStep(1);
+        } else if (tourStep === 1) {
+            const targetSimPatient = patients.find(p => p.norm === "RM-001") || {
+                id: 1, name: "TN. ADITYA", norm: "RM-001", status: "Rawat Jalan"
+            };
+            localStorage.setItem('active_patient', JSON.stringify(targetSimPatient));
+            sessionStorage.setItem('leximed_asisten_tour_step', 'input_ttv');
+            setShowTour(false);
+            navigate('/asisten/input-pemeriksaan');
+        }
+    };
+
+    const handleCloseTour = () => {
+        sessionStorage.setItem('leximed_asisten_tour_completed', 'true');
+        setShowTour(false);
+    };
+
+    const toggleTourRestart = () => {
+        sessionStorage.removeItem('leximed_asisten_tour_completed');
+        setTourStep(0);
+        setShowTour(true);
+    };
+
     return (
-        <div className="space-y-8 pb-20 text-left">
+        <div className="space-y-8 pb-20 text-left relative">
+            
             {/* ── HEADER PANEL ── */}
             <motion.div 
                 initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}
@@ -175,13 +228,22 @@ const DashboardAsisten = () => {
                     </h1>
                     <p className="text-slate-500 font-bold mt-2 flex items-center gap-2 text-xs uppercase tracking-wider">
                         <Calendar size={16} className="text-teal-400" /> 
-                        Data ditarik dari Master Pendaftaran (Selasa, 9 Juni 2026)
+                        Data harian terintegrasi sistem rekam medis central
                     </p>
                 </div>
 
-                <div className="bg-emerald-50 px-5 py-3 rounded-2xl border border-emerald-100 flex items-center gap-3">
-                    <Database className="text-emerald-500" size={18} />
-                    <span className="text-[10px] font-black text-emerald-700 uppercase tracking-widest">Master Data Terhubung</span>
+                <div className="flex items-center gap-3">
+                    <button 
+                        type="button"
+                        onClick={toggleTourRestart}
+                        className="bg-teal-500/10 text-teal-600 border border-teal-500/20 px-4 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest flex items-center gap-1.5 shadow-sm transition-all"
+                    >
+                        <HelpCircle size={14} /> ALUR KERJA SISTEM
+                    </button>
+                    <div className="bg-emerald-50 px-5 py-3 rounded-2xl border border-emerald-100 flex items-center gap-3">
+                        <Database className="text-emerald-500" size={18} />
+                        <span className="text-[10px] font-black text-emerald-700 uppercase tracking-widest">Master Data Terhubung</span>
+                    </div>
                 </div>
             </motion.div>
 
@@ -198,7 +260,7 @@ const DashboardAsisten = () => {
                                 type="text" 
                                 value={searchQuery}
                                 onChange={handleSearch}
-                                placeholder="Saring antrean harian..." 
+                                placeholder="Saring nama atau nomor RM pasien harian..." 
                                 className="w-full bg-slate-50 border border-slate-100 rounded-xl py-3 pl-12 pr-4 text-sm font-bold text-slate-700 outline-none focus:border-teal-500 focus:bg-white transition-all placeholder:text-slate-400" 
                             />
                         </div>
@@ -229,7 +291,7 @@ const DashboardAsisten = () => {
                             </div>
                         ) : (
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <AnimatePresence>
+                                <AnimatePresence mode="popLayout">
                                     {filteredPatients.map((patient, index) => {
                                         const rmNumber = patient.norm || patient.no_rm;
                                         const isActive = activePatientNorm === rmNumber;
@@ -267,6 +329,7 @@ const DashboardAsisten = () => {
                                                 </div>
 
                                                 <button 
+                                                    type="button"
                                                     onClick={() => handleSelectPatient(patient)}
                                                     className={`w-full py-3 rounded-xl flex items-center justify-center gap-2 font-black text-[10px] uppercase tracking-widest transition-all ${
                                                         isActive
@@ -274,7 +337,7 @@ const DashboardAsisten = () => {
                                                         : 'bg-slate-100 text-slate-600 group-hover:bg-teal-500 group-hover:text-white'
                                                     }`}
                                                 >
-                                                    {isActive ? 'Lanjut' : 'Mulai'} <ArrowRight size={14} />
+                                                    {isActive ? 'Konteks Terkunci' : 'Mulai Triage'} <ArrowRight size={14} />
                                                 </button>
                                             </motion.div>
                                         );
@@ -308,7 +371,7 @@ const DashboardAsisten = () => {
                                 {searchLoading ? (
                                     <Loader2 className="animate-spin" size={18} />
                                 ) : (
-                                    <><Database size={18} /> Tarik Rekam Medis</>
+                                    <><Database size={18} /> Tarik Rekam Medis Global</>
                                 )}
                             </motion.button>
                         </form>
@@ -316,6 +379,58 @@ const DashboardAsisten = () => {
                 </div>
 
             </div>
+
+            {/* ── ALUR KERJA SISTEM PANDUAN DIALOG FOR DEWAN JURI ── */}
+            <AnimatePresence>
+                {showTour && (
+                    <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4">
+                        <motion.div 
+                            initial={{ scale: 0.95, y: 20 }} 
+                            animate={{ scale: 1, y: 0 }} 
+                            exit={{ scale: 0.95, y: 20 }} 
+                            className="bg-[#0f172a] border border-white/10 w-full max-w-md p-6 md:p-8 rounded-[2rem] shadow-2xl relative text-left space-y-6 text-white"
+                        >
+                            <div className="flex gap-1.5">
+                                {tourSteps.map((_, idx) => (
+                                    <div key={idx} className={`h-1.5 rounded-full transition-all duration-300 ${idx === tourStep ? 'w-8 bg-teal-500' : 'w-2 bg-slate-700'}`}/>
+                                ))}
+                            </div>
+                            
+                            <div className="space-y-3">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2 bg-white/5 border border-white/10 rounded-xl">
+                                        {tourSteps[tourStep].icon}
+                                    </div>
+                                    <h3 className="text-base font-black uppercase tracking-tight italic text-white">
+                                        {tourSteps[tourStep].title}
+                                    </h3>
+                                </div>
+                                <p className="text-slate-400 text-sm font-medium leading-relaxed">
+                                    {tourSteps[tourStep].desc}
+                                </p>
+                            </div>
+                            
+                            <div className="flex items-center justify-between pt-4 border-t border-white/5 gap-4">
+                                <button 
+                                    type="button"
+                                    onClick={handleCloseTour} 
+                                    className="text-xs font-bold text-slate-500 hover:text-slate-300 uppercase tracking-wider"
+                                >
+                                    Selesai & Keluar
+                                </button>
+                                <button 
+                                    type="button"
+                                    onClick={handleNextTourStep} 
+                                    className="px-5 py-2.5 bg-teal-600 hover:bg-teal-500 rounded-xl text-xs font-black uppercase tracking-widest flex items-center gap-2 active:scale-95 shadow-lg shadow-teal-900/40 transition-all animate-pulse"
+                                >
+                                    {tourSteps[tourStep].actionLabel} <ChevronRight size={14} />
+                                </button>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
         </div>
     );
 };

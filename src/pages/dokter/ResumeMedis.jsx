@@ -132,7 +132,7 @@ export default function ResumeMedis() {
     return ["Obat dilanjutkan sesuai instruksi resep dokter"];
   };
 
-  // Mengambil data AI Summary & Radiologi kumulatif dari PostgreSQL rs_uns_db
+  // Mengambil data AI Summary & Radiologi kumulatif dari Supabase rs_uns_db
   const fetchResumeFromLaravel = async (norm) => {
     if (!norm) return;
     setLoading(true);

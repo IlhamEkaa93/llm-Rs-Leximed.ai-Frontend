@@ -50,7 +50,7 @@ export default function Login() {
     },
     {
       title: "Langkah 1: Registrasi Master (Role Admin)",
-      desc: "Masuk sebagai ADMIN untuk melihat atau menambahkan master data pasien baru ke dalam database PostgreSQL cloud. Data dari sini akan dialirkan ke seluruh faskes.",
+      desc: "Masuk sebagai ADMIN untuk melihat atau menambahkan master data pasien baru ke dalam database Supabase cloud. Data dari sini akan dialirkan ke seluruh faskes.",
       icon: <Settings className="text-blue-400" size={24} />,
       credential: { user: "admin", note: "Kata sandi tertera pada file Dokumentasi Teknis Sistem" }
     },

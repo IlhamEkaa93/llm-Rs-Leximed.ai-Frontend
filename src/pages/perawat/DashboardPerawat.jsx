@@ -2,10 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { 
   Search, Users, Clock, ClipboardCheck, Loader2, 
   Database, LogOut, Activity, FileText,
-  Home, SunMoon, Layout, ArrowRight
+  Home, SunMoon, Layout, ArrowRight, HelpCircle, ChevronRight
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function DashboardPerawat() {
   const navigate = useNavigate();
@@ -18,7 +18,38 @@ export default function DashboardPerawat() {
   const [stats, setStats] = useState([]);
   const [user, setUser] = useState(null);
 
+  // ── STATE: INTERACTIVE WORKFLOW TOUR PANDUAN JURI ──
+  const [showTour, setShowTour] = useState(false);
+  const [tourStep, setTourStep] = useState(0);
+
   const API_URL = "https://lexi-med-ai-llm-rs-back-end.vercel.app/api";
+
+  const tourSteps = [
+    {
+      title: "Alur Kerja Sistem: Sesi Klinis Perawat",
+      desc: "Selamat datang di Node Stasiun Klinis Perawat LexiMed.ai. Dasbor ini dirancang untuk memproses inisialisasi asuhan keperawatan, melakukan sinkronisasi unit tugas, hingga penarikan data rekam medis pasien secara real-time.",
+      icon: <Layout className="text-blue-400" size={24} />,
+      actionLabel: "Mulai Panduan"
+    },
+    {
+      title: "Langkah 1: Autentikasi Unit & Shift Jaga",
+      desc: "Sebelum memeriksa pasien, Anda wajib mengunci posisi penugasan Anda pada dropdown 'Unit Layanan Klinis' dan 'Shift Penugasan'. Parameter ini penting untuk akurasi pencatatan log serah terima (handover) pasien.",
+      icon: <Home className="text-amber-400" size={24} />,
+      actionLabel: "Pahami Langkah 1"
+    },
+    {
+      title: "Langkah 2: Ekstraksi Rekam Medis (RM)",
+      desc: "Ketik Nomor RM atau nama subjek pasien pada kolom input, lalu klik 'Eksekusi'. Sistem akan melakukan query terenkripsi ke database Supabase untuk menarik identitas lengkap pasien secara instan.",
+      icon: <Search className="text-emerald-400" size={24} />,
+      actionLabel: "Pahami Langkah 2"
+    },
+    {
+      title: "Langkah 3: Otomatisasi via Neural Core Llama 3.3",
+      desc: "Setelah data pasien ditarik, sistem akan membawa Anda ke modul pengisian catatan. Di sana, Llama 3.3 Engine akan mengonversi poin-poin observasi mentah Anda menjadi dokumen asuhan keperawatan standar resmi rumah sakit.",
+      icon: <Activity className="text-purple-400" size={24} />,
+      actionLabel: "Selesai & Mengerti"
+    }
+  ];
 
   useEffect(() => {
     const initDashboard = async () => {
@@ -31,6 +62,12 @@ export default function DashboardPerawat() {
       }
 
       setUser(JSON.parse(savedUserStr));
+
+      // DETEKSI TOUR OTOMATIS KHUSUS DEMO DEWAN JURI
+      const isTourCompleted = sessionStorage.getItem('leximed_nurse_tour_completed');
+      if (!isTourCompleted) {
+        setShowTour(true);
+      }
 
       try {
         const response = await fetch(`${API_URL}/dashboard-stats`, {
@@ -62,6 +99,26 @@ export default function DashboardPerawat() {
 
     initDashboard();
   }, [navigate]);
+
+  const handleNextTourStep = () => {
+    if (tourStep < tourSteps.length - 1) {
+      setTourStep(prev => prev + 1);
+    } else {
+      sessionStorage.setItem('leximed_nurse_tour_completed', 'true');
+      setShowTour(false);
+    }
+  };
+
+  const handleCloseTour = () => {
+    sessionStorage.setItem('leximed_nurse_tour_completed', 'true');
+    setShowTour(false);
+  };
+
+  const toggleTourRestart = () => {
+    sessionStorage.removeItem('leximed_nurse_tour_completed');
+    setTourStep(0);
+    setShowTour(true);
+  };
 
   const handleSearchPatient = async () => {
     const rawInput = rm.trim();
@@ -117,8 +174,19 @@ export default function DashboardPerawat() {
   );
 
   return (
-    <div className="max-w-7xl mx-auto pb-24 text-left font-sans antialiased">
+    <div className="max-w-7xl mx-auto pb-24 text-left font-sans antialiased p-4 md:p-0">
       
+      {/* FLOATING REPOSITION TOMBOL PEMANDU JURI */}
+      <div className="w-full flex justify-end mb-4">
+        <button 
+          type="button"
+          onClick={toggleTourRestart}
+          className="bg-white border border-slate-200 text-blue-600 px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest flex items-center gap-2 transition-all shadow-sm active:scale-95 hover:bg-slate-50"
+        >
+          <HelpCircle size={15} /> Alur Pemandu Klinis
+        </button>
+      </div>
+
       {/* HEADER SECTION */}
       <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} 
         className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm mb-10 relative overflow-hidden"
@@ -150,7 +218,7 @@ export default function DashboardPerawat() {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
         
-        {/* LEFT COLUMN: SEARCH FORM */}
+        {/* LEFT COLUMN: SEARCH FORM & STATS */}
         <div className="lg:col-span-8 space-y-8 text-left">
           <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} 
             className="bg-white p-10 md:p-14 rounded-[3.5rem] shadow-2xl shadow-slate-200/60 border border-slate-200 space-y-10"
@@ -211,7 +279,7 @@ export default function DashboardPerawat() {
             </div>
           </motion.div>
 
-          {/* STATS TILES (SEKARANG MURNI DARI DATABASE) */}
+          {/* STATS TILES (MURNI DARI DATABASE) */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {stats.map((s, i) => (
               <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }} key={i} 
@@ -225,6 +293,50 @@ export default function DashboardPerawat() {
               </motion.div>
             ))}
           </div>
+
+          {/* SECTION TAMBAHAN: ALUR KERJA SISTEM */}
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }} 
+            animate={{ opacity: 1, y: 0 }} 
+            transition={{ delay: 0.3 }}
+            className="bg-white p-10 md:p-12 rounded-[3.5rem] border border-slate-200 shadow-sm space-y-8"
+          >
+            <div className="flex items-center gap-5">
+              <div className="p-4 bg-slate-50 text-slate-900 rounded-2xl border border-slate-200 shadow-inner">
+                <FileText size={24} />
+              </div>
+              <div>
+                <h3 className="text-2xl font-black text-slate-900 tracking-tighter uppercase italic leading-none">Alur Kerja Sistem</h3>
+                <p className="text-slate-400 font-bold text-xs uppercase tracking-widest mt-2">Prosedur Operasional Sesi Klinis LexiMed.ai</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 relative">
+              <div className="space-y-2 p-4 bg-slate-50 rounded-2xl border border-slate-100 shadow-inner">
+                <div className="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center font-black text-xs shadow-md">01</div>
+                <h4 className="font-black text-xs text-slate-900 uppercase tracking-tight">Identifikasi</h4>
+                <p className="text-[10px] text-slate-400 font-bold leading-relaxed uppercase">Input No. RM/Nama, pilih Unit & Shift Layanan Aktif.</p>
+              </div>
+
+              <div className="space-y-2 p-4 bg-slate-50 rounded-2xl border border-slate-100 shadow-inner">
+                <div className="w-8 h-8 rounded-xl bg-[#0f172a] text-white flex items-center justify-center font-black text-xs shadow-md">02</div>
+                <h4 className="font-black text-xs text-slate-900 uppercase tracking-tight">Observasi</h4>
+                <p className="text-[10px] text-slate-400 font-bold leading-relaxed uppercase">Tarik data rekam medis dan inisialisasi catatan klinis baru.</p>
+              </div>
+
+              <div className="space-y-2 p-4 bg-slate-50 rounded-2xl border border-slate-100 shadow-inner">
+                <div className="w-8 h-8 rounded-xl bg-amber-500 text-white flex items-center justify-center font-black text-xs shadow-md">03</div>
+                <h4 className="font-black text-xs text-slate-900 uppercase tracking-tight">Neural Core</h4>
+                <p className="text-[10px] text-slate-400 font-bold leading-relaxed uppercase">Llama 3.3 Engine memproses resume asuhan keperawatan otomatis.</p>
+              </div>
+
+              <div className="space-y-2 p-4 bg-slate-50 rounded-2xl border border-slate-100 shadow-inner">
+                <div className="w-8 h-8 rounded-xl bg-emerald-500 text-white flex items-center justify-center font-black text-xs shadow-md">04</div>
+                <h4 className="font-black text-xs text-slate-900 uppercase tracking-tight">Sinkronisasi</h4>
+                <p className="text-[10px] text-slate-400 font-bold leading-relaxed uppercase">Validasi dokumen, data otomatis tersinkronisasi murni ke Supabase.</p>
+              </div>
+            </div>
+          </motion.div>
         </div>
 
         {/* RIGHT COLUMN: SYSTEM STATUS (SIDEBAR) */}
@@ -266,6 +378,56 @@ export default function DashboardPerawat() {
         </div>
 
       </div>
+
+      {/* ── MULTI-PAGE GUIDED TOUR DIALOG FOR JUDGES ── */}
+      <AnimatePresence>
+          {showTour && (
+              <div className="fixed inset-0 z-[70] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+                  <motion.div 
+                      initial={{ scale: 0.95, y: 20 }} 
+                      animate={{ scale: 1, y: 0 }} 
+                      exit={{ scale: 0.95, y: 20 }} 
+                      className="bg-[#0f172a] border border-white/10 w-full max-w-md p-6 md:p-8 rounded-[2rem] shadow-2xl relative text-left space-y-6 text-white"
+                  >
+                      <div className="flex gap-1.5">
+                          {tourSteps.map((_, idx) => (
+                              <div key={idx} className={`h-1.5 rounded-full transition-all duration-300 ${idx === tourStep ? 'w-8 bg-blue-500' : 'w-2 bg-slate-700'}`}/>
+                          ))}
+                      </div>
+                      
+                      <div className="space-y-3">
+                          <div className="flex items-center gap-3">
+                              <div className="p-2 bg-white/5 border border-white/10 rounded-xl">
+                                  {tourSteps[tourStep].icon}
+                              </div>
+                              <h3 className="text-base font-black uppercase tracking-tight italic text-white">
+                                  {tourSteps[tourStep].title}
+                              </h3>
+                          </div>
+                          <p className="text-slate-400 text-sm font-medium leading-relaxed">
+                              {tourSteps[tourStep].desc}
+                          </p>
+                      </div>
+                      
+                      <div className="flex items-center justify-between pt-4 border-t border-white/5 gap-4">
+                          <button 
+                              onClick={handleCloseTour} 
+                              className="text-xs font-bold text-slate-500 hover:text-slate-300 uppercase tracking-wider"
+                          >
+                              Keluar Tur
+                          </button>
+                          <button 
+                              onClick={handleNextTourStep} 
+                              className="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 rounded-xl text-xs font-black uppercase tracking-widest flex items-center gap-2 active:scale-95 shadow-lg shadow-blue-900/40 transition-all animate-pulse"
+                          >
+                              {tourSteps[tourStep].actionLabel} <ChevronRight size={14} />
+                          </button>
+                      </div>
+                  </motion.div>
+              </div>
+          )}
+      </AnimatePresence>
+
     </div>
   );
 }
