@@ -605,7 +605,7 @@ Kamu adalah asisten AI dari platform LexiMed.ai — sistem rekam medis berbasis 
 Informasi penting tentang LexiMed.ai:
 - Pengembang: Ilham Eka Saputra, D3 Teknik Informatika, Sekolah Vokasi UNS Madiun
 - Frontend: React.js 18 + Vite + Tailwind CSS + Framer Motion
-- Backend: Laravel 11 + Sanctum Auth + PostgreSQL (via Supabase)
+- Backend: Laravel 11 + Sanctum Auth + Supabase (via Supabase)
 - AI Stack: Groq SDK (Llama 3.3 70B) + Gemini 1.5 Flash Vision
 - Jurnal Pendukung: Singhal (2023), Kurnia, Wornow, Permenkes (2022).
 - Fitur: CDSS dokter, modul perawat TTV, PACS radiologi, dashboard manajemen.
@@ -1294,7 +1294,7 @@ Jawab dalam Bahasa Indonesia. Jawaban maksimal 4 kalimat, padat, ramah dan infor
                 items: [
                   { name: 'Laravel 11', desc: 'PHP backend framework' },
                   { name: 'Sanctum Auth', desc: 'Token-based auth' },
-                  { name: 'PostgreSQL', desc: 'Database utama (rs_uns_db)' },
+                  { name: 'Supabase', desc: 'Database utama (rs_uns_db)' },
                   { name: 'Eloquent ORM', desc: 'Model relasi data' },
                   { name: 'REST API', desc: 'JSON endpoint gateway' },
                 ]

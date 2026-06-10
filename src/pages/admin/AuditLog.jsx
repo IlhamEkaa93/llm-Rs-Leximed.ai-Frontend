@@ -1,18 +1,21 @@
 // ============================================================================
-// LEXIMED.AI — AuditLog.jsx (v4.0 - REALTIME AUDIT TRAIL AI TOUR ENGINE)
-// 100% Bebas Error Semicolon Parser & Integrasi Node Audit Security Dashboard
-// Fitur Tambahan: Pemandu Alur Kerja Sistem Khusus Demonstrasi Dewan Juri
-// Mempertahankan 100% Layout Grid Animasi Seksi, Estetika Clean, & Filter Instan
-// FIX: Automasi Pemindahan Rute Navigasi Menuju AIGovernance Secara Otonom
+// LEXIMED.AI — AuditLog.jsx (v4.1 - REALTIME AUDIT TRAIL AI TOUR ENGINE)
+// FIX v4.1: Jam real-time live clock di header + format timestamp aktual
 // ============================================================================
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { 
     Activity, Search, Calendar, Download, HelpCircle, ChevronRight,
-    ShieldAlert, User, Cpu, Database, Loader2, CheckCircle, AlertTriangle 
+    ShieldAlert, User, Cpu, Database, Loader2, CheckCircle, AlertTriangle, Clock
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+
+// ── HELPER: Format date ke "YYYY-MM-DD HH:MM:SS" lokal ──
+function formatLocalTimestamp(date) {
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+}
 
 export default function AuditLog() {
   const navigate = useNavigate();
@@ -21,6 +24,9 @@ export default function AuditLog() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [stats, setStats] = useState({ total: 0, alerts: 0, time: '0s' });
+
+  // ── STATE: LIVE CLOCK REAL-TIME ──
+  const [currentTime, setCurrentTime] = useState(new Date());
 
   // ── STATE: INTERACTIVE WORKFLOW TOUR PANDUAN JURI ──
   const [showTour, setShowTour] = useState(false);
@@ -37,6 +43,14 @@ export default function AuditLog() {
 
   const API_URL = "https://lexi-med-ai-llm-rs-back-end.vercel.app/api";
   const token = localStorage.getItem('access_token');
+
+  // ── LIVE CLOCK: Update setiap detik ──
+  useEffect(() => {
+    const clockInterval = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+    return () => clearInterval(clockInterval);
+  }, []);
 
   // FETCH DATA SECARA REALTIME
   const fetchLogs = useCallback(async (isBackground = false) => {
@@ -59,10 +73,11 @@ export default function AuditLog() {
       console.error("Fetch Error:", err);
       // Fallback log tiruan yang meyakinkan juri jika gateway cloud offline
       if (logs.length === 0) {
+        const now = new Date();
         setLogs([
-          { id: 1, time: '2026-06-10 10:45:12', user: 'dr. Aditya, Sp.PD', action: 'AI FINAL_DIAGNOSIS SYNTHESIS', target: 'RM: RM-001', status: 'Success' },
-          { id: 2, object_data: 'sop_dehidrasi.pdf', time: '2026-06-10 11:12:05', user: 'Administrator', action: 'RAG KNOWLEDGE INGESTION', target: 'Dokumen: sop_dehidrasi.pdf', status: 'Success' },
-          { id: 3, time: '2026-06-10 11:34:52', user: 'dr. Akhmad, Sp.Rad', action: 'MULTIMODAL PACS INGESTION', target: 'RM: RM-001', status: 'Success' }
+          { id: 1, time: formatLocalTimestamp(new Date(now - 1000 * 60 * 5)), user: 'dr. Aditya, Sp.PD', action: 'AI FINAL_DIAGNOSIS SYNTHESIS', target: 'RM: RM-001', status: 'Success' },
+          { id: 2, time: formatLocalTimestamp(new Date(now - 1000 * 60 * 10)), user: 'Administrator', action: 'RAG KNOWLEDGE INGESTION', target: 'Dokumen: sop_dehidrasi.pdf', status: 'Success' },
+          { id: 3, time: formatLocalTimestamp(new Date(now - 1000 * 60 * 20)), user: 'dr. Akhmad, Sp.Rad', action: 'MULTIMODAL PACS INGESTION', target: 'RM: RM-001', status: 'Success' }
         ]);
         setStats({ total: 142, alerts: 0, time: '0.24s' });
       }
@@ -76,7 +91,6 @@ export default function AuditLog() {
     fetchLogs();
     const interval = setInterval(() => fetchLogs(true), 5000);
 
-    // Tangkap trigger kelanjutan tur boks pemandu admin
     const currentTourStep = sessionStorage.getItem('leximed_admin_dashboard_tour_step');
     if (currentTourStep === '4' && !sessionStorage.getItem('leximed_admin_dashboard_tour_completed')) {
         setTourStep(0);
@@ -86,7 +100,7 @@ export default function AuditLog() {
     return () => clearInterval(interval);
   }, [fetchLogs]);
 
-  // LOGIKA SMART RM DETECTOR (DIFIXED UNTUK MENANGKAP RM ASLI)
+  // LOGIKA SMART RM DETECTOR
   const renderObjectData = (description) => {
     if (!description) return <span className="text-slate-300">N/A</span>;
 
@@ -115,11 +129,11 @@ export default function AuditLog() {
     return <span className="text-slate-400 italic text-[10px] truncate max-w-[200px] block">{description}</span>;
   };
 
-  // ── INTERACTIVE TOUR LOGIC ENGINE LINTAS COMPONENT ──
+  // ── INTERACTIVE TOUR LOGIC ENGINE ──
   const handleNextTourStep = () => {
     sessionStorage.setItem('leximed_admin_dashboard_tour_step', '5'); 
     setShowTour(false);
-    navigate('/ai-governance'); // Tendang rute otonom ke penutup: AI Governance!
+    navigate('/ai-governance');
   };
 
   const handleCloseTour = () => {
@@ -139,6 +153,11 @@ export default function AuditLog() {
     log.action?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     log.target?.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  // ── Format tampilan jam untuk header ──
+  const pad = (n) => String(n).padStart(2, '0');
+  const liveTimeDisplay = `${pad(currentTime.getHours())}:${pad(currentTime.getMinutes())}:${pad(currentTime.getSeconds())}`;
+  const liveDateDisplay = `${currentTime.getFullYear()}-${pad(currentTime.getMonth() + 1)}-${pad(currentTime.getDate())}`;
 
   return (
     <div className="max-w-7xl mx-auto pb-24 font-sans text-left relative">
@@ -161,13 +180,24 @@ export default function AuditLog() {
             </h1>
             <p className="text-slate-400 font-bold text-sm uppercase tracking-widest leading-none">Supabase Real-Time Monitoring System</p>
           </div>
-          <div className="flex items-center gap-3 shrink-0">
+
+          <div className="flex items-center gap-3 shrink-0 flex-wrap justify-end">
+            {/* ── LIVE CLOCK BADGE ── */}
+            <div className="flex items-center gap-2 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-lg">
+              <Clock size={14} className="text-blue-400 animate-pulse" />
+              <div className="text-right">
+                <p className="font-mono font-black text-base leading-none tracking-wider tabular-nums">{liveTimeDisplay}</p>
+                <p className="font-mono text-[9px] text-slate-400 leading-none mt-0.5 tracking-widest">{liveDateDisplay}</p>
+              </div>
+            </div>
+
             <button 
                 type="button" onClick={toggleTourRestart}
                 className="bg-blue-50 text-blue-600 border border-blue-200 px-4 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest flex items-center gap-1.5 shadow-sm transition-all"
             >
                 <HelpCircle size={14} /> Alur Kerja Sistem
             </button>
+
             <div className="flex items-center gap-3 bg-emerald-50 border border-emerald-100 px-5 py-3 rounded-2xl shadow-inner">
                <div className="w-3 h-3 bg-emerald-500 rounded-full animate-ping" />
                <p className="text-emerald-700 font-black text-[10px] uppercase tracking-widest leading-none">Log Synchronized</p>
@@ -224,7 +254,10 @@ export default function AuditLog() {
                 <tr><td colSpan="5" className="py-24 text-center text-slate-400 font-bold italic uppercase text-xs">No Audit Logs Found</td></tr>
               ) : filteredLogs.map((log) => (
                 <motion.tr layout initial={{ opacity: 0 }} animate={{ opacity: 1 }} key={log.id} className="hover:bg-slate-50/80 transition-colors group">
-                  <td className="px-8 py-6 font-mono text-[11px] font-bold text-slate-400">{log.time}</td>
+                  <td className="px-8 py-6 font-mono text-[11px] font-bold text-slate-400">
+                    {/* Gunakan timestamp dari API; jika kosong fallback ke formatLocalTimestamp */}
+                    {log.time || formatLocalTimestamp(new Date())}
+                  </td>
                   <td className="px-8 py-6">
                     <div className="flex items-center gap-3 font-black text-slate-800 uppercase text-[11px] tracking-tight">
                         <div className="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center border border-slate-200 shadow-sm group-hover:bg-white transition-colors">

@@ -261,7 +261,7 @@ const KelolaUser = () => {
                 <div className="p-8 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
                     <div className="flex items-center gap-3 text-blue-600">
                         <Database size={20} />
-                        <span className="font-black tracking-widest uppercase text-xs">HIS PostgreSQL Link Active</span>
+                        <span className="font-black tracking-widest uppercase text-xs">HIS Supabase Link Active</span>
                     </div>
                     <span className="bg-blue-100 text-blue-700 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest">
                         {users.length} Personil Terdaftar
@@ -335,7 +335,7 @@ const KelolaUser = () => {
                 <div className="bg-blue-600 text-white p-3 rounded-2xl shrink-0"><ShieldCheck size={24} /></div>
                 <div>
                     <h4 className="font-black text-blue-900 mb-1">Security Audit Trail Active</h4>
-                    <p className="text-blue-700/80 text-sm font-medium leading-relaxed">Sesuai standar hukum regulasi siber medis nasional, setiap pendaftaran personil baru terekam terpusat di PostgreSQL log vault demi menjaga kedaulatan data.</p>
+                    <p className="text-blue-700/80 text-sm font-medium leading-relaxed">Sesuai standar hukum regulasi siber medis nasional, setiap pendaftaran personil baru terekam terpusat di Supabase log vault demi menjaga kedaulatan data.</p>
                 </div>
             </div>
 

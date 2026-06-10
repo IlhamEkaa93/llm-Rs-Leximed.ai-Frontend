@@ -411,7 +411,7 @@ export default function InputRadiologi() {
             <div className="flex items-center gap-2 mb-2">
               <div className="p-1 bg-emerald-600 text-white rounded-md"><Stethoscope size={12} /></div>
               <span className="text-[9px] font-black text-emerald-800 uppercase tracking-widest">
-                Instruksi Rekomendasi Dokter Poliklinik (Live PostgreSQL)
+                Instruksi Rekomendasi Dokter Poliklinik (Live Supabase)
               </span>
               <span className="bg-emerald-100 text-emerald-700 font-black text-[8px] uppercase tracking-wider px-2 py-0.5 rounded-full ml-auto">
                 Modalitas Diminta: {formData.jenis_pemeriksaan}

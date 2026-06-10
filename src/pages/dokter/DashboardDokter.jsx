@@ -284,7 +284,7 @@ export default function DashboardDokter() {
               {loadingPatients ? (
                 <div className="flex flex-col items-center justify-center py-24 text-slate-400 gap-4">
                   <Loader2 className="animate-spin text-blue-600" size={40} />
-                  <p className="font-bold text-xs uppercase tracking-widest">Sinkronisasi Pipa PostgreSQL...</p>
+                  <p className="font-bold text-xs uppercase tracking-widest">Sinkronisasi Pipa Supabase...</p>
                 </div>
               ) : patientsList.length > 0 ? (
                 <motion.div variants={containerVariants} initial="hidden" animate="show" className="space-y-3">

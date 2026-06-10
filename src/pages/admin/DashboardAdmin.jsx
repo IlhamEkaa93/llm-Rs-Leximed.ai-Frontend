@@ -40,7 +40,7 @@ export default function DashboardAdmin() {
     const tourSteps = [
         {
             title: "Alur Kerja Sistem: Admin Command Center",
-            desc: "Selamat datang di pusat kendali siber LexiMed.ai. Di sini, Administrator dapat memantau seluruh metrik vital infrastruktur cloud, server database PostgreSQL, dan orkestrasi AI secara real-time.",
+            desc: "Selamat datang di pusat kendali siber LexiMed.ai. Di sini, Administrator dapat memantau seluruh metrik vital infrastruktur cloud, server database Supabase, dan orkestrasi AI secara real-time.",
             icon: <Server className="text-blue-400" size={24} />,
             actionLabel: "Mulai Panduan Menu"
         },
@@ -221,7 +221,7 @@ export default function DashboardAdmin() {
                     <div className="relative z-10">
                         <h1 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tight uppercase italic">Admin Command Center</h1>
                         <p className="text-slate-500 mt-2 font-medium flex items-center gap-2">
-                           <Sparkles size={16} className="text-emerald-500" /> Monitoring infrastruktur LexiMed.ai & PostgreSQL Database Core.
+                           <Sparkles size={16} className="text-emerald-500" /> Monitoring infrastruktur LexiMed.ai & Supabase Database Core.
                         </p>
                     </div>
 
@@ -306,7 +306,7 @@ export default function DashboardAdmin() {
                             <div className="bg-white/[0.03] backdrop-blur-xl p-6 md:p-8 rounded-[2rem] border border-white/10 flex justify-between items-center group hover:bg-white/[0.06] transition-all">
                                 <div className="space-y-2 text-left">
                                     <span className="text-[10px] md:text-xs font-black text-slate-500 uppercase tracking-widest block">Main Database Server</span>
-                                    <span className="text-lg md:text-xl font-bold text-white tracking-tight">Cloud PostgreSQL Node</span>
+                                    <span className="text-lg md:text-xl font-bold text-white tracking-tight">Cloud Supabase Node</span>
                                 </div>
                                 <div className={`flex items-center gap-3 px-4 py-2 rounded-full text-[9px] font-black uppercase tracking-widest ${dbStatus ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'}`}>
                                     {dbStatus ? <CheckCircle size={14}/> : <Activity size={14} className="animate-pulse" />}
@@ -357,7 +357,7 @@ export default function DashboardAdmin() {
                                 <tr><td className="p-3 border">Total Personil Terdaftar</td><td className="p-3 border">{stats.users}</td></tr>
                                 <tr><td className="p-3 border">Jumlah Aktivitas AI</td><td className="p-3 border">{stats.logs}</td></tr>
                                 <tr><td className="p-3 border">Knowledge Base Documents</td><td className="p-3 border">{stats.knowledge}</td></tr>
-                                <tr><td className="p-3 border">Main Database Engine</td><td className="p-3 border">PostgreSQL Cloud Gateway (Online)</td></tr>
+                                <tr><td className="p-3 border">Main Database Engine</td><td className="p-3 border">Supabase Cloud Gateway (Online)</td></tr>
                                 <tr><td className="p-3 border">AI Inference Engine</td><td className="p-3 border">Groq Cloud - Llama 3.3 (Active)</td></tr>
                             </tbody>
                         </table>

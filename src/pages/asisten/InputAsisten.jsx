@@ -60,7 +60,7 @@ export default function InputAsisten() {
         },
         {
             title: "Alur Kerja Sistem: Distribusi Pipeline Data Otonom",
-            desc: "Seluruh berkas anamnesa awal siap dikirim. Klik tombol di bawah untuk menyinkronkan data ke PostgreSQL cloud, lalu sistem akan mengalihkan rute otonom ke Stasiun Kerja Dokter.",
+            desc: "Seluruh berkas anamnesa awal siap dikirim. Klik tombol di bawah untuk menyinkronkan data ke Supabase cloud, lalu sistem akan mengalihkan rute otonom ke Stasiun Kerja Dokter.",
             icon: <Sparkles className="text-amber-400" size={24} />,
             actionLabel: "Kirim & Lanjut ke Dokter"
         }
