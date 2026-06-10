@@ -1,13 +1,14 @@
 // ============================================================================
-// LEXIMED.AI — KelolaUser.jsx (v1.4 - SECURITY IDENTITY MANAGEMENT STATION)
+// LEXIMED.AI — KelolaUser.jsx (v1.6 - SECURITY IDENTITY MANAGEMENT STATION)
 // 100% Bebas Error Semicolon Parser & Integrasi Node Audit Security Dashboard
 // Fitur Tambahan: Pemandu Alur Kerja Sistem Khusus Demonstrasi Dewan Juri
 // Mempertahankan 100% Fungsi CRUD Real-time State Lokal & Sinkronisasi Supabase
+// FIX: Memperbaiki Jalur Import Pustaka 'ajax' Menjadi 'axios' (Anti-Fail Bundle)
 // FIX: Mengganti Seluruh Alert & Confirm Browser Menjadi Premium Floating Toast Overlay
 // ============================================================================
 
 import React, { useState, useEffect } from 'react';
-import axios from 'ajax';
+import axios from 'axios'; // 🚀 FIX MUTLAK: Wajib Menggunakan 'axios' Agar Lolos Compiler Vercel!
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -213,7 +214,7 @@ const KelolaUser = () => {
                         initial={{ opacity: 0, y: -50, x: '-50%', scale: 0.95 }} 
                         animate={{ opacity: 1, y: 0, x: '-50%', scale: 1 }} 
                         exit={{ opacity: 0, y: -20, x: '-50%', scale: 0.95 }} 
-                        className={`fixed top-6 left-1/2 -translate-x-1/2 z-[110] px-6 py-4 rounded-2xl font-black text-xs md:text-sm shadow-2xl border flex items-center gap-3 w-full max-w-xl text-left uppercase tracking-wider ${
+                        className={`fixed top-6 left-1/2 -translate-x-1/2 z-[110] px-6 py-4 rounded-2xl font-bold text-xs md:text-sm shadow-2xl border flex items-center gap-3 w-full max-w-xl text-left uppercase tracking-wider ${
                             toast.type === 'success' ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-rose-50 text-rose-800 border-rose-200'
                         }`}
                     >
@@ -429,7 +430,7 @@ const KelolaUser = () => {
                 {deleteTargetId && (
                     <div className="fixed inset-0 z-[100] bg-slate-950/70 backdrop-blur-md flex items-center justify-center p-4">
                         <motion.div 
-                            initial={{ scale: 0.95, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.95, opacity: 0, y: 20 }}
+                            initial={{ scale: 0.95, opacity: 0, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, opacity: 0, y: 20 }}
                             className="bg-[#0f172a] border border-white/10 w-full max-w-sm p-8 rounded-[2.5rem] shadow-2xl text-center space-y-6 text-white"
                         >
                             <div className="w-16 h-16 bg-rose-500/10 border border-rose-500/20 text-rose-400 rounded-2xl flex items-center justify-center mx-auto shadow-lg shadow-rose-500/5">
