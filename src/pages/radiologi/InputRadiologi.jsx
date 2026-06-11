@@ -1,11 +1,11 @@
 // ============================================================================
-// LEXIMED.AI — InputRadiologi.jsx (v16.8 - PRODUCTION MULTIMODAL CORE)
+// LEXIMED.AI — InputRadiologi.jsx (v16.9 - PRODUCTION MULTIMODAL CORE FIXED)
 // 100% Bebas Error Semicolon & Babel Object Parsing Payload Compiler
 // Integrasi Satu Atap: Menampilkan Rujukan Dokter Poliklinik & Data Pasien Live
 // Mesin Analisis Menggabungkan Kekuatan Vision Gemini & Kecepatan Groq Llama
 // Fitur Utama: Alur Kerja Sistem Guided Tour Pop-up Lintas Halaman Otonom Juri
-// MASTER FIX: Pembersihan Sisa Teks Komentar Liar Yang Memicu Crash Compile
-// MASTER FIX: Pemindahan Tombol Run Hybrid Analysis ke Sektor Kiri Di Bawah Dropzone
+// FIX: Penambahan Komponen Disclaimer AI Guardrail Sektor Bawah Sesuai Regulasi
+// FIX: Pemanduan Struktur Kompilasi Payload Lintas Node Tanpa Hambatan
 // ============================================================================
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -69,7 +69,7 @@ export default function InputRadiologi() {
     },
     {
       title: "Alur Kerja Sistem: Sinkronisasi Lintas Node",
-      desc: "Laporan impresi divalidasi penuh. Langkah terakhir, klik tombol di bawah untuk mengunci data ke database cloud Supabase dan mengembalikan kendali otonom ke Dokter.",
+      desc: "Laporan impresi divalidasi penuh. Langkah terakhir, klik tombol di bawah untuk mengunci data ke database cloud Supabase and mengembalikan kendali otonom ke Dokter.",
       icon: <ShieldCheck className="text-amber-400" size={24} />,
       actionLabel: "Kunci & Kirim ke RME"
     }
@@ -401,7 +401,7 @@ export default function InputRadiologi() {
             <div className="space-y-1">
               <h2 className="text-xl font-black text-slate-900 tracking-tight uppercase"><span className="text-emerald-600">{patient?.title || 'Tn.'}</span> {patient?.name}</h2>
               <p className="text-xs font-black text-slate-400 uppercase tracking-wider">No. Rekam Medis: {patient?.norm || patient?.no_rm}</p>
-              <div className="pt-2 flex flex-wrap gap-1.5 text-[9px] font-bold uppercase text-slate-500">
+              <div className="text-[9px] font-bold uppercase text-slate-500 flex flex-wrap gap-1.5 pt-2">
                 <span className="bg-slate-100 px-2 py-0.5 rounded-md">Umur: {patient?.age || '0'} Tahun</span>
                 <span className="bg-slate-100 px-2 py-0.5 rounded-md">Gender: {patient?.gender || 'Laki-Laki'}</span>
               </div>
@@ -476,9 +476,9 @@ export default function InputRadiologi() {
                 </div>
               </div>
 
-              {/* 🚀 REPOSITION CONTROLS: Tombol Run Hybrid Analysis Dipindah Ke Sektor Kiri Di Bawah Dropzone */}
               <div className="pt-2 text-right">
                 <button 
+                  type="button"
                   onClick={() => runRadiologyAIAnalysis()} 
                   disabled={isGenerating || !base64File} 
                   className="bg-gradient-to-r from-blue-600 to-emerald-600 text-white px-6 py-3.5 rounded-xl font-black text-xs uppercase tracking-widest hover:from-blue-700 hover:to-emerald-700 disabled:opacity-40 transition-all flex items-center justify-center gap-2 shadow-md active:scale-95 w-full sm:w-auto ml-auto"
@@ -506,7 +506,7 @@ export default function InputRadiologi() {
               <div className="space-y-4 pt-4 border-t border-slate-100">
                 <div className="space-y-2">
                   <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block ml-1">Catatan Koreksi Tambahan Radiolog (Opsional)</label>
-                  <input type="text" name="catatan_koreksi" value={formData.catatan_koreksi} onChange={handleChange} placeholder="Beri catatan jika ada penyesuaian interpretasi..." className="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl font-medium text-xs outline-none focus:border-amber-500 shadow-inner" />
+                  <input type="text" name="catatan_koreksi" value={formData.catatan_koreksi} onChange={handleChange} placeholder="Beri catatan jika ada penyesuaian interpretasi..." className="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl font-medium text-xs outline-none focus:border-amber-400 shadow-inner" />
                 </div>
 
                 <button onClick={handleApproveAndSave} disabled={isSaving || !laporanFinal} className="w-full py-4 bg-[#0f172a] hover:bg-slate-800 text-white rounded-xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 transition-all disabled:opacity-40 shadow-md active:scale-95">
@@ -517,6 +517,22 @@ export default function InputRadiologi() {
             </div>
           </div>
 
+        </div>
+
+        {/* ── 🚀 ENTERPRISE CLINICAL ARCHITECTURE DISCLAIMER (MEDICAL GUARDRAIL) ── */}
+        <div className="bg-slate-100 border border-slate-200 rounded-[20px] p-5 flex items-start gap-4 text-left">
+          <AlertTriangle className="text-amber-600 shrink-0 mt-0.5 animate-pulse" size={20} />
+          <div>
+            <h5 className="text-[10px] font-black text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+               Sistem Validasi Citra Medis & Ingesti PACS Dual-AI (Permenkes 24/2022 Compliance)
+            </h5>
+            <p className="text-[11px] text-slate-500 font-medium mt-1 leading-relaxed">
+              Modul PACS visual otonom ini berjalan di atas arsitektur kognitif **Dual-Engine Pipeline AI** (Llama 3.3 via Groq API untuk pemrosesan teks, dan Gemini 1.5 Flash untuk analisis multimodal berkas pencitraan medis). Sistem mengekstrak berkas biner gambar rontgen/scan secara multimodal and mengonversinya menjadi draf impresi laporan ekspertise baku radiologi guna mereduksi beban dokumentasi manual.
+            </p>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-tight mt-2.5">
+              ⚠️ PERNYATAAN HUKUM: Seluruh draf laporan impresi yang diekstrak oleh kecerdasan buatan bersifat sebagai asisten pendukung (AI-assisted). Petugas dokter spesialis radiologi (Sp.Rad) wajib meninjau, menyunting, dan memberikan otorisasi persetujuan resmi sebelum berkas biner citra medis ini dinyatakan sah tersimpan ke lini masa pangkalan data rekam medis utama.
+            </p>
+          </div>
         </div>
 
         {/* FOOTER ARCHITECTURE WARNING */}
@@ -532,7 +548,7 @@ export default function InputRadiologi() {
       {/* SUCCESS OVERLAY POPUP */}
       <AnimatePresence>
         {isSuccess && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-md flex items-center justify-center p-4">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
             <motion.div initial={{ scale: 0.9, y: 10 }} animate={{ scale: 1, y: 0 }} className="bg-white p-8 rounded-[2.5rem] text-center max-w-xs shadow-2xl border-4 border-emerald-100">
               <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 animate-bounce">
                 <CheckCircle2 size={32} />

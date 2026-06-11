@@ -1,20 +1,21 @@
 // ============================================================================
-// LEXIMED.AI — HandoverShift.jsx (v3.3 - NURSING WORKSPACE INTEGRATION)
+// LEXIMED.AI — HandoverShift.jsx (v3.4 - NURSING WORKSPACE INTEGRATION)
 // 100% Bebas Error Semicolon Parser & Proteksi Integritas State Lintas Halaman
 // Fitur Utama: Live Interactive Guided Tour Pop-up Otonom Khusus Dewan Juri
 // Mempertahankan 100% Estetika Layout, Grid CSS, Dan Analisis Anti-Halusinasi
 // FIX: Mengoreksi Typo Fatal Kata Kunci Block 'Eastern' Menjadi 'finally' (Vite Build Clear)
-// FIX: Sinkronisasi Variabel Caching Otomatis untuk Dibaca Node Validasi Akhir
+// FIX: Penambahan Komponen Disclaimer AI Guardrail Sektor Bawah Sesuai Regulasi
 // ============================================================================
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import axios from 'axios';
 import { 
   Activity, FileText, ArrowRight, Loader2, Zap, User, 
   CheckCircle2, ShieldCheck, Calendar, Clock, MapPin,
   Sparkles, BrainCircuit, HelpCircle, ChevronRight, Database,
-  AlertCircle, RefreshCw, Heart, Thermometer, Droplets, ClipboardList, Stethoscope, UserCheck
+  AlertCircle, RefreshCw, Heart, Thermometer, Droplets, ClipboardList, Stethoscope, UserCheck, AlertTriangle
 } from 'lucide-react';
 
 const API_URL = "https://lexi-med-ai-llm-rs-back-end.vercel.app/api";
@@ -66,7 +67,7 @@ export default function HandoverShift() {
     },
     {
       title: "Langkah Akhir: Alirkan Ke Validasi Berkas",
-      desc: "Seluruh draf asuhan keperawatan multi-kotak berhasil tersusun. Klik tombol di bawah untuk mengalirkan dokumen menuju bilik validasi perawat sebelum di-commit.",
+      desc: "Seluruh draf asuhan keperawatan multi-kotak berhasil tersusun. Klik tombol di bawah untuk mengalihkan dokumen menuju bilik validasi perawat sebelum di-commit.",
       icon: <ShieldCheck className="text-emerald-400" size={24} />,
       actionLabel: "Lanjut Ke Validasi"
     }
@@ -109,7 +110,6 @@ export default function HandoverShift() {
       if (res.ok && result) {
         setPemeriksaanAwal(result);
         
-        // Formulasi otomatis string objektif dari tanda vital aktual database cloud
         const vitalString = `Tekanan Darah: ${result.blood_pressure || '---'} mmHg, HR: ${result.heart_rate || '---'} bpm, Temp: ${result.temperature || '---'} °C, SpO2: ${result.oxygen_saturation || '---'}%`;
         setTxtObjective(vitalString);
         setTxtSubjective(result.raw_content || 'Pasien mengeluhkan kondisi tubuh kurang bugar.');
@@ -166,7 +166,7 @@ export default function HandoverShift() {
       }
     } catch (e) {
       console.error('Gagal inisialisasi pipeline data:', e);
-    } finally { // 🚀 FIX: Mengubah 'Eastern' menjadi kata kunci valid 'finally'
+    } finally { 
       setLoading(false);
       setIsRefreshing(false);
     }
@@ -246,7 +246,6 @@ export default function HandoverShift() {
     }
   };
 
-  // ── HANDLER: Navigasi Otonom Menuju Halaman Validasi Berkas ──
   const handleNextStep = () => {
     if (!txtDiagnosisKeperawatan) return triggerToast('error', "Tolong jalankan kompilasi Generate AI Report terlebih dahulu.");
     triggerToast('success', 'Mengunci draf operan shift. Dialihkan ke bilik validasi...');
@@ -255,7 +254,6 @@ export default function HandoverShift() {
     }, 1000);
   };
 
-  // ── INTERACTIVE TOUR LOGIC ENGINE LINTAS LAYAR OTONOM ──
   const handleNextTourStep = async () => {
     if (tourStep === 0) {
       setTourStep(1);
@@ -405,6 +403,22 @@ export default function HandoverShift() {
               </motion.div>
             )}
           </AnimatePresence>
+
+          {/* ── 🚀 ENTERPRISE CLINICAL ARCHITECTURE DISCLAIMER (MEDICAL GUARDRAIL) ── */}
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-slate-100 border border-slate-200 rounded-[20px] p-5 flex items-start gap-4 text-left">
+            <AlertTriangle className="text-amber-600 shrink-0 mt-0.5 animate-pulse" size={20} />
+            <div>
+              <h5 className="text-[10px] font-black text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                 Sistem Automasi Dokumentasi Keperawatan Lintas Shift (Permenkes 24/2022 Compliance)
+              </h5>
+              <p className="text-[11px] text-slate-500 font-medium mt-1 leading-relaxed">
+                Modul asuhan keperawatan otonom ini berjalan di atas mesin pemrosesan **Groq Llama 3.3 Engine**. Sistem mengekstrak parameter tanda-tanda vital (TTV) aktual dari Supabase Cloud dan mengubahnya menjadi berkas operan shift terstruktur (*Nursing Summary*). Seluruh rekam asuhan ini mengacu pada standardisasi klasifikasi pedoman asuhan klinis nasional guna memotong inefisiensi dokumentasi operan jaga.
+              </p>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-tight mt-2.5">
+                ⚠️ PERNYATAAN HUKUM: Ringkasan asuhan keperawatan ini bersifat draf rekomendasi asisten digital (AI-assisted). Petugas perawat shift jaga wajib meninjau, menyunting, dan melakukan verifikasi manual pada bilik otorisasi berkas sebelum draf ini resmi dinyatakan sah sebagai rekam medis institusi.
+              </p>
+            </div>
+          </motion.div>
         </div>
 
         {/* RIGHT COLUMN: SIDEBAR AI COMMAND CENTER */}
@@ -452,7 +466,7 @@ export default function HandoverShift() {
       {/* ── MULTI-PAGE GUIDED TOUR DIALOG FOR DEWAN JURI ── */}
       <AnimatePresence>
         {showTour && (
-          <div className="fixed inset-0 z-[100] bg-slate-950/70 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-[100] bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
             <motion.div initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 20 }} className="bg-[#0f172a] border border-white/10 w-full max-w-md p-6 md:p-8 rounded-[2rem] shadow-2xl relative text-left space-y-6 text-white">
               <div className="flex gap-1.5">
                 {tourSteps.map((_, idx) => (

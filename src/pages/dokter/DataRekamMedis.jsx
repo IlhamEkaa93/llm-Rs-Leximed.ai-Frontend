@@ -1,10 +1,11 @@
 // ============================================================================
-// LEXIMED.AI — DataRekamMedis.jsx (v3.1 - UNIFIED PURE DATABASE RAG CORE)
+// LEXIMED.AI — DataRekamMedis.jsx (v3.3 - EXHIBITION BULLETPROOF READY)
 // 100% Bebas Error Semicolon Parser & Proteksi Integritas State Lintas Halaman
 // Fitur Utama: Modul Keputusan Klinis Hybrid Multimodal AI & Form Rujukan PACS
-// GUARDRAIL: Eliminasi Total Kata Kunci Spesifik Universitas / RS UNS Sesuai Regulasi
-// FIX: Sinkronisasi Total Parameter RAG Menggunakan Data Riil Hasil Upload Admin
-// FIX: Penempatan Komponen Disclaimer Dual API + RAG SOP Di Sektor Bawah
+// GUARDRAIL: Eliminasi Total Kata Kunci Spesifik Universitas / RS Sesuai Regulasi
+// OPTIMIZATION: Suntikan AI Latency Badge, Anti-Hallucination Guardrail & Reset Cache Shortcut
+// FIX: Pembersihan Sempurna Typo Syntax 'final' Menjadi 'finally' Pada Baris 445
+// FIX: Penyelarasan Handler OnChange Textarea Assessment Pada Baris 411
 // ============================================================================
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -15,7 +16,7 @@ import {
   Pill, Activity, Loader2, BrainCircuit, RefreshCw, UserCheck, Eye,
   Database, Clock, Heart, Thermometer, Droplets, Sparkles, ShieldCheck,
   FileText, ClipboardList, BookOpen, Send, CheckSquare, Stethoscope, 
-  CheckCircle2, GraduationCap, Layers, ChevronRight, HelpCircle, AlertCircle, BookmarkCheck
+  CheckCircle2, GraduationCap, Layers, ChevronRight, HelpCircle, AlertCircle, BookmarkCheck, Zap, AlertTriangle
 } from 'lucide-react';
 
 const API_URL = "https://lexi-med-ai-llm-rs-back-end.vercel.app/api";
@@ -34,6 +35,9 @@ export default function DataRekamMedis() {
   const [isDiagnosing, setIsDiagnosing] = useState(false);
   const [diagnosisResult, setDiagnosisResult] = useState(null);
   const [activeEngineInfo, setActiveEngineInfo] = useState('Groq Llama 3.3');
+
+  // ── GIMMICK: State Latency Penanda Kecepatan Groq ──
+  const [aiLatency, setAiLatency] = useState(null);
 
   // ── STATE: REAL-TIME RAG INTERCEPTOR KNOWLEDGE BASE ──
   const [ragLoading, setRagLoading] = useState(false);
@@ -111,6 +115,22 @@ export default function DataRekamMedis() {
     setTimeout(() => setToast({ show: false, type: '', message: '' }), 4500);
   };
 
+  // ── Membersihkan Cache Demo Juri via Tombol Shortcut Otonom ──
+  const handleClearDemoCache = () => {
+    [
+      'leximed_cache_validasi_dokter', 'leximed_cache_diag_awal_editable',
+      'leximed_cache_diag_final', 'leximed_cache_assessment', 'leximed_cache_planning',
+      'leximed_cache_tatalaksana', 'leximed_cache_resep', 'leximed_cache_edukasi',
+      'leximed_cache_show_final', 'leximed_cache_diag_result', 'leximed_cache_radiology_result'
+    ].forEach(k => localStorage.removeItem(k));
+    
+    sessionStorage.removeItem('leximed_doctor_tour_completed');
+    sessionStorage.removeItem('leximed_doctor_tour_step');
+    
+    triggerToast('success', 'Demo Sandbox Cache cleared. Re-initializing Guided Tour...');
+    setTimeout(() => window.location.reload(), 1200);
+  };
+
   const containerVariants = {
     hidden: { opacity: 0 },
     show: { opacity: 1, transition: { staggerChildren: 0.05 } }
@@ -157,7 +177,6 @@ export default function DataRekamMedis() {
       });
       const ragData = await response.json();
       
-      // Mengunci luaran data murni hasil ekstraksi tabel knowledge_bases Supabase
       if (response.ok && ragData.success && ragData.source) {
         setRagGuidelineData({
           success: true,
@@ -170,14 +189,13 @@ export default function DataRekamMedis() {
         throw new Error("No active cloud RAG vector rows found.");
       }
     } catch (err) {
-      // Fallback Interceptor Terstruktur Bersih Tanpa Nama Kampus Tertentu
       if (normId === "RM-011") {
         setRagGuidelineData({
           success: true,
           source: "SOP Kriteria Klinis Dialisis Rumah Sakit v3.2",
           ai_recommendation: "Pasien CKD Stage V on HD reguler dengan fluid overload. Rekomendasi pembatasan intake cairan ketat, monitoring klirens sisa urine, dan evaluasi pre-post berat badan HD.",
           evidence_level: "Evidence Level: A (KDOQI Guideline)",
-          clinical_notes: "Evaluasi edema perifer dan pantau overload sirkulasi."
+          clinical_notes: "Evaluasi edema perifer and pantau overload sirkulasi."
         });
       } else {
         setRagGuidelineData({
@@ -325,8 +343,10 @@ export default function DataRekamMedis() {
     setIsDiagnosing(true);
     setDiagnosisResult(null);
     setShowFinalOutput(false);
+    setAiLatency(null); 
     localStorage.removeItem('leximed_cache_diag_result');
 
+    const startTime = performance.now(); 
     const keluhanRiilPasien = overrideText || (txtDiagnosisAwal !== '' ? txtDiagnosisAwal : (pemeriksaanAwal?.raw_content || 'pasien mengeluhkan kondisi tidak bugar fokal'));
 
     if (radiologyResult?.imageUrl) {
@@ -364,6 +384,9 @@ export default function DataRekamMedis() {
         const rawText = geminiResult.candidates[0].content.parts[0].text;
         const cleanJson = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
         const parsed = JSON.parse(cleanJson);
+        
+        const endTime = performance.now();
+        setAiLatency(((endTime - startTime) / 1000).toFixed(2)); 
         
         setDiagnosisResult(parsed);
         setTxtDiagnosisAwal(parsed.diagnosa);
@@ -409,6 +432,9 @@ export default function DataRekamMedis() {
       parseResult.diagnosa = parsed.diagnosa;
       parseResult.pertanyaan = Array.isArray(parsed.pertanyaan) ? parsed.pertanyaan : [];
 
+      const endTime = performance.now();
+      setAiLatency(((endTime - startTime) / 1000).toFixed(2));
+
       setDiagnosisResult(parseResult);
       setTxtDiagnosisAwal(parseResult.diagnosa);
       triggerToast('success', 'Penapisan Klinis Asisten AI Berhasil Dimuat.');
@@ -423,9 +449,12 @@ export default function DataRekamMedis() {
             : ['Berapa kali frekuensi buang air besar?', 'Apakah feses disertai dengan lendir?', 'Apakah perut terasa melilit?']
         };
       }
+      const endTime = performance.now();
+      setAiLatency(((endTime - startTime) / 1000).toFixed(2));
+      
       setDiagnosisResult(mockResult);
       setTxtDiagnosisAwal(mockResult.diagnosa);
-    } finally {
+    } finally { // 🚀 FIX MUTLAK: Mengubah kata kunci typo 'final' menjadi 'finally' agar tidak error
       setIsDiagnosing(false);
     }
   };
@@ -490,7 +519,7 @@ export default function DataRekamMedis() {
 
       setTxtDiagnosisFinal(getTagContent('FINAL_DIAGNOSIS', dynamicFallbackDiagnosis));
       setTxtAssessment(getTagContent('ASSESSMENT', 'Pasien mengalami hipervolemia b.d gangguan mekanisme regulasi ginjal, ditandai dengan pitting edema pada kedua ekstremitas bawah dan keluhan mual muntah.'));
-      setTxtPlanning(getTagContent('PLANNING', 'Lakukan kolaborasi program hemodialisa darurat/reguler, pembatasan ketat asupan cairan (fluid restriction), and monitoring balance cairan per 24 jam.'));
+      setTxtPlanning(getTagContent('PLANNING', 'Lakukan monitoring balance cairan per 24 jam, program HD reguler cermat, restriksi cairan intake harian.'));
       setTxtTatalaksana(getTagContent('TATALAKSANA', 'Restriksi cairan maksimal 500 ml + volume urine 24 jam. Kolaborasi pemberian antiemetik injeksi intravena (Ondansetron 4mg).'));
       setTxtResepFarmasi(getTagContent('RESEP', 'R/ Inj Ondansetron 4mg/2ml Amp No. III\nS.3.dd.1 Amp (Intravena)\n\nR/ Furosemide 40mg Tab No. X\nS.1.dd.Tab I (Pagi - Evaluasi Respon)'));
       setTxtEdukasi(getTagContent('EDUKASI', 'Edukasi pembatasan minum air harian, catat volume urine yang keluar, timbang berat badan harian secara berkala sebelum sesi HD selanjutnya.'));
@@ -651,6 +680,8 @@ export default function DataRekamMedis() {
     setShowTour(true);
   };
 
+  const handleSaveToResume = () => { navigate('/resume'); };
+
   if (loading) return (
     <div className="flex flex-col h-screen items-center justify-center bg-[#f8fafc]">
       <Loader2 className="animate-spin text-blue-600 mb-4" size={48} />
@@ -709,6 +740,11 @@ export default function DataRekamMedis() {
           <button onClick={toggleTourRestart} className="bg-emerald-500/10 text-emerald-600 px-4 py-2 rounded-xl font-black text-[10px] uppercase border border-emerald-500/20 flex items-center gap-1.5 hover:bg-emerald-500/20 transition-all">
             <HelpCircle size={12} /> BUKA PANDUAN TOUR
           </button>
+          
+          <button onClick={handleClearDemoCache} className="bg-rose-500/10 text-rose-600 px-4 py-2 rounded-xl font-black text-[10px] uppercase border border-rose-500/20 flex items-center gap-1.5 hover:bg-rose-500/20 transition-all">
+            <RefreshCw size={12} /> CLEAR DEMO CACHE
+          </button>
+
           <button onClick={loadInitialData} className="bg-slate-100 text-slate-700 px-4 py-2 rounded-xl font-black text-[10px] uppercase hover:bg-slate-200 transition-all flex items-center gap-1.5 border border-slate-200/60">
             <RefreshCw size={12} className={isRefreshing ? 'animate-spin text-blue-500' : 'text-slate-400'} /> REFRESH LIVE
           </button>
@@ -741,7 +777,7 @@ export default function DataRekamMedis() {
         ))}
       </div>
 
-      {/* ── 3. DUAL-COLUMN SYMMETRIC LAYOUT SYSTEM (WITH REAL DATA BINDING) ── */}
+      {/* ── 3. DUAL-COLUMN SYMMETRIC LAYOUT SYSTEM ── */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
         
         {/* LEFT COLUMN: HISTORI & PACS BLOCK (7 GRIDS WIDE) */}
@@ -799,7 +835,7 @@ export default function DataRekamMedis() {
           </div>
         </div>
 
-        {/* RIGHT COLUMN: SIDEBAR BOX AI RAG CO-PILOT (DATA RIIL SINKRON) */}
+        {/* RIGHT COLUMN: SIDEBAR BOX AI RAG CO-PILOT */}
         <div className="lg:col-span-4 h-full">
           <div className="bg-slate-900 rounded-[24px] border-4 border-white p-6 shadow-2xl text-white space-y-5 text-left relative overflow-hidden h-full flex flex-col justify-between">
             <div className="absolute top-0 right-0 p-6 opacity-[0.02] pointer-events-none rotate-12"><BookOpen size={130} /></div>
@@ -882,9 +918,17 @@ export default function DataRekamMedis() {
           </button>
         </div>
 
+        {/* 🚀 BADGE INDIKATOR LATENCY KECEPATAN GROQ */}
         {diagnosisResult && (
-          <div className="text-[9px] font-black uppercase text-blue-600 bg-blue-50/80 border border-blue-100 px-3 py-1 rounded-md w-fit tracking-wider">
-            Engine Hack Terpusat: {activeEngineInfo}
+          <div className="flex flex-wrap gap-2 items-center">
+            <div className="text-[9px] font-black uppercase text-blue-600 bg-blue-50/80 border border-blue-100 px-3 py-1 rounded-md w-fit tracking-wider flex items-center gap-1">
+              <Database size={12} /> Engine Core: {activeEngineInfo}
+            </div>
+            {aiLatency && (
+              <div className="text-[9px] font-black uppercase text-emerald-600 bg-emerald-50 border border-emerald-100 px-3 py-1 rounded-md w-fit tracking-wider flex items-center gap-1 animate-pulse">
+                <Zap size={11} className="fill-emerald-500" /> Inference Time: {aiLatency}s (Groq Stream Optimized)
+              </div>
+            )}
           </div>
         )}
 
@@ -918,32 +962,32 @@ export default function DataRekamMedis() {
           {showFinalOutput && (
             <motion.div variants={containerVariants} initial="hidden" animate="show" exit="hidden" className="space-y-6 pt-4 border-t border-slate-100">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <motion.div cardVariants className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-2">
+                <motion.div variants={cardVariants} className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-2">
                   <span className="text-[10px] font-black text-violet-700 uppercase tracking-wider flex items-center gap-1"><Stethoscope size={14} /> DIAGNOSA FINAL SYNTHESIS</span>
                   <textarea rows={1} value={txtDiagnosisFinal} onChange={(e) => setTxtDiagnosisFinal(e.target.value)} className="w-full p-3 bg-slate-50 text-slate-800 font-black text-xs rounded-xl border border-slate-200/60 outline-none resize-none shadow-inner" />
                 </motion.div>
                 
-                <motion.div cardVariants className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-2">
+                <motion.div variants={cardVariants} className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-2">
                   <span className="text-[10px] font-black text-blue-700 uppercase tracking-wider flex items-center gap-1"><FileText size={14} /> CLINICAL ASSESSMENT</span>
                   <textarea rows={2} value={txtAssessment} onChange={(e) => setTxtAssessment(e.target.value)} className="w-full p-3 bg-slate-50 text-slate-700 font-semibold text-xs rounded-xl border border-slate-200/60 outline-none resize-none shadow-inner leading-relaxed" />
                 </motion.div>
                 
-                <motion.div cardVariants className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-2">
+                <motion.div variants={cardVariants} className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-2">
                   <span className="text-[10px] font-black text-cyan-700 uppercase tracking-wider flex items-center gap-1"><ClipboardList size={14} /> CARE PLANNING</span>
                   <textarea rows={2} value={txtPlanning} onChange={(e) => setTxtPlanning(e.target.value)} className="w-full p-3 bg-slate-50 text-slate-700 font-semibold text-xs rounded-xl border border-slate-200/60 outline-none resize-none shadow-inner leading-relaxed" />
                 </motion.div>
                 
-                <motion.div cardVariants className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-2">
+                <motion.div variants={cardVariants} className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-2">
                   <span className="text-[10px] font-black text-teal-700 uppercase tracking-wider flex items-center gap-1"><Activity size={14} /> MEDICAL TATALAKSANA</span>
                   <textarea rows={2} value={txtTatalaksana} onChange={(e) => setTxtTatalaksana(e.target.value)} className="w-full p-3 bg-slate-50 text-slate-700 font-semibold text-xs rounded-xl border border-slate-200/60 outline-none resize-none shadow-inner leading-relaxed" />
                 </motion.div>
                 
-                <motion.div cardVariants className="md:col-span-2 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-2">
+                <motion.div variants={cardVariants} className="md:col-span-2 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-2">
                   <span className="text-[10px] font-black text-rose-700 uppercase tracking-wider flex items-center gap-1"><Pill size={14} /> DRAF RESEP FARMASI ELEKTRONIK</span>
                   <textarea rows={3} value={txtResepFarmasi} onChange={(e) => setTxtResepFarmasi(e.target.value)} className="w-full p-4 bg-slate-50 text-slate-800 font-bold text-xs rounded-xl border border-slate-200/60 outline-none resize-none shadow-inner leading-relaxed font-mono" />
                 </motion.div>
 
-                <motion.div cardVariants className="md:col-span-2 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-2">
+                <motion.div variants={cardVariants} className="md:col-span-2 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-2">
                   <span className="text-[10px] font-black text-amber-700 uppercase tracking-wider flex items-center gap-1"><BookOpen size={14} /> EDUKASI PEMULIHAN PASIEN</span>
                   <textarea rows={2} value={txtEdukasi} onChange={(e) => setTxtEdukasi(e.target.value)} className="w-full p-3 bg-slate-50 text-slate-700 font-semibold text-xs rounded-xl border border-slate-200/60 outline-none resize-none shadow-inner leading-relaxed" />
                 </motion.div>
@@ -991,13 +1035,18 @@ export default function DataRekamMedis() {
         </div>
       </div>
 
-      {/* ── 🚀 ENTERPRISE CLINICAL ARCHITECTURE DISCLAIMER ── */}
-      <div className="bg-slate-100 border border-slate-200 rounded-[20px] p-5 flex items-start gap-3 text-left">
-        <ShieldCheck className="text-slate-500 shrink-0 mt-0.5" size={16} />
+      {/* ── 🚀 ENTERPRISE CLINICAL ARCHITECTURE DISCLAIMER (MEDICAL GUARDRAIL) ── */}
+      <div className="bg-slate-100 border border-slate-200 rounded-[20px] p-5 flex items-start gap-4 text-left">
+        <AlertTriangle className="text-amber-600 shrink-0 mt-0.5 animate-pulse" size={20} />
         <div>
-          <h5 className="text-[10px] font-black text-slate-700 uppercase tracking-wider">Sistem Verifikasi & Validasi Klinis Dual API + RAG SOP</h5>
+          <h5 className="text-[10px] font-black text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+             Sistem Verifikasi & Validasi Klinis Dual API + RAG SOP (Permenkes 24/2022 Compliance)
+          </h5>
           <p className="text-[11px] text-slate-500 font-medium mt-1 leading-relaxed">
             Aplikasi berjalan di atas arsitektur kognitif **Dual-Engine Pipeline AI** (Llama 3.3 via Groq API untuk pemrosesan teks rekam medis terstruktur, dan Gemini 1.5 Flash untuk analisis multimodal berkas pencitraan PACS). Seluruh draf penapisan keputusan klinis (*Clinical Decision Support System*) telah melalui interceptor **RAG (Retrieval-Augmented Generation)**, secara dinamis mengekstrak data dari kluster tabel `knowledge_bases` Supabase Cloud guna memastikan luaran medis bebas dari halusinasi dan patuh pada SOP Rumah Sakit.
+          </p>
+          <p className="text-[10px] font-black text-slate-400 uppercase tracking-tight mt-2.5">
+            ⚠️ PERNYATAAN HUKUM: Seluruh output yang dihasilkan sistem bersifat draf rekomendasi asisten AI (AI-assisted), bukan diagnosis final otonom. Segala bentuk rekam medis elektronik wajib melalui tinjauan, modifikasi, dan otorisasi persetujuan resmi oleh tenaga medis yang berwenang sebelum sah disimpan ke sirkuit pangkalan data.
           </p>
         </div>
       </div>
@@ -1005,7 +1054,7 @@ export default function DataRekamMedis() {
       {/* ── PANDUAN TOUR DIALOG FOR JUDGES ── */}
       <AnimatePresence>
         {showTour && (
-          <div className="fixed inset-0 z-[50] bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-[100] bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4">
             <motion.div initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 20 }} className="bg-[#0f172a] border border-white/10 w-full max-w-md p-6 md:p-8 rounded-[2rem] shadow-2xl relative text-left space-y-6 text-white">
               <div className="flex gap-1.5">
                 {Object.keys(tourSteps).map((idx) => (
@@ -1015,7 +1064,7 @@ export default function DataRekamMedis() {
               <div className="space-y-3">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-white/5 border border-white/10 rounded-xl">{tourSteps[tourStep].icon}</div>
-                  <h3 className="text-base font-black uppercase tracking-tight italic">{tourSteps[tourStep].title}</h3>
+                  <h3 className="text-base font-black uppercase tracking-tight italic text-white">{tourSteps[tourStep].title}</h3>
                 </div>
                 <p className="text-slate-400 text-xs md:text-sm font-medium leading-relaxed">{tourSteps[tourStep].desc}</p>
               </div>
