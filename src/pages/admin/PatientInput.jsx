@@ -1,10 +1,10 @@
 // ============================================================================
-// LEXIMED.AI — PatientInput.jsx (v21.5 - RE-VISIT CENTRAL TIMELINE OPTIMIZED)
+// LEXIMED.AI — PatientInput.jsx (v21.6 - MASTER SYNCHRONIZATION CORE)
 // 100% Bebas Error Semicolon Parser & Integrasi Layout Enterprise Dashboard
 // Fitur Tambahan: Daftar Pasien Terdaftar, Filter DPJP, & Mode Berobat Ulang Riil
 // Fitur UI: Custom Animated Realtime Card & Premium Floating Toast (Bebas Dummy)
-// FIX: Pembersihan Total Kalimat Chat Mentah & Koreksi Typo Blok finally JS
-// FIX: Sinkronisasi Lintas Minggu Menggunakan Modul API /patients-master Supabase
+// FIX: Sinkronisasi Sinkron Opsi Dropdown Status Kunjungan (Rawat Inap, Rawat Jalan, UGD)
+// FIX: Integrasi Saringan Lintas Minggu Menggunakan Modul API /patients-master Supabase
 // ============================================================================
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -120,7 +120,6 @@ export default function PatientInput() {
             });
             const dataRaw = response.data.data || response.data;
             if (Array.isArray(dataRaw)) {
-                // Tampilkan data master secara urut kronologis ID transaksi terbaru (Descending)
                 const sorted = dataRaw.sort((a, b) => (b.id || 0) - (a.id || 0));
                 setPatients(sorted);
             }
@@ -161,7 +160,6 @@ export default function PatientInput() {
         } catch (err) {
             triggerToast('error', 'Gagal menyimpan data master ke Supabase Cloud.');
         } finally {
-            // FIX: Struktur pembungkus block sudah higienis menggunakan penulisan standard JavaScript Engine
             setIsSaving(false);
         }
     };
@@ -176,10 +174,10 @@ export default function PatientInput() {
             name: p.name || '',
             age: p.age || '',
             gender: p.gender || 'Laki-Laki',
-            unit: 'Poli Umum',
+            unit: p.unit || 'Poli Umum',
             dpjp: doctors.length > 0 ? doctors[0].name : 'Dr. Tirta',
-            status_treatment: p.status_treatment || 'Rawat Jalan',
-            date: new Date().toISOString().split('T')[0] // SUNTIK TANGGAL HARI INI KE STRUKTUR QUERY DOKTER
+            status_treatment: p.status_treatment || 'Rawat Jalan', // Otomatis membawa status perawatan terakhir
+            date: new Date().toISOString().split('T')[0] 
         };
 
         setIsSaving(true);
@@ -314,11 +312,11 @@ export default function PatientInput() {
                                 </select>
                             </div>
                             <div className="space-y-3">
-                                <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">Status Kunjungan</label>
+                                <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">Status Perawatan (Kunjungan)</label>
                                 <select className="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-blue-500 outline-none font-bold text-slate-700 appearance-none cursor-pointer" value={formData.status_treatment} onChange={e => setFormData({...formData, status_treatment: e.target.value})}>
-                                    <option value="Rawat Inap">Rawat Inap</option>
                                     <option value="Rawat Jalan">Rawat Jalan</option>
-                                    <option value="IGD">Gawat Darurat (IGD)</option>
+                                    <option value="Rawat Inap">Rawat Inap</option>
+                                    <option value="UGD">Gawat Darurat (UGD)</option>
                                 </select>
                             </div>
                         </div>
@@ -332,9 +330,9 @@ export default function PatientInput() {
                                     <option value="Poli Jantung">Poli Jantung</option>
                                     <option value="Poli Paru">Poli Paru</option>
                                     <option value="Poli Saraf">Poli Saraf</option>
+                                    <option value="Bangsal Mawar">Bangsal Mawar</option>
                                     <option value="Bangsal Melati">Bangsal Melati</option>
-                                    <option value="Bangsal Teratai">Bangsal Teratai</option>
-                                    <option value="IGD Triage">Zona Triage IGD</option>
+                                    <option value="UGD">Zona Triage IGD</option>
                                 </select>
                             </div>
                             <div className="space-y-3">
@@ -399,16 +397,28 @@ export default function PatientInput() {
                                 <motion.div layout className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     {filteredPatients.map((p, i) => (
                                         <motion.div layout initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }} transition={{ duration: 0.3, delay: Math.min(i * 0.05, 0.3) }} key={p.id || p.no_rm || p.norm || i} whileHover={{ scale: 1.02, y: -2 }} whileTap={{ scale: 0.98 }} onClick={() => setSelectedPatientForRevisit(p)} className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm hover:border-blue-400 hover:shadow-md cursor-pointer transition-all flex flex-col justify-between gap-4">
-                                            <div className="flex items-start gap-4">
-                                                <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center text-slate-500 font-mono font-black text-lg group-hover:bg-blue-600 group-hover:text-white transition-all shrink-0">{p.name ? p.name.charAt(0).toUpperCase() : 'P'}</div>
-                                                <div className="text-left">
-                                                    <h4 className="font-black text-slate-800 text-lg line-clamp-1">{p.name}</h4>
-                                                    <div className="flex flex-wrap items-center gap-2 mt-1 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-                                                        <span className="text-blue-600 bg-blue-50 px-2 py-0.5 rounded">{p.no_rm || p.norm}</span>
-                                                        <span>•</span>
-                                                        <span>{p.gender || 'Laki-Laki'} ({p.age || '0'} Thn)</span>
+                                            <div className="flex items-start justify-between gap-4">
+                                                <div className="flex items-start gap-4">
+                                                    <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center text-slate-500 font-mono font-black text-lg group-hover:bg-blue-600 group-hover:text-white transition-all shrink-0">{p.name ? p.name.charAt(0).toUpperCase() : 'P'}</div>
+                                                    <div className="text-left">
+                                                        <h4 className="font-black text-slate-800 text-lg line-clamp-1">{p.name}</h4>
+                                                        <div className="flex flex-wrap items-center gap-2 mt-1 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                                                            <span className="text-blue-600 bg-blue-50 px-2 py-0.5 rounded">{p.no_rm || p.norm}</span>
+                                                            <span>•</span>
+                                                            <span>{p.gender || 'Laki-Laki'} ({p.age || '0'} Thn)</span>
+                                                        </div>
                                                     </div>
                                                 </div>
+                                                {/* 🚀 BARU: BADGE DINAMIS KLASIFIKASI KAMAR PASIEN */}
+                                                <span className={`text-[9px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider shrink-0 border shadow-sm ${
+                                                    p.status_treatment === 'UGD' || p.status_treatment === 'IGD'
+                                                        ? 'bg-rose-50 text-rose-700 border-rose-200'
+                                                        : p.status_treatment === 'Rawat Inap'
+                                                        ? 'bg-amber-50 text-amber-700 border-amber-200'
+                                                        : 'bg-blue-50 text-blue-700 border-blue-200'
+                                                }`}>
+                                                    {p.status_treatment || 'Rawat Jalan'}
+                                                </span>
                                             </div>
                                             <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-[10px] font-black uppercase tracking-wider">
                                                 <span className="text-slate-400 flex items-center gap-1"><Stethoscope size={12}/> {p.dpjp || 'Dr. Tirta'}</span>

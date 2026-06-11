@@ -22,7 +22,6 @@ import DashboardDokter from './pages/dokter/DashboardDokter';
 import DataRekamMedis from './pages/dokter/DataRekamMedis';
 import RingkasanMedis from './pages/dokter/RingkasanMedis';
 import ResumeMedis from './pages/dokter/ResumeMedis';
-import PedomanKlinis from './pages/dokter/PedomanKlinis';
 import ApproveFinal from './pages/dokter/ApproveFinal';
 import InputKlinis from './pages/dokter/InputKlinis';
 
@@ -77,7 +76,6 @@ export default function App() {
             <Route path="/data-medis" element={<DataRekamMedis />} />
             <Route path="/ringkasan" element={<RingkasanMedis />} />
             <Route path="/resume" element={<ResumeMedis />} />
-            <Route path="/pedoman" element={<PedomanKlinis />} />
             <Route path="/approve" element={<ApproveFinal />} />
 
             {/* Modul Asisten */}

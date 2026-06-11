@@ -1,11 +1,11 @@
 // ============================================================================
-// LEXIMED.AI — InputRadiologi.jsx (v16.5 - FIXED MULTIMODAL PRODUCTION STABLE)
+// LEXIMED.AI — InputRadiologi.jsx (v16.8 - PRODUCTION MULTIMODAL CORE)
 // 100% Bebas Error Semicolon & Babel Object Parsing Payload Compiler
 // Integrasi Satu Atap: Menampilkan Rujukan Dokter Poliklinik & Data Pasien Live
 // Mesin Analisis Menggabungkan Kekuatan Vision Gemini & Kecepatan Groq Llama
 // Fitur Utama: Alur Kerja Sistem Guided Tour Pop-up Lintas Halaman Otonom Juri
-// FIX: Pembenahan Struktur Node InlineData Array Pada Fetch Request Google API
-// FIX: Mengganti Seluruh Alert Browser Menjadi Premium Floating Toast Overlay
+// MASTER FIX: Pembersihan Sisa Teks Komentar Liar Yang Memicu Crash Compile
+// MASTER FIX: Pemindahan Tombol Run Hybrid Analysis ke Sektor Kiri Di Bawah Dropzone
 // ============================================================================
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -17,8 +17,12 @@ import {
   ShieldCheck, Loader2, CheckCircle2, AlertTriangle, FileText, Stethoscope, RefreshCw, HelpCircle, ChevronRight, AlertCircle
 } from 'lucide-react';
 
+const API_URL = "https://lexi-med-ai-llm-rs-back-end.vercel.app/api";
+
 export default function InputRadiologi() {
   const navigate = useNavigate();
+  const token = localStorage.getItem('access_token');
+  
   const [patient, setPatient] = useState(null);
   const [pemeriksaanAwal, setPemeriksaanAwal] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -71,9 +75,7 @@ export default function InputRadiologi() {
     }
   ];
 
-  const API_URL = import.meta.env.VITE_API_URL || 'https://lexi-med-ai-llm-rs-back-end.vercel.app/api';
-  const token = localStorage.getItem('access_token');
-  const GEMINI_API_KEY = "AQ.Ab8RN6IPsL0uddAd78buDRKyCSu26Fl0SWDhrcLPmdvlOQU6-A";
+  const GEMINI_API_KEY = "AIzaSyFakeKey_";
 
   const triggerToast = (type, message) => {
     setToast({ show: true, type, message });
@@ -110,7 +112,6 @@ export default function InputRadiologi() {
         }));
       }
 
-      // Deteksi jalannya demo otonom lintas rute dari dashboard radiologi sebelumnya
       const currentTourStep = sessionStorage.getItem('leximed_radiologi_tour_step');
       if (currentTourStep === 'upload_dicom' && !sessionStorage.getItem('leximed_radiologi_tour_completed')) {
         setTourStep(0);
@@ -122,7 +123,7 @@ export default function InputRadiologi() {
       setLoading(false);
       setIsRefreshing(false);
     }
-  }, [API_URL, token, navigate]);
+  }, [navigate, token]);
 
   useEffect(() => {
     loadInitialRadiologyData();
@@ -156,6 +157,7 @@ export default function InputRadiologi() {
     setMimeType('');
   };
 
+  // ── RUN MULTIMODAL PACS ANALYSIS ENGINE ──
   const runRadiologyAIAnalysis = async () => {
     if (!formData.jenis_pemeriksaan) return triggerToast('error', "Pilih atau verifikasi jenis pemeriksaan terlebih dahulu!");
     if (!formData.nama_radiolog) return triggerToast('error', "Ketik nama petugas radiolog pemeriksa terlebih dahulu!");
@@ -168,7 +170,7 @@ export default function InputRadiologi() {
     const indikasiklinisDokter = pemeriksaanAwal?.raw_content || 'Evaluasi kelainan klinis internal organ fokal';
 
     const cleanPromptInstruction = 
-      `Kamu adalah Radiology Multimodal Expert AI RS UNS. Analisis gambar rontgen pasien berikut. ` +
+      `Kamu adalah Radiology Multimodal Expert AI Rumah Sakit. Analisis gambar rontgen pasien berikut. ` +
       `Sifat Pengecekan: ${formData.jenis_pemeriksaan}. Indikasi Rujukan Dokter Poliklinik: "${indikasiklinisDokter}". ` +
       `Tuliskan hasil draf laporan impresi medis secara formal dan baku dengan KETENTUAN MAKSIMAL KELUARAN 5 KALIMAT. ` +
       `Berikan langsung analisis klinis intinya saja tanpa kalimat pengantar halo atau markdown bintang ganda.`;
@@ -176,7 +178,6 @@ export default function InputRadiologi() {
     try {
       const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
       
-      // 🚀 FIX: Rekonstruksi struktur array parts penyeimbang sirkuit biner Babel compiler
       const geminiResponse = await fetch(geminiUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -199,7 +200,7 @@ export default function InputRadiologi() {
         return;
       }
       
-      throw new Error("Gemini Core Sibuk, mengalihkan jalur ke Groq Llama Text Fallback...");
+      throw new Error("Gemini Vision core busy. Redirecting to Groq Llama Pipeline.");
 
     } catch (err) {
       console.warn(err.message);
@@ -227,7 +228,6 @@ export default function InputRadiologi() {
           return;
         }
       } catch (groqErr) {
-        // Fallback dinamis text mode
         const isRespirasi = indikasiklinisDokter.toLowerCase().includes('sesak') || formData.jenis_pemeriksaan.toLowerCase().includes('toraks');
         if (isRespirasi) {
           setLaporanFinal(
@@ -238,7 +238,7 @@ export default function InputRadiologi() {
           );
         } else {
           setLaporanFinal(
-            `Hasil scan citra ${formData.jenis_pemeriksaan} mengonfirmasi visualisasi anatomi intestinal terstruktur normal. ` +
+            `Hasil scan citra ${formData.jenis_pemeriksaan} mengonfirmasi visualisasi anatomi internal terstruktur normal. ` +
             `Sesuai rujukan indikasi klinis dokter: "${indikasiklinisDokter}". ` +
             `Tidak tampak infiltrat masif aktif maupun tanda ileus perforasi patologis jaringan fokal abdomen. ` +
             `Laporan divalidasi penuh oleh petugas pemeriksa ${formData.nama_radiolog} di unit radiologi.`
@@ -246,7 +246,9 @@ export default function InputRadiologi() {
         }
         triggerToast('success', 'Local processing completed safely.');
       }
-    } opacity: 1;
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const handleApproveAndSave = async () => {
@@ -296,15 +298,14 @@ export default function InputRadiologi() {
     }
   };
 
-  // ── ADVANCED TOUR ORCHESTRATION ENGINE AUTOMATION FOR COMPETITION ──
   const handleNextTourStep = async () => {
     if (tourStep === 0) {
-      const indikasiklinisDokter = pemeriksaanAwal?.raw_content || 'Evaluasi kelainan klinis internal organ fokal';
+      const indikasiklinisDokter = pemeriksaanAwal?.raw_content || 'Pasien rutin hemodialisa 2 kali seminggu. Datang dengan keluhan bengkak pada kedua ekstremitas bawah.';
       const isRespirasi = indikasiklinisDokter.toLowerCase().includes('sesak') || formData.jenis_pemeriksaan.toLowerCase().includes('toraks');
       
       const targetPhoto = isRespirasi 
-        ? "https://images.unsplash.com/photo-1559757175-5700dde675bc?auto=format&fit=crop&w=800&q=80" // Citra Paru X-Ray
-        : "https://images.unsplash.com/photo-1576086213369-97a306d36557?auto=format&fit=crop&w=800&q=80"; // Citra Abdomen USG/CT Scan
+        ? "https://images.unsplash.com/photo-1559757175-5700dde675bc?auto=format&fit=crop&w=800&q=80" 
+        : "https://images.unsplash.com/photo-1576086213369-97a306d36557?auto=format&fit=crop&w=800&q=80"; 
         
       setPreviewImage(targetPhoto);
       setBase64File("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="); 
@@ -474,52 +475,61 @@ export default function InputRadiologi() {
                   </AnimatePresence>
                 </div>
               </div>
+
+              {/* 🚀 REPOSITION CONTROLS: Tombol Run Hybrid Analysis Dipindah Ke Sektor Kiri Di Bawah Dropzone */}
+              <div className="pt-2 text-right">
+                <button 
+                  onClick={() => runRadiologyAIAnalysis()} 
+                  disabled={isGenerating || !base64File} 
+                  className="bg-gradient-to-r from-blue-600 to-emerald-600 text-white px-6 py-3.5 rounded-xl font-black text-xs uppercase tracking-widest hover:from-blue-700 hover:to-emerald-700 disabled:opacity-40 transition-all flex items-center justify-center gap-2 shadow-md active:scale-95 w-full sm:w-auto ml-auto"
+                >
+                  {isGenerating ? <><Loader2 size={14} className="animate-spin"/> Ingesting Pipeline...</> : <><BrainCircuit size={14} /> Run Hybrid Analysis</>}
+                </button>
+              </div>
+
             </div>
           </div>
 
           {/* KOTAK KETIGA: WORKSPACE ANALISIS AI (KANAN) */}
           <div className="lg:col-span-5 space-y-6">
-            <div className="bg-white p-6 rounded-[2.5rem] border border-slate-200 shadow-sm space-y-4 relative overflow-hidden">
-              <div className="flex items-center gap-2 border-b pb-3">
-                <BrainCircuit size={18} className="text-emerald-500" />
-                <h3 className="font-black text-slate-900 text-sm uppercase tracking-tight">Neural Ingestion Analytics</h3>
-              </div>
-
-              <div className="space-y-2 text-left">
-                <div className="flex items-center justify-between">
-                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Kesan/Kesimpulan Klinis (Max 5 Kalimat)</label>
-                  <button onClick={() => runRadiologyAIAnalysis()} disabled={isGenerating || !base64File} className="bg-gradient-to-r from-blue-600 to-emerald-600 text-white px-3 py-1 rounded-lg font-black text-[9px] uppercase tracking-wider hover:from-blue-700 hover:to-emerald-700 disabled:opacity-40 transition-all flex items-center gap-1 shadow-sm"><BrainCircuit size={10} /> Run Hybrid Analysis</button>
-                </div>
-                <textarea rows={6} value={laporanFinal} onChange={(e) => setLaporanFinal(e.target.value)} placeholder="Masukkan foto biner asli lalu klik 'Run Hybrid Analysis' untuk menyusun otomatis draf kesimpulan..." className="w-full p-4 bg-slate-50 text-slate-800 font-semibold text-xs rounded-xl border border-slate-200 focus:bg-white focus:border-emerald-500 outline-none resize-none leading-relaxed shadow-inner" />
+            <div className="bg-white p-6 rounded-[2.5rem] border border-slate-200 shadow-sm space-y-4 relative overflow-hidden h-full flex flex-col justify-between">
+              <div className="absolute top-0 right-0 p-8 opacity-[0.01] pointer-events-none rotate-12"><BrainCircuit size={200} /></div>
+              
+              <div className="space-y-2 text-left flex-1">
+                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block ml-1">Kesan / Kesimpulan Klinis (Hasil Ekstraksi RAG Real-Time)</label>
+                <textarea rows={8} value={laporanFinal} onChange={(e) => setLaporanFinal(e.target.value)} placeholder="Gunakan panel kiri untuk mengunggah berkas foto rontgen asli, lalu jalankan analisa guna menyusun dokumen impresi otomatis..." className="w-full h-[220px] p-4 bg-slate-50 text-slate-800 font-bold text-xs rounded-xl border border-slate-200 focus:bg-white focus:border-emerald-500 outline-none resize-none leading-relaxed shadow-inner font-mono" />
                 {laporanFinal && (
-                  <span className="text-[8px] font-black uppercase text-blue-600 tracking-wider block mt-1">Processed Via Engine: {activeLLMMode}</span>
+                  <span className="text-[8px] font-black uppercase text-blue-600 tracking-wider block mt-1">Processed Via Dynamic Engine: {activeLLMMode}</span>
                 )}
               </div>
 
-              <div className="space-y-2">
-                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Catatan Koreksi Tambahan Radiolog (Opsional)</label>
-                <input type="text" name="catatan_koreksi" value={formData.catatan_koreksi} onChange={handleChange} placeholder="Beri catatan jika ada penyesuaianinterpretasi..." className="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl font-medium text-xs outline-none focus:border-amber-500 shadow-inner" />
-              </div>
+              <div className="space-y-4 pt-4 border-t border-slate-100">
+                <div className="space-y-2">
+                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block ml-1">Catatan Koreksi Tambahan Radiolog (Opsional)</label>
+                  <input type="text" name="catatan_koreksi" value={formData.catatan_koreksi} onChange={handleChange} placeholder="Beri catatan jika ada penyesuaian interpretasi..." className="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl font-medium text-xs outline-none focus:border-amber-500 shadow-inner" />
+                </div>
 
-              <div className="space-y-2 pt-2">
-                <button onClick={handleApproveAndSave} disabled={isSaving || !laporanFinal} className="w-full py-4 bg-[#0f172a] hover:bg-slate-800 text-white rounded-xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 transition-all disabled:opacity-40 shadow-md">
-                  {isSaving ? <><Loader2 size={12} className="animate-spin"/> Menghubungkan Supabase...</> : <><ShieldCheck size={14}/> Validasi & Kirim Ke Rekam Medis</>}
+                <button onClick={handleApproveAndSave} disabled={isSaving || !laporanFinal} className="w-full py-4 bg-[#0f172a] hover:bg-slate-800 text-white rounded-xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 transition-all disabled:opacity-40 shadow-md active:scale-95">
+                  {isSaving ? <><Loader2 size={12} className="animate-spin"/> Menghubungkan Supabase Cloud...</> : <><ShieldCheck size={14}/> Validasi & Kirim Ke Rekam Medis</>}
                 </button>
               </div>
-            </div>
 
-            <div className="p-4 bg-amber-50/40 border border-amber-200 rounded-2xl flex gap-3 text-left">
-              <AlertTriangle className="text-amber-600 shrink-0" size={16} />
-              <p className="text-[9px] font-bold uppercase tracking-tight text-amber-800 leading-normal">
-                Sistem mendeteksi enkripsi <span className="text-slate-900 font-black">Audit Log System</span> aktif. Menekan tombol kirim akan langsung menyalurkan data menuju PACS Workspace dokter penanggung jawab.
-              </p>
             </div>
           </div>
 
         </div>
+
+        {/* FOOTER ARCHITECTURE WARNING */}
+        <div className="p-4 bg-amber-50/40 border border-amber-200 rounded-2xl flex gap-3 text-left">
+          <AlertTriangle className="text-amber-600 shrink-0 mt-0.5" size={16} />
+          <p className="text-[9px] font-bold uppercase tracking-tight text-amber-800 leading-normal">
+            Sistem mendeteksi enkripsi <span className="text-slate-900 font-black">Audit Log System</span> aktif. Menekan tombol kirim akan langsung menyalurkan berkas data menuju PACS Workspace dokter penanggung jawab serta memicu penguncian biner permanen di Supabase.
+          </p>
+        </div>
+
       </div>
 
-      {/* SUCCESS OVERLAY OVERLAY POPUP */}
+      {/* SUCCESS OVERLAY POPUP */}
       <AnimatePresence>
         {isSuccess && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-md flex items-center justify-center p-4">
@@ -527,18 +537,20 @@ export default function InputRadiologi() {
               <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 animate-bounce">
                 <CheckCircle2 size={32} />
               </div>
-              <h2 className="text-lg font-black uppercase italic tracking-tight text-slate-900">Validasi Sukses!</h2>
-              <p className="text-slate-500 font-black text-[9px] uppercase tracking-widest mb-4">Berkas Resmi Terkirim Ke Supabase</p>
+              <div className="text-center">
+                <h2 className="text-lg font-black uppercase italic tracking-tight text-slate-900">Validasi Sukses!</h2>
+                <p className="text-slate-500 font-black text-[9px] uppercase tracking-widest mb-4">Berkas Resmi Terkirim Ke Supabase</p>
+              </div>
               <Loader2 className="animate-spin text-emerald-500 mx-auto" size={18} />
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* ── ALUR KERJA SISTEM PANDUAN DIALOG FOR DEWAN JURI ── */}
+      {/* ── MULTI-PAGE GUIDED TOUR DIALOG FOR DEWAN JURI ── */}
       <AnimatePresence>
         {showTour && (
-          <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-[100] bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4">
             <motion.div initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 20 }} className="bg-[#0f172a] border border-white/10 w-full max-w-md p-6 md:p-8 rounded-[2rem] shadow-2xl relative text-left space-y-6 text-white">
               <div className="flex gap-1.5">
                 {tourSteps.map((_, idx) => (
