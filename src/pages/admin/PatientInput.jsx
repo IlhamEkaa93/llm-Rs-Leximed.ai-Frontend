@@ -1,34 +1,18 @@
 // ============================================================================
-// LEXIMED.AI — PatientInput.jsx (v21.6 - MASTER SYNCHRONIZATION CORE)
+// LEXIMED.AI — PatientInput.jsx (v21.8 - AUTOMATED CORES CONTEXT SECURED)
 // 100% Bebas Error Semicolon Parser & Integrasi Layout Enterprise Dashboard
-// Fitur Tambahan: Daftar Pasien Terdaftar, Filter DPJP, & Mode Berobat Ulang Riil
-// Fitur UI: Custom Animated Realtime Card & Premium Floating Toast (Bebas Dummy)
-// FIX: Sinkronisasi Sinkron Opsi Dropdown Status Kunjungan (Rawat Inap, Rawat Jalan, UGD)
-// FIX: Integrasi Saringan Lintas Minggu Menggunakan Modul API /patients-master Supabase
+// Fitur Utama: Registrasi Kunjungan Pasien & Mode Berobat Ulang Terpadu
+// GUARDRAIL: Eliminasi Total Kata Kunci Spesifik Universitas & Tokoh Politik Nasional
+// FIX: Pembersihan Total Teks Liar Malformed Tag <img/src placeholder Guna Solusi Vite Error
+// FIX: Amputasi State Liar setIsLoadingCharts Guna Mencegah ReferenceError Gantung
 // ============================================================================
 
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { 
-    UserPlus, 
-    Database, 
-    CheckCircle, 
-    ArrowLeft, 
-    Loader2, 
-    ShieldCheck, 
-    CalendarClock,
-    Stethoscope,
-    Building2,
-    Users,
-    UserCircle2,
-    Search,
-    ChevronRight,
-    HelpCircle,
-    CheckCircle2,
-    RefreshCw,
-    Clock,
-    History,
-    AlertCircle
+    UserPlus, Database, CheckCircle, ArrowLeft, Loader2, ShieldCheck, 
+    CalendarClock, Stethoscope, Building2, Users, UserCircle2, Search, 
+    ChevronRight, HelpCircle, CheckCircle2, RefreshCw, Clock, History, AlertCircle
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -43,12 +27,10 @@ export default function PatientInput() {
     const [doctors, setDoctors] = useState([]);
     const [isLoadingDoctors, setIsLoadingDoctors] = useState(true);
     
-    // State Daftar Pasien Master Lintas Minggu
     const [patients, setPatients] = useState([]);
     const [isLoadingPatients, setIsLoadingPatients] = useState(true);
     const [filterDpjp, setFilterDpjp] = useState('All');
 
-    // State Pop-up Sesi Berobat Ulang Interaktif
     const [selectedPatientForRevisit, setSelectedPatientForRevisit] = useState(null);
     const [toast, setToast] = useState({ show: false, type: '', message: '' });
 
@@ -76,7 +58,7 @@ export default function PatientInput() {
         },
         {
             title: "Alur Kerja Sistem: Distribusi Otoritas DPJP",
-            desc: "Setelah pasien terdaftar, data tanggal riil harian otomatis tersimpan di Supabase dan didistribusikan secara real-time ke dasbor Dokter dr. Tirta.",
+            desc: "Setelah pasien terdaftar, data tanggal riil harian otomatis tersimpan di Supabase dan didistribusikan secara real-time ke dasbor Dokter.",
             icon: <ShieldCheck className="text-emerald-400" size={24} />,
             actionLabel: "Simulasikan Input"
         },
@@ -99,10 +81,16 @@ export default function PatientInput() {
             const response = await axios.get(`${API_URL}/users`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
-            const doctorList = response.data.data.filter(u => u.role === 'dokter');
+            const dataRaw = response.data.data || response.data || [];
+            const doctorList = Array.isArray(dataRaw) ? dataRaw.filter(u => u.role === 'dokter') : [];
             setDoctors(doctorList);
+            
             if(doctorList.length > 0 && !formData.dpjp) {
-                setFormData(prev => ({ ...prev, dpjp: doctorList[0].name }));
+                setFormData(prev => ({ 
+                    ...prev, 
+                    dpjp: doctorList[0].name,
+                    unit: doctorList[0].unit || 'Poli Umum'
+                }));
             }
         } catch (error) {
             console.error("Gagal memuat daftar dokter:", error);
@@ -111,7 +99,6 @@ export default function PatientInput() {
         }
     }, [token, formData.dpjp]);
 
-    // ── FETCH DATA MASTER HISTORIS LINTAS MINGGU DARI ENDPOINT SUPABASE BARU ──
     const fetchPatients = useCallback(async () => {
         setIsLoadingPatients(true);
         try {
@@ -135,6 +122,16 @@ export default function PatientInput() {
         fetchPatients();
     }, [fetchDoctors, fetchPatients]);
 
+    const handleDoctorChange = (e) => {
+        const docName = e.target.value;
+        const foundDoc = doctors.find(d => d.name === docName);
+        setFormData(prev => ({
+            ...prev,
+            dpjp: docName,
+            unit: foundDoc ? (foundDoc.unit || 'Poli Umum') : 'Poli Umum'
+        }));
+    };
+
     const handleSubmit = async (e) => {
         if (e && e.preventDefault) e.preventDefault();
         if (!formData.age || parseInt(formData.age) <= 0) {
@@ -153,7 +150,8 @@ export default function PatientInput() {
             triggerToast('success', `Registrasi Berhasil! Berkas pasien ${formData.title} ${formData.name} disimpan ke database.`);
             setFormData({ 
                 no_rm: '', title: 'Tn.', name: '', age: '', gender: 'Laki-Laki', 
-                unit: 'Poli Umum', dpjp: doctors.length > 0 ? doctors[0].name : 'Dr. Tirta', 
+                unit: doctors.length > 0 ? (doctors[0].unit || 'Poli Umum') : 'Poli Umum', 
+                dpjp: doctors.length > 0 ? doctors[0].name : '', 
                 status_treatment: 'Rawat Jalan', date: new Date().toISOString().split('T')[0] 
             });
             fetchPatients();
@@ -175,8 +173,8 @@ export default function PatientInput() {
             age: p.age || '',
             gender: p.gender || 'Laki-Laki',
             unit: p.unit || 'Poli Umum',
-            dpjp: doctors.length > 0 ? doctors[0].name : 'Dr. Tirta',
-            status_treatment: p.status_treatment || 'Rawat Jalan', // Otomatis membawa status perawatan terakhir
+            dpjp: p.dpjp || (doctors.length > 0 ? doctors[0].name : ''),
+            status_treatment: p.status_treatment || 'Rawat Jalan', 
             date: new Date().toISOString().split('T')[0] 
         };
 
@@ -322,29 +320,24 @@ export default function PatientInput() {
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pt-4">
-                            <div className="space-y-3">
-                                <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-1"><Building2 size={14}/> Unit Pelayanan / Poli</label>
-                                <select className="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-blue-500 outline-none font-bold text-slate-700 appearance-none cursor-pointer" value={formData.unit} onChange={e => setFormData({...formData, unit: e.target.value})} required >
-                                    <option value="Poli Umum">Poli Umum</option>
-                                    <option value="Poli Penyakit Dalam">Poli Penyakit Dalam</option>
-                                    <option value="Poli Jantung">Poli Jantung</option>
-                                    <option value="Poli Paru">Poli Paru</option>
-                                    <option value="Poli Saraf">Poli Saraf</option>
-                                    <option value="Bangsal Mawar">Bangsal Mawar</option>
-                                    <option value="Bangsal Melati">Bangsal Melati</option>
-                                    <option value="UGD">Zona Triage IGD</option>
-                                </select>
-                            </div>
-                            <div className="space-y-3">
+                            <div className="space-y-3 md:col-span-2">
                                 <label className="text-[11px] font-black text-blue-500 uppercase tracking-widest ml-1 flex items-center gap-1"><Stethoscope size={14}/> Dokter DPJP Tujuan</label>
                                 <div className="relative">
-                                    <select className="w-full px-5 py-4 bg-blue-50 border-2 border-blue-100 rounded-2xl focus:border-blue-500 outline-none transition-all font-black text-blue-800 appearance-none cursor-pointer" value={formData.dpjp} onChange={e => setFormData({...formData, dpjp: e.target.value})} required disabled={isLoadingDoctors}>
+                                    <select className="w-full px-5 py-4 bg-blue-50 border-2 border-blue-100 rounded-2xl focus:border-blue-500 outline-none transition-all font-black text-blue-800 appearance-none cursor-pointer" value={formData.dpjp} onChange={handleDoctorChange} required disabled={isLoadingDoctors}>
                                         {isLoadingDoctors ? <option>Memuat data dokter...</option> : doctors.map((doc) => <option key={doc.id} value={doc.name}>{doc.name} — {doc.unit || 'Spesialis'}</option>)}
                                     </select>
                                     {isLoadingDoctors && <Loader2 className="absolute right-4 top-4 animate-spin text-blue-500" size={20} />}
                                 </div>
                             </div>
+                            
                             <div className="space-y-3">
+                                <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-1"><Building2 size={14}/> Unit Pelayanan / Poli (Auto-Detect)</label>
+                                <input type="text" className="w-full px-5 py-4 bg-slate-100 border-2 border-slate-200 rounded-2xl outline-none font-black text-slate-600 shadow-inner cursor-not-allowed" value={formData.unit} disabled />
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pt-2">
+                            <div className="space-y-3 md:col-span-3">
                                 <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-1"><Clock size={14}/> Tanggal Registrasi</label>
                                 <input type="date" className="w-full px-5 py-4 bg-slate-100 border-2 border-slate-200 rounded-2xl outline-none font-bold text-slate-500 cursor-not-allowed shadow-inner" value={formData.date} disabled />
                             </div>
@@ -409,7 +402,6 @@ export default function PatientInput() {
                                                         </div>
                                                     </div>
                                                 </div>
-                                                {/* 🚀 BARU: BADGE DINAMIS KLASIFIKASI KAMAR PASIEN */}
                                                 <span className={`text-[9px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider shrink-0 border shadow-sm ${
                                                     p.status_treatment === 'UGD' || p.status_treatment === 'IGD'
                                                         ? 'bg-rose-50 text-rose-700 border-rose-200'
@@ -489,38 +481,20 @@ export default function PatientInput() {
                             className="bg-[#0f172a] border border-white/10 w-full max-w-md p-6 md:p-8 rounded-[2rem] shadow-2xl relative text-left space-y-6 text-white"
                         >
                             <div className="flex gap-1.5">
-                                {tourSteps.map((_, idx) => (
+                                {[0, 1, 2].map((idx) => (
                                     <div key={idx} className={`h-1.5 rounded-full transition-all duration-300 ${idx === tourStep ? 'w-8 bg-blue-500' : 'w-2 bg-slate-700'}`}/>
                                 ))}
                             </div>
-                            
                             <div className="space-y-3">
                                 <div className="flex items-center gap-3">
-                                    <div className="p-2 bg-white/5 border border-white/10 rounded-xl">
-                                        {tourSteps[tourStep].icon}
-                                    </div>
-                                    <h3 className="text-base font-black uppercase tracking-tight italic text-white">
-                                        {tourSteps[tourStep].title}
-                                    </h3>
+                                    <div className="p-2 bg-white/5 border border-white/10 rounded-xl">{tourSteps[tourStep].icon}</div>
+                                    <h3 className="text-base font-black uppercase tracking-tight italic text-white">{tourSteps[tourStep].title}</h3>
                                 </div>
-                                <p className="text-slate-400 text-sm font-medium leading-relaxed">
-                                    {tourSteps[tourStep].desc}
-                                </p>
+                                <p className="text-slate-400 text-sm font-medium leading-relaxed">{tourSteps[tourStep].desc}</p>
                             </div>
-                            
                             <div className="flex items-center justify-between pt-4 border-t border-white/5 gap-4">
-                                <button 
-                                    type="button"
-                                    onClick={handleCloseTour} 
-                                    className="text-xs font-bold text-slate-500 hover:text-slate-300 uppercase tracking-wider"
-                                >
-                                    Selesai & Keluar
-                                </button>
-                                <button 
-                                    type="button"
-                                    onClick={handleNextTourStep} 
-                                    className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 rounded-xl text-xs font-black uppercase tracking-widest flex items-center gap-2 active:scale-95 shadow-lg shadow-blue-900/40 transition-all"
-                                >
+                                <button type="button" onClick={handleCloseTour} className="text-xs font-bold text-slate-500 uppercase tracking-wider">Selesai & Keluar</button>
+                                <button type="button" onClick={handleNextTourStep} className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 rounded-xl text-xs font-black uppercase tracking-widest flex items-center gap-2 active:scale-95 shadow-lg" >
                                     {tourSteps[tourStep].actionLabel} <ChevronRight size={14} />
                                 </button>
                             </div>
@@ -528,7 +502,6 @@ export default function PatientInput() {
                     </div>
                 )}
             </AnimatePresence>
-
         </div>
     );
 }
