@@ -1,18 +1,17 @@
 // ============================================================================
-// LEXIMED.AI — ResumeMedis.jsx (v19.0 - PREMIUM PDF MATCH WEB UI)
-// FIX: printRef HTML disamakan 100% dengan tampilan web (premium layout)
-// FIX: CSS print inline lengkap dengan warna, badge, border, shadow simulasi
-// FIX: Obat list, radiologi, assessment semua termuat di PDF output
+// LEXIMED.AI — ResumeMedis.jsx (v19.5 - NATIVE PDF EXPORT ENGINE)
+// FIX: Menghapus total ketergantungan pada html2pdf.js yang memicu error CORS 'file://'
+// FIX: Menggunakan Native Browser Print Dialog untuk Cetak & Save As PDF (Standar Industri)
 // ============================================================================
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   FileText, Printer, ShieldCheck, Loader2, ArrowLeft,
   CheckCircle2, Award, Fingerprint, Pill, CheckSquare,
   Activity, Download, Database, RefreshCw, Zap,
-  HelpCircle, ChevronRight, CheckCircle, AlertCircle, BrainCircuit
+  HelpCircle, ChevronRight, BrainCircuit
 } from 'lucide-react';
 
 export default function ResumeMedis() {
@@ -23,8 +22,6 @@ export default function ResumeMedis() {
   const [currentUser, setCurrentUser] = useState(null);
   const [showSuccessToast, setShowSuccessToast] = useState(false);
   const [isReady, setIsReady] = useState(false);
-  const printRef = useRef(null);
-  const [isExporting, setIsExporting] = useState(false);
   const [isPrinting, setIsPrinting] = useState(false);
   const [showTour, setShowTour] = useState(false);
   const [tourStep, setTourStep] = useState(0);
@@ -101,6 +98,7 @@ export default function ResumeMedis() {
       const extractedPlanning = parseSectionByTag(combinedText, 'PLANNING') || "Kolaborasi program hemodialisa reguler, restriksi asupan cairan ketat, dan monitoring balance harian.";
       const extractedTatalaksana = parseSectionByTag(combinedText, 'TATALAKSANA') || "Restriksi cairan maksimal 500 ml + volume urine 24 jam. Pemberian antiemetik intravena.";
       const extractedEdukasi = parseSectionByTag(combinedText, 'EDUKASI') || "Edukasi pembatasan minum air harian, catat volume urine keluar, evaluasi pre-post berat badan.";
+      
       setResumeData({
         diagnosa_utama: extractedDiagnosis,
         assessment: extractedAssessment,
@@ -185,7 +183,7 @@ export default function ResumeMedis() {
     setTourStep(0); setShowTour(true);
   };
 
-  // ── GENERATE PREMIUM PRINT HTML ──
+  // ── GENERATE HTML UNTUK CETAK & DOWNLOAD PDF ──
   const generatePrintHTML = () => {
     if (!patient || !resumeData) return '';
     const todayStr = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
@@ -198,9 +196,8 @@ export default function ResumeMedis() {
     const statusBg = statusRawat === 'UGD' || statusRawat === 'IGD' ? '#fef2f2' : statusRawat === 'Rawat Inap' ? '#fffbeb' : '#ecfdf5';
 
     return `
-      <div style="font-family:'Segoe UI',Arial,sans-serif;color:#0f172a;max-width:780px;margin:0 auto;padding:0;">
+      <div style="font-family:'Segoe UI',Arial,sans-serif;color:#0f172a;width:100%;max-width:794px;margin:0 auto;padding:0;background:white;">
 
-        <!-- KOP SURAT PREMIUM -->
         <div style="display:flex;align-items:center;border-bottom:4px solid #0f172a;padding-bottom:20px;margin-bottom:24px;">
           <img src="${window.location.origin}/logo.png" style="width:72px;height:72px;object-fit:contain;margin-right:20px;" onerror="this.style.display='none'" />
           <div style="flex:1;">
@@ -215,14 +212,12 @@ export default function ResumeMedis() {
           </div>
         </div>
 
-        <!-- JUDUL DOKUMEN -->
         <div style="text-align:center;margin-bottom:28px;">
           <div style="display:inline-block;background:#0f172a;color:white;padding:10px 40px;border-radius:50px;font-size:14px;font-weight:900;text-transform:uppercase;letter-spacing:3px;">
             RINGKASAN PULANG (DISCHARGE SUMMARY)
           </div>
         </div>
 
-        <!-- INFO PASIEN CARD -->
         <div style="background:#f8fafc;border:2px solid #e2e8f0;border-radius:20px;padding:20px 24px;margin-bottom:28px;">
           <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;">
             <div>
@@ -256,10 +251,9 @@ export default function ResumeMedis() {
           </div>
         </div>
 
-        <!-- SECTION I: DIAGNOSIS -->
         <div style="margin-bottom:24px;">
-          <div style="background:#0f172a;color:white;padding:10px 18px;border-radius:12px 12px 0 0;font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:2px;display:flex;align-items:center;gap:8px;">
-            <span>📄</span> I. Diagnosis Akhir (ICD-10)
+          <div style="background:#0f172a;color:white;padding:10px 18px;border-radius:12px 12px 0 0;font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:2px;">
+            I. Diagnosis Akhir (ICD-10)
           </div>
           <div style="border:2px solid #0f172a;border-top:none;border-radius:0 0 12px 12px;padding:18px 20px;background:white;">
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
@@ -275,10 +269,9 @@ export default function ResumeMedis() {
           </div>
         </div>
 
-        <!-- SECTION II: RIWAYAT MEDIS -->
         <div style="margin-bottom:24px;">
-          <div style="background:#1e40af;color:white;padding:10px 18px;border-radius:12px 12px 0 0;font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:2px;display:flex;align-items:center;gap:8px;">
-            <span>🔍</span> II. Ringkasan Riwayat Medis & Kronologi Klinis
+          <div style="background:#1e40af;color:white;padding:10px 18px;border-radius:12px 12px 0 0;font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:2px;">
+            II. Ringkasan Riwayat Medis & Kronologi Klinis
           </div>
           <div style="border:2px solid #1e40af;border-top:none;border-radius:0 0 12px 12px;padding:18px 20px;background:white;">
             <div style="background:#eff6ff;border-radius:10px;padding:16px;font-size:12px;font-weight:500;color:#1e293b;line-height:1.8;">
@@ -292,14 +285,13 @@ export default function ResumeMedis() {
           </div>
         </div>
 
-        <!-- SECTION III: RADIOLOGI -->
         <div style="margin-bottom:24px;">
-          <div style="background:#4338ca;color:white;padding:10px 18px;border-radius:12px 12px 0 0;font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:2px;display:flex;align-items:center;gap:8px;">
-            <span>🩻</span> III. Hasil Pemeriksaan Radiologi (PACS)
+          <div style="background:#4338ca;color:white;padding:10px 18px;border-radius:12px 12px 0 0;font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:2px;">
+            III. Hasil Pemeriksaan Radiologi (PACS)
           </div>
           <div style="border:2px solid #4338ca;border-top:none;border-radius:0 0 12px 12px;padding:18px 20px;background:white;">
             <div style="display:flex;gap:16px;align-items:flex-start;">
-              ${resumeData?.radiology_image ? `<img src="${resumeData.radiology_image}" style="width:120px;height:120px;object-fit:cover;border-radius:10px;border:2px solid #c7d2fe;" />` : ''}
+              ${resumeData?.radiology_image ? `<img src="${resumeData.radiology_image}" style="width:120px;height:120px;object-fit:cover;border-radius:10px;border:2px solid #c7d2fe;" onerror="this.style.display='none'" />` : ''}
               <div style="flex:1;">
                 <div style="display:inline-block;background:#eef2ff;color:#4338ca;border:1.5px solid #c7d2fe;padding:4px 12px;border-radius:50px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">
                   Modalitas: ${resumeData?.radiology_modality || 'MRI Abdomen'}
@@ -315,25 +307,22 @@ export default function ResumeMedis() {
           </div>
         </div>
 
-        <!-- SECTION IV: OBAT -->
         <div style="margin-bottom:24px;">
-          <div style="background:#065f46;color:white;padding:10px 18px;border-radius:12px 12px 0 0;font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:2px;display:flex;align-items:center;gap:8px;">
-            <span>💊</span> IV. Terapi / Obat Saat Pulang (Ekstraksi AI)
+          <div style="background:#065f46;color:white;padding:10px 18px;border-radius:12px 12px 0 0;font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:2px;">
+            IV. Terapi / Obat Saat Pulang
           </div>
           <div style="border:2px solid #065f46;border-top:none;border-radius:0 0 12px 12px;padding:18px 20px;background:white;">
             ${obatList.map((obat, idx) => `
-              <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:${idx % 2 === 0 ? '#f0fdf4' : '#fafafa'};border:1.5px solid #bbf7d0;border-radius:10px;margin-bottom:8px;">
-                <div style="width:22px;height:22px;background:#10b981;border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-size:11px;font-weight:900;flex-shrink:0;">✓</div>
-                <div style="font-size:12px;font-weight:700;color:#065f46;">${obat}</div>
+              <div style="padding:8px 12px;background:${idx % 2 === 0 ? '#f0fdf4' : '#fafafa'};border:1px solid #bbf7d0;border-radius:8px;margin-bottom:6px;font-size:12px;font-weight:700;color:#065f46;">
+                ✓ ${obat}
               </div>
             `).join('')}
           </div>
         </div>
 
-        <!-- SECTION V: INSTRUKSI -->
         <div style="margin-bottom:32px;">
-          <div style="background:#374151;color:white;padding:10px 18px;border-radius:12px 12px 0 0;font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:2px;display:flex;align-items:center;gap:8px;">
-            <span>📋</span> V. Instruksi & Tindak Lanjut
+          <div style="background:#374151;color:white;padding:10px 18px;border-radius:12px 12px 0 0;font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:2px;">
+            V. Instruksi & Tindak Lanjut
           </div>
           <div style="border:2px solid #374151;border-top:none;border-radius:0 0 12px 12px;padding:18px 20px;background:white;">
             <div style="font-size:13px;font-weight:700;color:#0f172a;margin-bottom:12px;">${resumeData?.instruksi || 'Kontrol poli spesialis sesuai jadwal.'}</div>
@@ -345,10 +334,8 @@ export default function ResumeMedis() {
           </div>
         </div>
 
-        <!-- FOOTER TTD -->
-        <div style="display:flex;justify-content:space-between;align-items:flex-end;padding-top:24px;border-top:2px solid #e2e8f0;margin-top:8px;">
-          <div style="display:flex;align-items:center;gap:12px;opacity:0.4;">
-            <div style="font-size:28px;">🛡️</div>
+        <div style="display:flex;justify-content:space-between;align-items:flex-end;padding-top:24px;border-top:2px solid #e2e8f0;margin-top:20px;page-break-inside:avoid;">
+          <div style="display:flex;align-items:center;gap:12px;opacity:0.5;">
             <div>
               <div style="font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:2px;color:#334155;">LexiMed AI Engine v1.0</div>
               <div style="font-size:9px;color:#94a3b8;font-weight:600;margin-top:2px;">Dokumen Sah & Terverifikasi Digital</div>
@@ -356,10 +343,7 @@ export default function ResumeMedis() {
           </div>
           <div style="text-align:center;min-width:260px;">
             <div style="font-size:11px;color:#64748b;font-weight:600;margin-bottom:6px;">Sukoharjo, ${todayStr}</div>
-            <div style="font-size:10px;font-weight:800;color:#0f172a;text-transform:uppercase;letter-spacing:2px;margin-bottom:4px;">Dokter Penanggung Jawab,</div>
-            <div style="height:70px;display:flex;align-items:center;justify-content:center;">
-              <img src="https://upload.wikimedia.org/wikipedia/commons/3/3a/Jon_Kirsch%27s_Signature.png" style="width:120px;opacity:0.6;filter:grayscale(1);" />
-            </div>
+            <div style="font-size:10px;font-weight:800;color:#0f172a;text-transform:uppercase;letter-spacing:2px;margin-bottom:30px;">Dokter Penanggung Jawab,</div>
             <div style="height:2px;background:linear-gradient(90deg,#10b981,#3b82f6);border-radius:2px;margin-bottom:8px;"></div>
             <div style="font-size:14px;font-weight:900;color:#0f172a;text-transform:uppercase;letter-spacing:1px;">${doctorName}</div>
             <div style="font-size:10px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:2px;margin-top:3px;">NIP. ${doctorNIP}</div>
@@ -370,7 +354,8 @@ export default function ResumeMedis() {
     `;
   };
 
-  const handlePrint = () => {
+  // NATIVE BROWSER PRINT ENGINE (Anti-CORS, Anti-Blank)
+  const triggerNativePrint = () => {
     if (!patient) return alert("Data pasien belum dimuat sempurna.");
     setIsPrinting(true);
     setTimeout(() => {
@@ -382,7 +367,7 @@ export default function ResumeMedis() {
       doc.write(`
         <html>
           <head>
-            <title>Resume Medis - ${patient.name}</title>
+            <title>Resume Medis - ${patient.name || patient.no_rm}</title>
             <style>
               @page { size: A4; margin: 15mm; }
               * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
@@ -399,40 +384,6 @@ export default function ResumeMedis() {
         setTimeout(() => { document.body.removeChild(iframe); setIsPrinting(false); }, 1000);
       }, 600);
     }, 100);
-  };
-
-  const handleDownloadPDF = async () => {
-    if (!patient) return alert("Data pasien belum dimuat sempurna.");
-    setIsExporting(true);
-    try {
-      if (!window.html2pdf) {
-        const script = document.createElement('script');
-        script.src = "https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js";
-        document.body.appendChild(script);
-        await new Promise(resolve => script.onload = resolve);
-      }
-      // Render ke div tersembunyi
-      const container = document.createElement('div');
-      container.style.cssText = 'position:fixed;left:-9999px;top:0;width:794px;background:white;padding:30px;box-sizing:border-box;';
-      container.innerHTML = generatePrintHTML();
-      document.body.appendChild(container);
-
-      const opt = {
-        margin: [10, 10, 10, 10],
-        filename: `Resume_Medis_${patient?.norm || patient?.no_rm || 'RM'}.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true, logging: false, backgroundColor: '#ffffff' },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-      };
-      await window.html2pdf().set(opt).from(container).save();
-      document.body.removeChild(container);
-    } catch (err) {
-      console.error("Gagal Render PDF:", err);
-      alert("Gagal mengunduh PDF. Mengalihkan ke mode cetak...");
-      handlePrint();
-    } finally {
-      setIsExporting(false);
-    }
   };
 
   if (!isReady || !patient) {
@@ -477,12 +428,17 @@ export default function ResumeMedis() {
             <button onClick={handleUpdateAI} disabled={loading} className="shrink-0 flex items-center justify-center gap-2 bg-white border border-slate-200 text-slate-600 px-5 py-3 rounded-xl font-bold hover:bg-slate-50 shadow-sm active:scale-95 disabled:opacity-50 transition-all uppercase tracking-widest text-[10px] md:text-xs">
               {loading ? <RefreshCw className="animate-spin text-emerald-500" size={16} /> : <Zap size={16} className="text-amber-500" />} Update Data AI
             </button>
-            <button onClick={handlePrint} disabled={isPrinting} className="shrink-0 flex items-center justify-center gap-2 bg-slate-900 text-white px-5 py-3 rounded-xl font-bold hover:bg-slate-800 shadow-md transition-all uppercase tracking-widest text-[10px] md:text-xs">
-              {isPrinting ? <Loader2 className="animate-spin" size={16} /> : <Printer size={16} />} Cetak Dokumen
+            
+            {/* TOMBOL CETAK NATIVE */}
+            <button onClick={triggerNativePrint} disabled={isPrinting} className="shrink-0 flex items-center justify-center gap-2 bg-slate-100 border border-slate-300 text-slate-700 px-5 py-3 rounded-xl font-bold hover:bg-slate-200 shadow-sm transition-all uppercase tracking-widest text-[10px] md:text-xs">
+              {isPrinting ? <Loader2 className="animate-spin" size={16} /> : <Printer size={16} />} Cetak
             </button>
-            <button onClick={handleDownloadPDF} disabled={isExporting} className="shrink-0 flex items-center justify-center gap-2 bg-white border border-slate-200 text-slate-700 px-5 py-3 rounded-xl font-bold hover:bg-emerald-50 hover:text-emerald-600 hover:border-emerald-200 shadow-sm transition-all uppercase tracking-widest text-[10px] md:text-xs">
-              {isExporting ? <Loader2 className="animate-spin" size={16} /> : <Download size={16} />} Unduh PDF
+            
+            {/* TOMBOL UNDUH PDF (DIARAHKAN KE NATIVE SAVE AS PDF) */}
+            <button onClick={triggerNativePrint} disabled={isPrinting} className="shrink-0 flex items-center justify-center gap-2 bg-slate-900 text-white px-5 py-3 rounded-xl font-bold hover:bg-blue-600 shadow-md transition-all uppercase tracking-widest text-[10px] md:text-xs">
+              {isPrinting ? <Loader2 className="animate-spin" size={16} /> : <Download size={16} />} Unduh PDF
             </button>
+            
             <button onClick={() => navigate('/approve')} className="shrink-0 flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white px-6 py-3 rounded-xl font-black hover:from-emerald-600 hover:to-emerald-700 shadow-lg shadow-emerald-500/30 transition-all uppercase tracking-widest text-[10px] md:text-xs">
               <CheckCircle2 size={18} /> Approve
             </button>
@@ -634,7 +590,6 @@ export default function ResumeMedis() {
               <p className="text-[10px] font-black text-slate-900 uppercase tracking-tighter mb-2">Dokter Penanggung Jawab</p>
               <div className="relative h-20 flex justify-center items-center my-4">
                 <Award size={40} className="text-slate-100 absolute" />
-                <div className="absolute opacity-50 grayscale"><img src="https://upload.wikimedia.org/wikipedia/commons/3/3a/Jon_Kirsch%27s_Signature.png" width="100" alt="sign" /></div>
               </div>
               <div className="h-0.5 bg-gradient-to-r from-emerald-500 to-blue-500 rounded mb-3" />
               <p className="text-sm font-black text-slate-900 uppercase tracking-tighter">{doctorName}</p>
