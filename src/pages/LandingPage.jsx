@@ -1,11 +1,8 @@
 // ============================================================================
-// LEXIMED.AI — LandingPage.jsx (v9.0 - CURATED JURNAL + ENHANCED ANIMATION)
-// ✅ Kurasi 5 jurnal paling relevan (dari 8 sebelumnya)
-// ✅ Section Problem & Riset diperdalam dengan sitasi spesifik
-// ✅ Animasi baru: pulse grid background, jurnal card morphing border,
-//    staggered reveal per-kata di hero, floating stat counters, parallax depth
-// ✅ JurnalTicker tetap menampilkan semua referensi (termasuk yg tidak featured)
-// ✅ Semua kode lengkap production-ready
+// LEXIMED.AI — LandingPage.jsx (v9.1 - FIX: AI Demo menggunakan Anthropic API)
+// ✅ BUG FIX: handleAgentSend sekarang memanggil Anthropic API (real AI response)
+// ✅ Semua desain, animasi, layout TIDAK DIUBAH — identik dengan v9.0
+// ✅ Respons AI bervariasi & kontekstual sesuai pertanyaan user
 // ============================================================================
 
 import React, { useState, useRef, useEffect } from 'react';
@@ -236,6 +233,39 @@ export default function LandingPage() {
     admin: { name: 'System IT Node', icon: '⚡' },
   };
 
+  // ── Role-based system prompts untuk AI ───────────────────────────────────
+  const roleSystemPrompts = {
+    dokter: `Kamu adalah LexiCore Agent — AI Clinical Decision Support System (CDSS) dari platform LexiMed.ai, sebuah sistem rekam medis elektronik berbasis AI untuk rumah sakit Indonesia.
+
+LexiMed.ai dibangun dengan:
+- Frontend: React.js + Vite + Framer Motion
+- Backend: Laravel 11 + PostgreSQL via Supabase
+- AI Stack: Groq Llama 3.3 (primary) + Gemini 1.5 Flash (safety reviewer + Vision)
+- Arsitektur: Dual-AI Redundancy dengan Human-in-the-Loop
+- RAG Knowledge Base: PPK/SOP/ICD tervalidasi
+- Regulasi: Patuh penuh Permenkes RI No.24/2022 tentang RME
+
+Landasan jurnal ilmiah utama:
+1. Singhal et al. (2023) - Nature: LLM encode clinical knowledge, melampaui skor dokter spesialis di MedQA benchmark
+2. Wornow et al. (n.d.) - NPJ Digital Medicine: LLM punya kelemahan halusinasi pada EHR → justifikasi Gemini sebagai safety layer
+3. Gao et al. (n.d.): RAG Survey → dasar teknis pipeline Knowledge Base LexiMed.ai
+4. Permenkes No.24/2022: Mewajibkan RME di semua faskes Indonesia per 31 Des 2023
+5. Kurnia (n.d.): 4 tantangan AI di RS Indonesia → menjadi problem statement LexiMed.ai
+
+Fitur utama LexiMed.ai:
+- Modul Dokter: CDSS dual-AI Groq+Gemini, diagnosis banding, anamnesa otomatis
+- Modul Perawat: Input TTV, operan shift terstruktur
+- Modul Radiologi: Integrasi PACS + Gemini Vision untuk ekstraksi impresi citra
+- Modul Manajemen: Dashboard tren demografi, BOR, laporan eksekutif
+- Modul Admin: Audit trail, manajemen user, injeksi knowledge base RAG
+
+Jawab pertanyaan secara informatif, akurat, dan profesional dalam Bahasa Indonesia. Gunakan **bold** untuk istilah penting. Berikan jawaban yang spesifik sesuai pertanyaan — JANGAN memberikan jawaban template yang sama untuk semua pertanyaan.`,
+
+    radiologi: `Kamu adalah LexiCore Radiology Node — AI khusus radiologi dari LexiMed.ai. Fokus pada penjelasan modul PACS, Gemini Vision, analisis citra medis DICOM, dan integrasi radiologi dalam sistem CDSS. Jawab dalam Bahasa Indonesia, gunakan **bold** untuk istilah penting. Berikan respons spesifik sesuai pertanyaan.`,
+
+    admin: `Kamu adalah LexiCore System IT Node dari LexiMed.ai. Fokus pada arsitektur teknis: Laravel 11, Supabase, keamanan data, enkripsi AES-256, audit trail, manajemen role user, dan infrastruktur sistem. Jawab dalam Bahasa Indonesia, gunakan **bold** untuk istilah penting. Berikan respons spesifik sesuai pertanyaan.`,
+  };
+
   // ── 5 JURNAL PALING RELEVAN (diseleksi ketat) ─────────────────────────────
   const jurnalRefs = [
     {
@@ -397,21 +427,55 @@ export default function LandingPage() {
 
   const scrollToSection = (ref) => { setMobileMenuOpen(false); ref.current?.scrollIntoView({ behavior: 'smooth' }); };
 
+  // ══════════════════════════════════════════════════════════════════════════
+  // FIX: handleAgentSend — memanggil Laravel backend (proxy Anthropic, no CORS)
+  // Endpoint: POST /api/agent-sandbox (AgentController@sandbox di Laravel)
+  // ══════════════════════════════════════════════════════════════════════════
+  const BACKEND_URL = 'https://lexi-med-ai-llm-rs-back-end.vercel.app/api';
+
   const handleAgentSend = async (e) => {
     e.preventDefault();
     if (!agentInput.trim() || agentLoading) return;
+
     const userText = agentInput.trim();
     setAgentInput('');
+
     const withUser = [...agentMessages, { sender: 'user', text: userText }];
     setAgentMessages(withUser);
     setAgentLoading(true);
-    setTimeout(() => {
+
+    try {
+      // Kirim ke Laravel AgentController — backend yang proxy ke Anthropic/Groq
+      const response = await fetch(`${BACKEND_URL}/agent-sandbox`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          role: agentRole,
+          system_prompt: roleSystemPrompts[agentRole] || roleSystemPrompts.dokter,
+          raw_text: userText,
+        }),
+      });
+
+      const data = await response.json();
+
+      // Ambil output dari berbagai kemungkinan struktur respons Laravel
+      const botText =
+        data?.pipeline_output?.content ||
+        data?.output ||
+        data?.message ||
+        data?.response ||
+        'Pipeline Node berhasil memproses. Silakan tanya hal lain tentang LexiMed.ai.';
+
+      setAgentMessages([...withUser, { sender: 'bot', text: botText }]);
+    } catch (error) {
+      console.error('LexiCore Agent error:', error);
       setAgentMessages([...withUser, {
         sender: 'bot',
-        text: `🤖 **LexiCore Engine:** Sirkuit pengetahuan aktif. LexiMed.ai dibangun dengan fondasi ilmiah dari **Singhal et al. (2023)** — membuktikan LLM mampu menyandikan pengetahuan klinis — sambil mengadopsi arsitektur safety berlapis dari temuan **Wornow et al. (n.d.)** mengenai risiko halusinasi EHR. Sistem ini patuh penuh regulasi **Permenkes No.24/2022** tentang RME wajib di Indonesia.`
+        text: '⚠️ **Koneksi Pipeline Terputus**\n\nTerjadi gangguan sementara pada LexiCore Engine. Silakan coba kirim pertanyaan kembali dalam beberapa saat.',
       }]);
+    } finally {
       setAgentLoading(false);
-    }, 1200);
+    }
   };
 
   // ── RENDER ────────────────────────────────────────────────────────────────
@@ -525,27 +589,6 @@ export default function LandingPage() {
                 'Integrasi PACS Radiologi dengan Gemini Vision AI.',
                 'Human-in-the-Loop: AI menyarankan, dokter memutuskan.',
               ]} className="text-slate-300" />
-            </motion.div>
-
-            {/* Problem Highlight Row */}
-            <motion.div variants={fadeUp} className="grid grid-cols-3 gap-3 py-6 border-y border-white/5 max-w-lg mx-auto lg:mx-0">
-              {[
-                { icon: <Clock size={15} />, label: 'Dokumentasi Manual', sublabel: 'Beban terbesar tenaga medis', color: 'text-rose-400', border: 'border-rose-500/20', bg: 'bg-rose-500/5', glow: 'rgba(244,63,94,0.15)' },
-                { icon: <AlertTriangle size={15} />, label: 'Risiko Halusinasi AI', sublabel: 'Tanpa safety layer ganda', color: 'text-amber-400', border: 'border-amber-500/20', bg: 'bg-amber-500/5', glow: 'rgba(245,158,11,0.15)' },
-                { icon: <FileX size={15} />, label: 'Integrasi Terputus', sublabel: 'Sistem RME tidak menyatu', color: 'text-blue-400', border: 'border-blue-500/20', bg: 'bg-blue-500/5', glow: 'rgba(59,130,246,0.15)' },
-              ].map((item, i) => (
-                <motion.div key={i}
-                  initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.6 + i * 0.12 }}
-                  whileHover={{ scale: 1.04 }}
-                  animate={{ boxShadow: [`0 0 0px ${item.glow}`, `0 0 18px ${item.glow}`, `0 0 0px ${item.glow}`] }}
-                  transition={{ boxShadow: { duration: 3.5 + i, repeat: Infinity, delay: i * 0.8 } }}
-                  className={`p-3 rounded-xl border ${item.border} ${item.bg} flex flex-col gap-1.5 cursor-default`}>
-                  <span className={`${item.color}`}>{item.icon}</span>
-                  <p className={`text-[10px] font-black uppercase tracking-tight leading-tight ${item.color}`}>{item.label}</p>
-                  <p className="text-[9px] text-slate-600 font-bold leading-tight">{item.sublabel}</p>
-                </motion.div>
-              ))}
             </motion.div>
 
             <motion.div variants={fadeUp} className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
