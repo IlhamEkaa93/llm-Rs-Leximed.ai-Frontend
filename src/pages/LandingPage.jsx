@@ -468,7 +468,15 @@ Untuk pertanyaan yang sesuai topik, jawab dalam Bahasa Indonesia, gunakan **bold
   useEffect(() => { const i = setInterval(() => setActiveProblem(p => (p + 1) % problems.length), 5000); return () => clearInterval(i); }, []);
   useEffect(() => { if (chatContainerRef.current) chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight; }, [agentMessages, agentLoading]);
 
-  const scrollToSection = (ref) => { setMobileMenuOpen(false); ref.current?.scrollIntoView({ behavior: 'smooth' }); };
+  const scrollToSection = (ref) => {
+    if (ref.current) {
+      const headerOffset = 88; // tinggi header fixed (logo + padding) supaya section tidak ketutup
+      const elementPosition = ref.current.getBoundingClientRect().top + window.pageYOffset;
+      const offsetPosition = elementPosition - headerOffset;
+      window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
+    }
+    setTimeout(() => setMobileMenuOpen(false), 350);
+  };
 
   // ══════════════════════════════════════════════════════════════════════════
   // FIX: handleAgentSend — memanggil Laravel backend (proxy Anthropic, no CORS)
@@ -601,14 +609,14 @@ Untuk pertanyaan yang sesuai topik, jawab dalam Bahasa Indonesia, gunakan **bold
           {mobileMenuOpen && (
             <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.3 }}
               className="md:hidden overflow-hidden border-t border-white/5 bg-[#020617]/95 backdrop-blur-xl">
-              <div className="px-6 py-4 flex flex-col gap-4 font-bold text-slate-400 text-xs uppercase tracking-widest">
+              <div className="px-6 py-4 flex flex-col gap-4 font-bold text-slate-400 text-xs uppercase tracking-widest max-h-[calc(100vh-80px)] overflow-y-auto relative z-10">
                 <NavLink onClick={() => scrollToSection(heroRef)}>Beranda</NavLink>
                 <NavLink onClick={() => scrollToSection(problemRef)}>Masalah & Riset</NavLink>
                 <NavLink onClick={() => scrollToSection(jurnalRef)}>Jurnal</NavLink>
                 <NavLink onClick={() => scrollToSection(fiturRef)}>Modul</NavLink>
                 <NavLink onClick={() => scrollToSection(caraKerjaRef)}>Cara Kerja</NavLink>
                 <NavLink onClick={() => scrollToSection(agentRef)}>Demo AI</NavLink>
-                <button onClick={() => navigate('/login')} className="px-5 py-2.5 bg-white text-slate-950 font-black rounded-xl flex items-center justify-center gap-2 mt-2">
+                <button type="button" onClick={() => { navigate('/login'); setMobileMenuOpen(false); }} className="px-5 py-2.5 bg-white text-slate-950 font-black rounded-xl flex items-center justify-center gap-2 mt-2 relative z-10 cursor-pointer">
                   Masuk Sistem <ArrowRight size={14} />
                 </button>
               </div>
