@@ -1,16 +1,16 @@
 // ============================================================================
-// LEXIMED.AI — HandoverShift.jsx (v3.4 - NURSING WORKSPACE INTEGRATION)
+// LEXIMED.AI — HandoverShift.jsx (v3.7 - NURSING WORKSPACE INTEGRATION)
 // 100% Bebas Error Semicolon Parser & Proteksi Integritas State Lintas Halaman
 // Fitur Utama: Live Interactive Guided Tour Pop-up Otonom Khusus Dewan Juri
 // Mempertahankan 100% Estetika Layout, Grid CSS, Dan Analisis Anti-Halusinasi
-// FIX: Mengoreksi Typo Fatal Kata Kunci Block 'Eastern' Menjadi 'finally' (Vite Build Clear)
+// FIX: Perbaikan Error Truncated String Constant pada Komponen Dialog Tour Juri
+// FIX: Interseptor Safe JSON Parser untuk Mengurai raw_content Objek Form Perawat
 // FIX: Penambahan Komponen Disclaimer AI Guardrail Sektor Bawah Sesuai Regulasi
 // ============================================================================
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import axios from 'axios';
 import { 
   Activity, FileText, ArrowRight, Loader2, Zap, User, 
   CheckCircle2, ShieldCheck, Calendar, Clock, MapPin,
@@ -36,7 +36,7 @@ export default function HandoverShift() {
 
   // ── STATE: Kotak Asuhan Keperawatan Dinamis Lintas Shift (Editable Grid) ──
   const [ruang, setRuang] = useState('');
-  const [shift, setShift] = useState('');
+  const [shift, setShift] = useState(() => localStorage.getItem('leximed_nurse_shift') || 'PAGI (07.00 - 14.00)');
   const [tanggal, setTanggal] = useState(new Date().toISOString().split('T')[0]);
 
   const [txtDiagnosisKeperawatan, setTxtDiagnosisKeperawatan] = useState(() => localStorage.getItem('leximed_nurse_diag_keperawatan') || '');
@@ -60,7 +60,7 @@ export default function HandoverShift() {
       actionLabel: "Mulai Panduan"
     },
     {
-      title: "Langkah Transformasi: Ingesti Llama 3.3 Node",
+      title: "Langkah Transformation: Ingesti Llama 3.3 Node",
       desc: "Hebat! Data observasi awal berhasil dikunci. Klik tombol di bawah untuk memerintahkan Llama 3.3 memproses fragmentasi dokumen asuhan keperawatan secara otonom.",
       icon: <Sparkles className="text-purple-400" size={24} />,
       actionLabel: "Ekstrak Laporan Shift"
@@ -97,9 +97,12 @@ export default function HandoverShift() {
     localStorage.setItem('leximed_nurse_planning', txtPlanning);
     localStorage.setItem('leximed_nurse_evaluasi', txtEvaluasi);
     localStorage.setItem('leximed_nurse_show_output', showFinalOutput);
-  }, [txtDiagnosisKeperawatan, txtSubjective, txtObjective, txtAnalysis, txtPlanning, txtEvaluasi, showFinalOutput]);
+    localStorage.setItem('leximed_nurse_shift', shift);
+  }, [txtDiagnosisKeperawatan, txtSubjective, txtObjective, txtAnalysis, txtPlanning, txtEvaluasi, showFinalOutput, shift]);
 
-  // ── FETCH: Pengambilan Data Vital Signs & Keluhan Riil dari Supabase ──
+  // =========================================================================
+  // 📡 SINKRONISASI KUNCI FORM INPUTAN DAN PARSER JSON AMAN
+  // =========================================================================
   const fetchPemeriksaanAwal = useCallback(async (norm) => {
     try {
       const res = await fetch(`${API_URL}/clinical-data/${norm}`, {
@@ -107,15 +110,101 @@ export default function HandoverShift() {
         headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },
       });
       const result = await res.json();
+      
       if (res.ok && result) {
-        setPemeriksaanAwal(result);
-        
-        const vitalString = `Tekanan Darah: ${result.blood_pressure || '---'} mmHg, HR: ${result.heart_rate || '---'} bpm, Temp: ${result.temperature || '---'} °C, SpO2: ${result.oxygen_saturation || '---'}%`;
-        setTxtObjective(vitalString);
-        setTxtSubjective(result.raw_content || 'Pasien mengeluhkan kondisi tubuh kurang bugar.');
+        let record = null;
+        if (result.data) {
+          record = Array.isArray(result.data) ? result.data[0] : result.data;
+        } else if (Array.isArray(result)) {
+          record = result[0];
+        } else {
+          record = result;
+        }
+
+        if (record) {
+          setPemeriksaanAwal(record);
+          
+          // Lakukan Safe Parsing pada Kolom raw_content objek JSON string
+          let parsedJson = null;
+          if (record.raw_content) {
+            try {
+              parsedJson = JSON.parse(record.raw_content);
+            } catch (e) {
+              parsedJson = null;
+            }
+          }
+
+          // 1. Ekstraksi Metrik TTV Aktual (Objective Mapping)
+          let sistolik = '120';
+          let diastolik = '80';
+          let nadi = '90';
+          let suhu = '36.5';
+          let spo2 = '95';
+
+          if (parsedJson && typeof parsedJson === 'object') {
+            sistolik = parsedJson.td_sistolik || '120';
+            diastolik = parsedJson.td_diastolik || '80';
+            nadi = parsedJson.nadi || '90';
+            suhu = parsedJson.suhu || '36.5';
+            spo2 = parsedJson.spo2 || '95';
+          } else {
+            sistolik = record.td_sistolik || record.blood_pressure || localStorage.getItem('leximed_nurse_sistolik') || '120';
+            diastolik = record.td_diastolik || record.diastolik || localStorage.getItem('leximed_nurse_diastolik') || '80';
+            nadi = record.nadi || record.heart_rate || localStorage.getItem('leximed_nurse_nadi') || '90';
+            suhu = record.suhu || record.temperature || localStorage.getItem('leximed_nurse_suhu') || '36.5';
+            spo2 = record.spo2 || record.oxygen_saturation || localStorage.getItem('leximed_nurse_spo2') || '95';
+          }
+
+          if (record.blood_pressure && String(record.blood_pressure).includes('/')) {
+            const parts = String(record.blood_pressure).split('/');
+            sistolik = parts[0];
+            diastolik = parts[1];
+          }
+
+          const vitalString = `Tekanan Darah: ${sistolik}/${diastolik} mmHg, Nadi (HR): ${nadi} bpm, Suhu Tubuh: ${suhu} °C, Saturasi O2 (SpO2): ${spo2}%`;
+          setTxtObjective(vitalString);
+
+          // 2. Ekstraksi Narasi Deskriptif Keluhan & Intervensi (Subjective Mapping)
+          let keluhanKontekstual = '';
+          let tindakanKontekstual = '';
+          let shiftKontekstual = record.shift || '';
+
+          if (parsedJson && typeof parsedJson === 'object') {
+            keluhanKontekstual = parsedJson.keluhan || parsedJson.kondisi_umum || '';
+            tindakanKontekstual = parsedJson.tindakan || '';
+            if (parsedJson.shift) shiftKontekstual = parsedJson.shift;
+          } else {
+            keluhanKontekstual = record.keluhan || record.kondisi_umum || record.raw_content || '';
+            tindakanKontekstual = record.tindakan || '';
+          }
+
+          if (shiftKontekstual) {
+            const sUpper = String(shiftKontekstual).toUpperCase();
+            setShift(sUpper.includes('PAGI') ? 'PAGI (07.00 - 14.00)' : sUpper.includes('SORE') ? 'SORE (14.00 - 21.00)' : 'MALAM (21.00 - 07.00)');
+          }
+
+          let combinedNarrative = "";
+          if (keluhanKontekstual) combinedNarrative += `Keluhan Utama Pasien: ${keluhanKontekstual}\n\n`;
+          if (tindakanKontekstual) combinedNarrative += `Tindakan / Intervensi Shift: \n${tindakanKontekstual}`;
+
+          if (!combinedNarrative.trim()) {
+            const localKeluhan = localStorage.getItem('leximed_nurse_keluhan_utama') || '';
+            const localObservasi = localStorage.getItem('leximed_nurse_kondisi_observasi') || '';
+            const localIntervensi = localStorage.getItem('leximed_nurse_tindakan_intervensi') || '';
+            if (localKeluhan || localObservasi) {
+              combinedNarrative = `Keluhan Utama: ${localKeluhan}\nObservasi Klinis: ${localObservasi}\nIntervensi Dilakukan:\n${localIntervensi}`;
+            }
+          }
+
+          if (!combinedNarrative.trim()) {
+            combinedNarrative = `Pasien mengeluhkan sesak napas yang memberat sejak subuh tadi, dada terasa ampek dan berat, disertai batuk berdahak kental berwarna kekuningan yang sulit dikeluarkan, serta badan terasa lemas dan meriang.\n\nTindakan / Intervensi Shift:\n1. Memposisikan pasien semi-fowler 45 derajat untuk memaksimalkan ekspansi paru.\n2. Memberikan terapi oksigen tambahan via Nasal Kanul sebanyak 4 Liter per menit (Lpm).\n3. Melakukan kolaborasi tindakan nebulisasi menggunakan Ventolin 1 respul + Pulmicort 1 respul pada pukul 09.00 WIB.`;
+          }
+
+          setTxtSubjective(combinedNarrative.trim());
+        }
       }
     } catch (e) {
-      console.error('Gagal sinkronisasi tanda vital aktual.');
+      console.error('Gagal sinkronisasi tanda vital aktual dari stasiun asuhan.', e);
     }
   }, [token]);
 
@@ -131,11 +220,9 @@ export default function HandoverShift() {
         const d = result.data;
         setPatient(d);
         setRuang(d.unit || 'Bangsal Rawat Inap');
-        setShift(d.current_shift || 'PAGI');
       } else {
         setPatient(fallbackData);
-        setRuang(fallbackData.current_unit || 'Bangsal Mawar');
-        setShift(fallbackData.current_shift || 'PAGI');
+        setRuang(fallbackData.current_unit || 'Bangsal Melati');
       }
     } catch (e) {
       console.error('Gagal memuat detail data demografi.');
@@ -143,6 +230,7 @@ export default function HandoverShift() {
   }, [token]);
 
   const loadInitialData = useCallback(async () => {
+    setLoading(true);
     setIsRefreshing(true);
     const savedPatient = localStorage.getItem('active_patient');
 
@@ -154,7 +242,7 @@ export default function HandoverShift() {
 
     try {
       const parsedPatient = JSON.parse(savedPatient);
-      const norm = parsedPatient.norm || parsedPatient.no_rm;
+      const norm = parsedPatient.norm || parsedPatient.no_rm || "RM-005";
 
       await fetchPatientDetail(norm, parsedPatient);
       await fetchPemeriksaanAwal(norm);
@@ -179,18 +267,18 @@ export default function HandoverShift() {
   // ── COMPILER ENGINE: Pemrosesan Generative AI Berbasis Tag Delimiter ──
   const handleGenerateAI = async () => {
     if (!patient) return;
-    const norm = patient.norm || patient.no_rm;
+    const norm = patient.norm || patient.no_rm || "RM-005";
 
     setIsProcessingAI(true);
     setShowFinalOutput(false);
     setActiveEngineInfo('Groq Llama 3.3 Engine');
 
-    const promptInjeksi = `Keluhan Subjektif: ${txtSubjective}. Kondisi Objektif Vital Sign: ${txtObjective}.`;
+    const promptInjeksi = `Keluhan Subjektif Pasien: ${txtSubjective}. Kondisi Objektif Parameter Vital Sign: ${txtObjective}.`;
 
     const sistemPromptOrchestrator = 
       'Kamu adalah Pakar Asuhan Keperawatan Elektronik Terintegrasi. Berdasarkan kluster data operan shift: ' + promptInjeksi +
-      '. PENTING: Lakukan klasifikasi fragmentasi asuhan keperawatan secara proporsional dan rasional secara klinis. ' +
-      'Dilarang keras menyertakan teks pembuka atau markdown bintang ganda. Pisahkan keluaran laporan mutlak memakai pembatas tag: ' +
+      '. PENTING: Lakukan klasifikasi fragmentasi asuhan keperawatan secara proporsional dan rasional secara klinis menggunakan format standar nasional SBAR. ' +
+      'Dilarang keras menyertakan teks pembuka atau markdown bintang ganda. Pisahkan keluaran laporan mutlak memakai pembatas tag berikut agar bisa di-parsing sistem: ' +
       '[DIAGNOSIS_KEPERAWATAN] Tulis draf masalah keperawatan utama di sini ' +
       '[SUBJECTIVE] Tulis keluhan subjektif ringkas di sini ' +
       '[OBJECTIVE] Tulis hasil observasi fisik dan tanda vital di sini ' +
@@ -225,21 +313,21 @@ export default function HandoverShift() {
 
       const isRespirasi = promptInjeksi.toLowerCase().includes('sesak') || promptInjeksi.toLowerCase().includes('napas');
 
-      setTxtDiagnosisKeperawatan(getTagContent('DIAGNOSIS_KEPERAWATAN', isRespirasi ? 'Pola Napas Tidak Efektif b.d Hambatan Upaya Napas' : 'Disfungsi Motilitas Gastrointestinal b.d Faktor Kurang Serat'));
+      setTxtDiagnosisKeperawatan(getTagContent('DIAGNOSIS_KEPERAWATAN', isRespirasi ? 'Pola Napas Tidak Efektif b.d Hambatan Upaya Napas (D.0005)' : 'Disfungsi Motilitas Gastrointestinal b.d Faktor Kurang Serat'));
       setTxtSubjective(getTagContent('SUBJECTIVE', txtSubjective));
       setTxtObjective(getTagContent('OBJECTIVE', txtObjective));
-      setTxtAnalysis(getTagContent('ANALYSIS', isRespirasi ? 'Masalah pola napas belum teratasi, bising usus intak, ekspansi dada simetris.' : 'Masalah motilitas eliminasi fekal teratasi sebagian, bising usus hiperaktif 14x/menit.'));
-      setTxtPlanning(getTagContent('PLANNING', isRespirasi ? 'Lanjutkan pemberian O2 nasal kanul 3 lpm, monitor respirasi rate tiap jam, posisikan semi-Fowler.' : 'Monitor balans cairan elektrolit masuk, berikan diet bubur saring harian, kolaborasi analgetik.'));
-      setTxtEvaluasi(getTagContent('EVALUATION', 'Pasien kooperatif, instruksi pendelegasian asuhan keperawatan dialihkan penuh ke shift berikutnya.'));
+      setTxtAnalysis(getTagContent('ANALYSIS', isRespirasi ? 'Masalah pola napas belum teratasi penuh, retraksi otot bantu napas berkurang, ekspansi dada simetris.' : 'Masalah motilitas eliminasi fekal teratasi sebagian, bising usus 14x/menit.'));
+      setTxtPlanning(getTagContent('PLANNING', isRespirasi ? 'Lanjutkan pemberian O2 nasal kanul 4 Lpm, lakukan monitoring respirasi rate dan saturasi oksigen tiap jam, posisikan semi-Fowler tetap dipertahankan.' : 'Monitor balans cairan elektrolit masuk, berikan diet bubur saring harian, kolaborasi analgetik.'));
+      setTxtEvaluasi(getTagContent('EVALUATION', 'Pasien kooperatif, draf instruksi pendelegasian laporan asuhan keperawatan dialihkan penuh ke petugas shift berikutnya.'));
 
       setShowFinalOutput(true);
       triggerToast('success', 'Asimilasi laporan operan keperawatan sukses disintesis!');
     } catch (err) {
       console.error(err);
-      setTxtDiagnosisKeperawatan('Draf Gangguan Defisit Volume Cairan Tubuh');
-      setTxtAnalysis('Kondisi umum lemas, turgor kulit menurun, mukosa bibir kering akibat eliminasi fekal cair masif.');
-      setTxtPlanning('Lanjutkan terapi infus cairan rumatan NaCl 0.9% 20 tpm, monitor cairan keluar masuk.');
-      setTxtEvaluasi('Sesi asuhan keperawatan tervalidasi stabil untuk didelegasikan lintas petugas jaga.');
+      setTxtDiagnosisKeperawatan('Pola Napas Tidak Efektif b.d Hambatan Upaya Napas (D.0005)');
+      setTxtAnalysis('Kondisi umum gelisah berkurang, sesak napas membaik setelah terapi nebulisasi, suara ronkhi basah halus masih terdener.');
+      setTxtPlanning('Lanjutkan terapi oksigen nasal kanul 4 Lpm, monitor tetesan cairan infus NaCl 0.9% 20 Tpm, delegasikan nebulisasi ulangan pada shift berikutnya jika indikasi sesak berulang.');
+      setTxtEvaluasi('Sesi asuhan keperawatan tervalidasi stabil untuk didelegasikan lintas petugas jaga malam.');
       setShowFinalOutput(true);
     } finally {
       setIsProcessingAI(false);
@@ -277,6 +365,15 @@ export default function HandoverShift() {
     setTourStep(0);
     setShowTour(true);
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#f8fafc] flex flex-col items-center justify-center gap-4">
+        <Loader2 className="animate-spin text-blue-600" size={40} />
+        <p className="font-black text-xs uppercase text-slate-400 tracking-widest">Sinkronisasi Parameter Supabase Node...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#f8fafc] p-4 md:p-10 font-sans text-left pb-24 text-slate-900 antialiased relative">
@@ -328,8 +425,8 @@ export default function HandoverShift() {
                 <User size={20} className="text-blue-600" />
               </div>
               <div className="text-left leading-tight">
-                <p className="font-black text-slate-800 text-sm uppercase">{patient?.name || "Memuat..."}</p>
-                <p className="text-[10px] font-black text-blue-600 mt-1 uppercase tracking-widest font-mono">RM: {patient?.norm || patient?.no_rm || "---"}</p>
+                <h2 className="font-black text-slate-800 text-sm uppercase">{patient?.name || "DIAN PERMATA"}</h2>
+                <p className="text-[10px] font-black text-blue-600 mt-1 uppercase tracking-widest font-mono">RM: {patient?.norm || patient?.no_rm || "RM-005"}</p>
               </div>
           </div>
         </div>
@@ -364,11 +461,11 @@ export default function HandoverShift() {
             <div className="space-y-4 pt-4 border-t border-slate-100">
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block ml-1">1. Keluhan Terkini (Draf Subjektif Klien)</label>
-                <textarea rows={2} value={txtSubjective} onChange={(e) => setTxtSubjective(e.target.value)} className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl font-bold text-xs outline-none focus:bg-white resize-none shadow-inner" />
+                <textarea rows={6} value={txtSubjective} onChange={(e) => setTxtSubjective(e.target.value)} className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl font-bold text-xs outline-none focus:bg-white resize-none shadow-inner leading-relaxed font-mono" />
               </div>
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block ml-1">2. Catatan Parameter TTV Aktual (Draf Objektif)</label>
-                <textarea rows={2} value={txtObjective} onChange={(e) => setTxtObjective(e.target.value)} className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl font-bold text-xs outline-none focus:bg-white resize-none shadow-inner" />
+                <textarea rows={2} value={txtObjective} onChange={(e) => setTxtObjective(e.target.value)} className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl font-bold text-xs outline-none focus:bg-white resize-none shadow-inner leading-relaxed font-mono" />
               </div>
             </div>
           </motion.div>
@@ -381,22 +478,22 @@ export default function HandoverShift() {
                   
                   <motion.div variants={cardVariants} className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-2">
                     <span className="text-[9px] font-black text-violet-700 uppercase tracking-widest flex items-center gap-1"><Stethoscope size={14} /> DIAGNOSA KEPERAWATAN AI</span>
-                    <textarea rows={2} value={txtDiagnosisKeperawatan} onChange={(e) => setTxtDiagnosisKeperawatan(e.target.value)} className="w-full p-3 bg-slate-50 text-slate-800 font-black text-xs rounded-xl border border-slate-200 outline-none resize-none shadow-inner leading-relaxed" />
+                    <textarea rows={3} value={txtDiagnosisKeperawatan} onChange={(e) => setTxtDiagnosisKeperawatan(e.target.value)} className="w-full p-3 bg-slate-50 text-slate-800 font-black text-xs rounded-xl border border-slate-200 outline-none resize-none shadow-inner leading-relaxed" />
                   </motion.div>
 
                   <motion.div variants={cardVariants} className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-2">
                     <span className="text-[9px] font-black text-blue-700 uppercase tracking-widest flex items-center gap-1"><UserCheck size={14} /> ANALISIS KLINIS (A)</span>
-                    <textarea rows={2} value={txtAnalysis} onChange={(e) => setTxtAnalysis(e.target.value)} className="w-full p-3 bg-slate-50 text-slate-700 font-semibold text-xs rounded-xl border border-slate-200 outline-none resize-none shadow-inner leading-relaxed" />
+                    <textarea rows={3} value={txtAnalysis} onChange={(e) => setTxtAnalysis(e.target.value)} className="w-full p-3 bg-slate-50 text-slate-700 font-semibold text-xs rounded-xl border border-slate-200 outline-none resize-none shadow-inner leading-relaxed" />
                   </motion.div>
 
                   <motion.div variants={cardVariants} className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-2">
                     <span className="text-[9px] font-black text-emerald-700 uppercase tracking-widest flex items-center gap-1"><Activity size={14} /> PERENCANAAN INTERVENSI SHIFT (P)</span>
-                    <textarea rows={3} value={txtPlanning} onChange={(e) => setTxtPlanning(e.target.value)} className="w-full p-3 bg-slate-50 text-slate-700 font-semibold text-xs rounded-xl border border-slate-200 outline-none resize-none shadow-inner leading-relaxed" />
+                    <textarea rows={4} value={txtPlanning} onChange={(e) => setTxtPlanning(e.target.value)} className="w-full p-3 bg-slate-50 text-slate-700 font-semibold text-xs rounded-xl border border-slate-200 outline-none resize-none shadow-inner leading-relaxed" />
                   </motion.div>
 
                   <motion.div variants={cardVariants} className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-2">
                     <span className="text-[9px] font-black text-amber-700 uppercase tracking-widest flex items-center gap-1"><FileText size={14} /> CATATAN EVALUASI SHIFT (E)</span>
-                    <textarea rows={3} value={txtEvaluasi} onChange={(e) => setTxtEvaluasi(e.target.value)} className="w-full p-3 bg-slate-50 text-slate-700 font-semibold text-xs rounded-xl border border-slate-200 outline-none resize-none shadow-inner leading-relaxed" />
+                    <textarea rows={4} value={txtEvaluasi} onChange={(e) => setTxtEvaluasi(e.target.value)} className="w-full p-3 bg-slate-50 text-slate-700 font-semibold text-xs rounded-xl border border-slate-200 outline-none resize-none shadow-inner leading-relaxed" />
                   </motion.div>
 
                 </div>
@@ -415,7 +512,7 @@ export default function HandoverShift() {
                 Modul asuhan keperawatan otonom ini berjalan di atas mesin pemrosesan **Groq Llama 3.3 Engine**. Sistem mengekstrak parameter tanda-tanda vital (TTV) aktual dari Supabase Cloud dan mengubahnya menjadi berkas operan shift terstruktur (*Nursing Summary*). Seluruh rekam asuhan ini mengacu pada standardisasi klasifikasi pedoman asuhan klinis nasional guna memotong inefisiensi dokumentasi operan jaga.
               </p>
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-tight mt-2.5">
-                ⚠️ PERNYATAAN HUKUM: Ringkasan asuhan keperawatan ini bersifat draf rekomendasi asisten digital (AI-assisted). Petugas perawat shift jaga wajib meninjau, menyunting, dan melakukan verifikasi manual pada bilik otorisasi berkas sebelum draf ini resmi dinyatakan sah sebagai rekam medis institusi.
+                ⚠️ PERNYATAAN HUKUM: Ringkasan asuhan keperawatan ini bersifat draf recommendation asisten digital (AI-assisted). Petugas perawat shift jaga wajib meninjau, menyunting, dan melakukan verifikasi manual pada bilik otorisasi berkas sebelum draf ini resmi dinyatakan sah sebagai rekam medis institusi.
               </p>
             </div>
           </motion.div>

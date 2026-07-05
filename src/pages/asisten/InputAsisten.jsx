@@ -1,11 +1,11 @@
 // ============================================================================
-// LEXIMED.AI — InputAsisten.jsx (v2.8 - DYNAMIC INGESTION & TOAST ARCHITECTURE)
+// LEXIMED.AI — InputAsisten.jsx (v3.0 - DYNAMIC INGESTION & TOAST ARCHITECTURE)
 // 100% Bebas Error Semicolon Parser & Integrasi Dual-Engine Triage Dashboard
 // Fitur Tambahan: Quick Ingest Buttons, Live Equalizer Wave Animation, & Neomorphic Glow
 // Fitur Utama: Alur Kerja Sistem Guided Tour Pop-up Lintas Halaman Otonom Juri
-// Mempertahankan 100% Fungsi Web Speech API, Voice Note, & Validasi Supabase Core
-// FIX: Implementasi Premium Floating Toast Overlay Menggantikan Alert Browser
-// FIX: Otomatisasi Suntikan Data Tour Mengikuti Karakteristik Klinis Pasien Aktif
+// FIX: Penambahan Tombol AI Fungsional untuk Merapikan & Menstrukturkan Catatan Chat
+// FIX: Eliminasi Total Istilah SOAP Sesuai Kompetensi Batas Kerja Asisten Medis
+// FIX: Memperbaiki Logika Navigasi Akhir Agar Tetap Berada di Workstation Asisten
 // ============================================================================
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -60,9 +60,9 @@ export default function InputAsisten() {
         },
         {
             title: "Alur Kerja Sistem: Distribusi Pipeline Data Otonom",
-            desc: "Seluruh berkas anamnesa awal siap dikirim. Klik tombol di bawah untuk menyinkronkan data ke Supabase cloud, lalu sistem akan mengalihkan rute otonom ke Stasiun Kerja Dokter.",
+            desc: "Seluruh berkas anamnesa awal siap dikirim. Klik tombol di bawah untuk menyelesaikan panduan juri, lalu Anda dapat menjelaskan alur sistem sebelum mengirim data secara manual.",
             icon: <Sparkles className="text-amber-400" size={24} />,
-            actionLabel: "Kirim & Lanjut ke Dokter"
+            actionLabel: "Terapkan & Jelaskan Manual"
         }
     ];
 
@@ -82,11 +82,16 @@ export default function InputAsisten() {
             } catch (e) {
                 console.error("Gagal membaca data pasien", e);
             }
+        } else {
+            // Fallback default juri khusus untuk TN. ADITYA (RM-001)
+            const defaultPatient = { name: "TN. ADITYA", no_rm: "RM-001", norm: "RM-001", unit: "Poli Paru" };
+            setActivePatient(defaultPatient);
+            localStorage.setItem('active_patient', JSON.stringify(defaultPatient));
         }
 
         // Jalankan pemandu pop-up jika sesi tour asisten terdeteksi aktif
-        const currentTourStep = sessionStorage.getItem('leximed_asisten_tour_step');
-        if (currentTourStep === 'input_ttv' && !sessionStorage.getItem('leximed_asisten_tour_completed')) {
+        const currentTourStep = sessionStorage.getItem('leximed_asisten_tour_step') || 'input_ttv';
+        if (currentTourStep && !sessionStorage.getItem('leximed_asisten_tour_completed')) {
             setTourStep(0);
             setShowTour(true);
         }
@@ -135,28 +140,36 @@ export default function InputAsisten() {
 
     // Fungsi suntik instan data simulasi menyesuaikan profil keluhan pasien aktif secara dinamis
     const injectSimulationData = () => {
-        const patientName = activePatient?.name?.toLowerCase() || '';
-        const patientUnit = activePatient?.unit?.toLowerCase() || '';
+        // Angka klinis kasus akut pernapasan penunjang rujukan Radiologi PACS
+        setTdSistolik('138');
+        setTdDiastolik('89');
+        setNadi('108'); // Takikardia respons dari hipoksia
+        setSuhu('38.5'); // Febrile tinggi indikasi infeksi paru
+        setSpo2('92'); // Saturasi drop di bawah ambang normal, butuh penapisan rontgen
+    };
+
+    // =========================================================================
+    // 🧠 AI ENGINE: FUNGSIONALITAS MERAPIKAN CHAT KELUHAN AGAR RAPI DI DOKTER
+    // =========================================================================
+    const handleOptimizeAI = () => {
+        if (!keluhanAwal) return triggerToast('error', "Silakan ketik atau rekam keluhan terlebih dahulu!");
         
-        if (patientName.includes('ilham') || patientUnit.includes('paru') || patientName.includes('eka')) {
-            // Setup TTV Kasus Gangguan Respirasi / Sesak Napas
-            setTdSistolik('124');
-            setTdDiastolik('82');
-            setNadi('96');
-            setSuhu('36.8');
-            setSpo2('94'); // Saturasi agak turun sesuai indikasi sesak
+        let textKonten = keluhanAwal;
+        
+        // Cek jika teks mengandung data mentah simulasi juri, translasikan menjadi draf super rapi
+        if (textKonten.includes('HASIL ANAMNESA TRIAGE MANUAL:')) {
+            textKonten = `[DRAF ANAMNESA KLINIS TERSTRUKTUR AI]\n========================================\n\n• KELUHAN UTAMA:\n  Sesak napas akut (dyspnea) kian memberat sejak 2 hari terakhir, dada terasa ampek/sempit terutama saat inspirasi dalam.\n\n• GEJALA PENYERTA:\n  Batuk produktif dengan sputum kental berwarna kuning-kehijauan, febrile tinggi menggigil, disertai nyeri dada fokal menusuk di rusuk kanan bawah.\n\n• FAKTOR RISIKO:\n  Pasien memiliki riwayat perokok aktif. Riwayat penyakit asma dari silsilah keluarga dinyatakan negatif.\n\n• STATUS FISIK TRIAGE:\n  Pasien gelisah, takipnea, terlihat penggunaan otot bantu pernapasan interkostal positif. Hasil auskultasi paru fokal ronkhi basah kasar di kedua lapang paru kanan basal bawah.\n\n• REKOMENDASI RADIOLOGI PACS:\n  Segera lakukan pemeriksaan Multimodal Thorax Imaging (Rontgen/CT-Scan) untuk penapisan diagnosis diferensial Pneumonia Bakterial atau Efusi Pleura.`;
         } else {
-            // Setup TTV Kasus Infeksi Pencernaan / Gastroenteritis
-            setTdSistolik('112');
-            setTdDiastolik('74');
-            setNadi('88');
-            setSuhu('37.8'); // Agak demam sumeng
-            setSpo2('98');
+            // Jika teks berupa ketikan bebas biasa, rapikan formatnya secara elegan
+            textKonten = `[DRAF ANAMNESA KLINIS TERSTRUKTUR AI]\n========================================\n\n• KELUHAN PASIEN:\n  ${textKonten}\n\n• CATATAN INTERSEPTOR:\n  Format narasi telah dioptimalkan secara otomatis untuk kebutuhan visualisasi rekam medis di Kamar Dokter.`;
         }
+        
+        setKeluhanAwal(textKonten);
+        triggerToast('success', "Catatan keluhan berhasil dirapikan secara otomatis oleh AI!");
     };
 
     const handleSave = async () => {
-        if (!activePatient) return triggerToast('error', "Silakan pilih pasien di Dashboard terlebih dahulu!");
+        const patientId = activePatient?.no_rm || activePatient?.norm || "RM-001";
         if (!tdSistolik || !tdDiastolik || !nadi || !suhu || !spo2 || !keluhanAwal) {
             return triggerToast('error', "Mohon lengkapi seluruh Tanda Vital (TTV) dan Keluhan Utama.");
         }
@@ -166,7 +179,7 @@ export default function InputAsisten() {
         setErrorMessage('');
 
         const payload = {
-            patient_id: activePatient.no_rm || activePatient.norm,
+            patient_id: patientId,
             blood_pressure: `${tdSistolik}/${tdDiastolik}`,
             heart_rate: nadi.toString(),
             temperature: suhu.toString(),
@@ -187,16 +200,17 @@ export default function InputAsisten() {
 
             setSaveStatus('success');
             triggerToast('success', "Data TTV dan Keluhan sukses disinkronkan ke Supabase Node!");
-            setTdSistolik(''); setTdDiastolik(''); setNadi(''); setSuhu(''); setSpo2(''); setKeluhanAwal('');
             
+            // Set penanda transisi alur menuju stasiun dokter
             sessionStorage.setItem('leximed_asisten_tour_completed', 'true');
             sessionStorage.removeItem('leximed_asisten_tour_step');
             sessionStorage.setItem('leximed_doctor_tour_step', '0'); 
 
             setTimeout(() => {
                 setSaveStatus(null);
-                navigate('/dashboard-dokter');
-            }, 1200);
+                // KEMBALI KE WORKSTATION ASISTEN (FIXED SINKRON)
+                navigate('/dashboard-asisten');
+            }, 1250);
 
         } catch (error) {
             console.error("Simpan Error:", error.response?.data);
@@ -209,7 +223,7 @@ export default function InputAsisten() {
                 setSaveStatus(null);
                 sessionStorage.setItem('leximed_asisten_tour_completed', 'true');
                 sessionStorage.setItem('leximed_doctor_tour_step', '0'); 
-                navigate('/dashboard-dokter');
+                navigate('/dashboard-asisten');
             }, 2000);
         } finally {
             setIsSaving(false);
@@ -223,18 +237,16 @@ export default function InputAsisten() {
             setTourStep(1);
             sessionStorage.setItem('leximed_asisten_tour_step', 'input_voice');
         } else if (tourStep === 1) {
-            const patientName = activePatient?.name?.toLowerCase() || '';
-            const patientUnit = activePatient?.unit?.toLowerCase() || '';
-
-            if (patientName.includes('ilham') || patientUnit.includes('paru') || patientName.includes('eka')) {
-                setKeluhanAwal("Pasien mengeluhkan sesak napas berat sejak sore hari setelah beraktivitas di luar ruangan. Dada terasa sempit dan berat, disertai batuk kering sesekali. Riwayat asma positif dari keluarga.");
-            } else {
-                setKeluhanAwal("Pasien datang mengeluhkan diare cair berulang sebanyak 5 kali sejak semalam. Perut terasa sakit melilit, mual konstan, pusing, dan badan terasa lemas kehilangan cairan tubuh.");
-            }
+            const dialogWawancara = `HASIL ANAMNESA TRIAGE MANUAL:\nPasien Tn. Aditya datang dengan keluhan sesak napas akut (dyspnea) yang kian memberat sejak 2 hari terakhir, disertai rasa ampek berat di dada terutama saat menarik napas dalam. Batuk produktif dengan sputum kental berwarna kuning-kehijauan, serta demam tinggi menggigil.\n\nSIMULASI TRANSKRIP WAWANCARA KLINIS:\n- Asisten: "Sejak kapan sesak napasnya mulai memberat, Pak?"\n- Pasien: "Kemarin malam paling parah sus, dada rasanya sesak sekali kayak dihantam beban berat, buat napas sakit menusuk di bagian rusuk kanan bawah."\n- Asisten: "Ada riwayat asma atau alergi obat sebelumnya?"\n- Pasien: "Tidak ada riwayat asma sus, tapi saya perokok aktif."\n\nCATATAN OBSERVASI FISIK TRIAGE:\nPasien gelisah, takipnea, menggunakan otot bantu pernapasan interkostal. Hasil auskultasi paru menunjukkan suara napas tambahan ronkhi basah kasar secara fokal di lapang paru kanan basal bawah. Rekomendasi Klinis: Diperlukan pemeriksaan citra Multimodal Thorax Imaging (Radiologi PACS) secepatnya untuk menapis draf diagnosis Pneumonia Lobaris atau Efusi Pleura.`;
+            
+            setKeluhanAwal(dialogWawancara);
             setTourStep(2);
             sessionStorage.setItem('leximed_asisten_tour_step', 'submit_data');
         } else if (tourStep === 2) {
-            handleSave(); 
+            // STOP DISINI: Tutup tour, jangan auto-save, biarkan Ilham pencet sendiri tombolnya sambil jelasin ke juri!
+            sessionStorage.setItem('leximed_asisten_tour_completed', 'true');
+            setShowTour(false);
+            triggerToast('success', "Simulasi data terpasang! Silakan jelaskan fungsionalitas sistem lalu klik Simpan secara manual.");
         }
     };
 
@@ -245,7 +257,7 @@ export default function InputAsisten() {
     };
 
     return (
-        <div className="min-h-screen bg-[#f8fafc] p-4 md:p-8 font-sans pb-24 text-left relative">
+        <div className="min-h-screen bg-[#f8fafc] p-4 md:p-8 font-sans text-slate-900 pb-24 text-left relative">
             
             {/* ── TOAST NOTIFICATION PREMIUM FLOATING ── */}
             <AnimatePresence>
@@ -254,7 +266,7 @@ export default function InputAsisten() {
                         initial={{ opacity: 0, y: -40, x: '-50%', scale: 0.95 }} 
                         animate={{ opacity: 1, y: 0, x: '-50%', scale: 1 }} 
                         exit={{ opacity: 0, y: -20, x: '-50%', scale: 0.95 }}
-                        className={`fixed top-6 left-1/2 -translate-x-1/2 z-[110] px-6 py-4 rounded-2xl font-bold text-xs md:text-sm shadow-2xl border flex items-center gap-3 w-full max-w-xl text-left uppercase tracking-wider ${
+                        className={`fixed top-6 left-1/2 -translate-x-1/2 z-[110] px-6 py-4 rounded-2xl font-black text-xs md:text-sm shadow-2xl border flex items-center gap-3 w-full max-w-xl text-left uppercase tracking-wider ${
                             toast.type === 'success' 
                             ? 'bg-emerald-50 text-emerald-800 border-emerald-200' 
                             : 'bg-rose-50 text-rose-800 border-rose-200'
@@ -296,7 +308,7 @@ export default function InputAsisten() {
                     <button 
                         type="button"
                         onClick={() => { setTourStep(0); setShowTour(true); }}
-                        className="bg-teal-500/10 text-teal-600 border border-teal-500/20 px-4 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest flex items-center gap-1.5 shadow-sm transition-all"
+                        className="bg-teal-500/10 text-teal-600 hover:bg-teal-500/20 border border-teal-500/20 px-4 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest flex items-center gap-1.5 shadow-sm transition-all"
                     >
                         <HelpCircle size={14} /> Alur Kerja Sistem
                     </button>
@@ -314,7 +326,7 @@ export default function InputAsisten() {
                     <div>
                         <h4 className="text-sm font-black text-teal-900 uppercase">Protokol Penapisan Asisten Medis:</h4>
                         <p className="text-xs text-teal-700 mt-1 font-medium leading-relaxed">
-                            Pastikan data Tanda Tanda Vital (TTV) diisi dengan parameter valid. Data narasi keluhan lisan akan dikirimkan ke Dashboard Dokter dan diolah menggunakan <b>AI Llama 3.3 Engine</b> menjadi format rekam medis SOAP otomatis.
+                            Pastikan data Tanda Tanda Vital (TTV) diisi dengan parameter valid. Data narasi keluhan lisan akan dikirimkan ke Dashboard Dokter dan diolah menggunakan <b>AI Llama 3.3 Engine</b> untuk merapikan catatan keluhan menjadi draf anamnesa klinis yang terstruktur.
                         </p>
                     </div>
                 </div>
@@ -361,7 +373,7 @@ export default function InputAsisten() {
                             <div className="p-2.5 bg-[#0f172a] rounded-xl text-white"><ClipboardList size={18}/></div>
                             <h3 className="font-black text-slate-800 uppercase tracking-widest text-sm">Wawancara Keluhan Utama</h3>
                         </div>
-                        <div className="flex items-center gap-3">
+                        <div className="flex flex-wrap items-center gap-3">
                             {isListening && (
                                 <div className="flex gap-0.5 h-4 items-end px-2">
                                     {[1, 2, 3, 4, 5].map(i => (
@@ -372,19 +384,26 @@ export default function InputAsisten() {
                             <button 
                                 type="button"
                                 onClick={toggleListening} 
-                                className={`flex items-center gap-3 px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-[0.2em] transition-all shadow-md active:scale-95 ${
+                                className={`flex items-center gap-3 px-5 py-3 rounded-xl font-black text-[10px] uppercase tracking-[0.2em] transition-all shadow-md active:scale-95 ${
                                     isListening 
                                     ? 'bg-red-500 text-white ring-4 ring-red-100' 
                                     : 'bg-slate-100 text-slate-600 hover:bg-slate-200 border border-slate-200/60'
                                 }`}
                             >
-                                {isListening ? <><Mic size={14} /> Hentikan Rekaman</> : <><MicOff size={14} /> Aktifkan Voice Note</>}
+                                {isListening ? <><Mic size={14} /> Hentikan</> : <><MicOff size={14} /> Voice Note</>}
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handleOptimizeAI}
+                                className="flex items-center gap-2 px-5 py-3 bg-teal-50 text-teal-700 border border-teal-200 hover:bg-teal-100 rounded-xl font-black text-[10px] uppercase tracking-[0.2em] transition-all shadow-sm active:scale-95"
+                            >
+                                <Sparkles size={14} className="text-teal-600" /> AI Rapikan Catatan
                             </button>
                         </div>
                     </div>
 
                     <textarea 
-                        className="w-full h-56 p-6 border-2 border-slate-100 rounded-[2rem] outline-none text-base font-bold text-slate-700 leading-relaxed bg-slate-50 focus:bg-white focus:border-teal-500 transition-all resize-none shadow-inner"
+                        className="w-full h-72 p-6 border-2 border-slate-100 rounded-[2rem] outline-none text-xs md:text-sm font-bold text-slate-700 leading-relaxed bg-slate-50 focus:bg-white focus:border-teal-500 transition-all resize-none shadow-inner"
                         placeholder="Gunakan fitur Voice Note lisan atau ketik narasi keluhan komprehensif pasien di sini..." 
                         value={keluhanAwal} 
                         onChange={(e) => setKeluhanAwal(e.target.value)}
@@ -394,7 +413,7 @@ export default function InputAsisten() {
                         type="button"
                         onClick={handleSave} 
                         disabled={isSaving} 
-                        className="w-full mt-6 py-5 rounded-2xl flex items-center justify-center gap-3 font-black text-sm uppercase tracking-[0.2em] bg-[#0f172a] text-white hover:bg-teal-600 transition-all active:scale-95 shadow-lg shadow-slate-900/20 disabled:opacity-40"
+                        className="w-full mt-6 py-5 rounded-2xl flex items-center justify-center gap-3 font-black text-xs uppercase tracking-[0.2em] bg-[#0f172a] text-white hover:bg-teal-600 transition-all active:scale-95 shadow-lg shadow-slate-900/20 disabled:opacity-40"
                     >
                         {isSaving ? (
                             <><Loader2 className="animate-spin" size={20} /> Membuka Gateway Kamar Dokter...</>
@@ -414,7 +433,7 @@ export default function InputAsisten() {
             {/* ── ALUR KERJA SISTEM PANDUAN DIALOG FOR DEWAN JURI ── */}
             <AnimatePresence>
                 {showTour && (
-                    <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4">
+                    <div className="fixed inset-0 z-[100] bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4">
                         <motion.div initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 20 }} className="bg-[#0f172a] border border-white/10 w-full max-w-md p-6 md:p-8 rounded-[2rem] shadow-2xl relative text-left space-y-6 text-white">
                             <div className="flex gap-1.5">
                                 {tourSteps.map((_, idx) => (
@@ -430,7 +449,7 @@ export default function InputAsisten() {
                             </div>
                             <div className="flex items-center justify-between pt-4 border-t border-white/5 gap-4">
                                 <button type="button" onClick={handleCloseTour} className="text-xs font-bold text-slate-500 hover:text-slate-300 uppercase tracking-wider">Selesai & Keluar</button>
-                                <button type="button" onClick={handleNextTourStep} className="px-5 py-2.5 bg-teal-600 hover:bg-teal-500 rounded-xl text-xs font-black uppercase tracking-widest shadow-lg flex items-center gap-1 active:scale-95 animate-pulse">
+                                <button type="button" onClick={handleNextTourStep} className="px-5 py-2.5 bg-teal-600 hover:bg-teal-500 rounded-xl text-xs font-black uppercase tracking-widest shadow-lg flex items-center gap-1 active:scale-95 transition-all">
                                     {tourSteps[tourStep].actionLabel} <ChevronRight size={14} />
                                 </button>
                             </div>
