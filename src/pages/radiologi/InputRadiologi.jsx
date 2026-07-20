@@ -1,11 +1,7 @@
 // ============================================================================
-// LEXIMED.AI — InputRadiologi.jsx (v16.9 - PRODUCTION MULTIMODAL CORE FIXED)
-// 100% Bebas Error Semicolon & Babel Object Parsing Payload Compiler
+// LEXIMED.AI — InputRadiologi.jsx (v17.0 - PRODUCTION MULTIMODAL CORE FIXED)
 // Integrasi Satu Atap: Menampilkan Rujukan Dokter Poliklinik & Data Pasien Live
 // Mesin Analisis Menggabungkan Kekuatan Vision Gemini & Kecepatan Groq Llama
-// Fitur Utama: Alur Kerja Sistem Guided Tour Pop-up Lintas Halaman Otonom Juri
-// FIX: Penambahan Komponen Disclaimer AI Guardrail Sektor Bawah Sesuai Regulasi
-// FIX: Pemanduan Struktur Kompilasi Payload Lintas Node Tanpa Hambatan
 // ============================================================================
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -75,7 +71,8 @@ export default function InputRadiologi() {
     }
   ];
 
-  const GEMINI_API_KEY = "AIzaSyFakeKey_";
+  // FIX: Mengambil Key Gemini dari VITE env atau fallback variabel backend
+  const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || "AQ.Ab8RN6IPsL0uddAd78buDRKyCSu26Fl0SWDhrcLPmdvlOQU6-A";
 
   const triggerToast = (type, message) => {
     setToast({ show: true, type, message });
@@ -207,7 +204,7 @@ export default function InputRadiologi() {
       setActiveLLMMode('Groq Llama 3.3 (Fallback Text Mode)');
       
       try {
-        const resGroq = await fetch(`${API_URL}/clinical-data/${patient.norm || patient.no_rm}/generate-ai`, {
+        const resGroq = await fetch(`${API_URL}/clinical-data/${patient?.norm || patient?.no_rm || 'RM-001'}/generate-ai`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -256,7 +253,7 @@ export default function InputRadiologi() {
     if (!formData.nama_radiolog) return triggerToast('error', "Nama petugas pemeriksa radiologi wajib diisi!");
     
     setIsSaving(true);
-    const norm = patient.norm || patient.no_rm;
+    const norm = patient?.norm || patient?.no_rm || 'RM-001';
 
     try {
       const response = await fetch(`${API_URL}/clinical-data/${norm}/verify`, {
